@@ -1613,43 +1613,42 @@ function toggleDarkMode() {
     const buildsheetContent = document.getElementById("buildsheet-content");
     buildsheetContent.innerHTML = ""; // Clear previous content
 
+    // Capture the entire sandbox, including overflow
     const sandbox = document.getElementById("sandbox");
-    const wasHidden = sandbox.style.display === "none";
 
-    // Temporarily make the sandbox visible if it's hidden
-    if (wasHidden) sandbox.style.display = "block";
+    // Temporarily adjust the sandbox size to fit all content
+    const originalWidth = sandbox.style.width;
+    const originalHeight = sandbox.style.height;
+    sandbox.style.width = "auto"; // Allow the sandbox to expand to its full size
+    sandbox.style.height = "auto";
 
-    setTimeout(() => {
-        html2canvas(sandbox, { 
-            useCORS: true, 
-            allowTaint: true, 
-            backgroundColor: null, // Fix for Safari transparent background issues
-            foreignObjectRendering: true, // Improves iOS rendering
-            scale: 2 // Higher resolution capture
-        }).then((canvas) => {
-            if (wasHidden) sandbox.style.display = "none"; // Restore state
+    // Use html2canvas to capture the entire sandbox
+    html2canvas(sandbox, {
+        scrollX: 0, // Capture horizontal scroll
+        scrollY: 0, // Capture vertical scroll
+        windowWidth: sandbox.scrollWidth, // Full width of the sandbox
+        windowHeight: sandbox.scrollHeight, // Full height of the sandbox
+        logging: true, // Enable logging for debugging
+        useCORS: true, // Handle cross-origin images if any
+    }).then((canvas) => {
+        // Restore the original sandbox size
+        sandbox.style.width = originalWidth;
+        sandbox.style.height = originalHeight;
 
-            const sandboxImage = document.createElement("img");
-            sandboxImage.src = canvas.toDataURL("image/png"); // Ensure PNG format
-            sandboxImage.style.maxWidth = "100%";
-            sandboxImage.style.height = "auto";
-            buildsheetContent.appendChild(sandboxImage);
-        }).catch((error) => {
-            console.error("Error capturing sandbox on iPhone:", error);
-            buildsheetContent.innerHTML = "<p style='color: red;'>Error: Unable to generate sandbox image.</p>";
-        });
+        // Create an image from the canvas
+        const sandboxImage = document.createElement("img");
+        sandboxImage.src = canvas.toDataURL();
+        sandboxImage.style.maxWidth = "100%";
+        sandboxImage.style.height = "auto";
+        buildsheetContent.appendChild(sandboxImage);
 
-        // Clone the BOM table
-        const pickListTable = document.getElementById("pick-list-table");
-        if (pickListTable) {
-            const clonedTable = pickListTable.cloneNode(true);
-            buildsheetContent.appendChild(clonedTable);
-        }
-    }, 1000); // Longer delay for Safari to fully render
-
-// Small delay to ensure rendering is complete
+        // Add the Bill of Materials table
+        const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+        buildsheetContent.appendChild(pickListTable);
+    }).catch((error) => {
+        console.error("Error capturing sandbox:", error);
+    });
 }
-
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
     const buildsheetContent = document.getElementById("buildsheet-content");

@@ -1678,7 +1678,7 @@ function toggleDarkMode() {
         );
     });
 
-    // Draw parts
+    // Draw parts and dropdown text
     parts.forEach((part) => {
         const rect = part.getBoundingClientRect();
         const partType = part.classList.contains("NET") ? "NET" :
@@ -1717,6 +1717,21 @@ function toggleDarkMode() {
             offsetX + rect.left * scale + 2,
             offsetY + rect.top * scale + 5
         );
+
+        // Extract and draw dropdown text
+        const dropdowns = part.querySelectorAll(".dropdown");
+        dropdowns.forEach((dropdown, index) => {
+            const dropdownText = dropdown.options[dropdown.selectedIndex].text;
+            const dropdownRect = dropdown.getBoundingClientRect();
+
+            // Position the dropdown text relative to the part
+            pdf.setFontSize(6); // Smaller font size for dropdown text
+            pdf.text(
+                dropdownText,
+                offsetX + dropdownRect.left * scale + 2,
+                offsetY + dropdownRect.top * scale + 10 + (index * 5) // Adjust vertical spacing
+            );
+        });
     });
 
     // Save the PDF

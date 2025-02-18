@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sandbox Parts Placement</title>
@@ -502,6 +504,65 @@
             z-index: 10; /* Bring SVG to the top */
             pointer-events: none; /* Allow clicks to pass through to parts */
         }
+
+        /* Complete Buildsheet Styling */
+        #CompleteBuildsheet {
+            text-align: center;
+        }
+
+        #buildsheet-content {
+            margin-top: 20px;
+        }
+
+        #buildsheet-content img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        #buildsheet-content table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode #buildsheet-content table {
+            background-color: #2c3e50;
+            color: #f8f9fa;
+        }
+
+        #buildsheet-content th, #buildsheet-content td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .dark-mode #buildsheet-content th, .dark-mode #buildsheet-content td {
+            border-color: #34495e;
+        }
+
+        #buildsheet-content th {
+            background-color: #2c3e50;
+            color: white;
+            font-weight: 500;
+        }
+
+        .dark-mode #buildsheet-content th {
+            background-color: #1abc9c;
+        }
+
+        #buildsheet-content td {
+            background-color: #f8f9fa;
+        }
+
+        .dark-mode #buildsheet-content td {
+            background-color: #34495e;
+        }
     </style>
 </head>
 <body>
@@ -519,6 +580,7 @@
     <button class="tablinks" onclick="openTab(event, 'Sandbox')" id="defaultOpen">Sandbox</button>
     <button class="tablinks" onclick="openTab(event, 'Chart')">Chart</button>
     <button class="tablinks" onclick="openTab(event, 'PickList')">Pick List</button>
+    <button class="tablinks" onclick="openTab(event, 'CompleteBuildsheet')">Complete Buildsheet</button>
 </div>
 
 <div id="Sandbox" class="tabcontent">
@@ -602,6 +664,15 @@
     </table>
 </div>
 
+<div id="CompleteBuildsheet" class="tabcontent">
+    <h1>Complete Buildsheet</h1>
+    <button class="button" onclick="generateBuildsheet()">Generate Buildsheet</button>
+    <button class="button" onclick="exportBuildsheetToPDF()">Export to PDF</button>
+    <div id="buildsheet-content">
+        <!-- Content will be dynamically added here -->
+    </div>
+</div>
+
 <!-- Loading Popup -->
 <div class="loading-popup" id="loadingPopup">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Crestron_Electronics_logo.svg/1200px-Crestron_Electronics_logo.svg.png" alt="Crestron Logo">
@@ -646,6 +717,7 @@
     const partTemplatesList = document.getElementById("part-templates-list");
     const polylineSvg = document.getElementById("polyline-svg");
     const panelSelect = document.getElementById("panel-select");
+    const buildsheetContent = document.getElementById("buildsheet-content");
 
     let currentRailIndex = 0;
     let railPositions = [];
@@ -1003,537 +1075,562 @@
             let netIndex = 0;
             let totalSpaceMa = 0; // Initialize total
 
-            // Define power consumption values
-            const powerValues = {
-                NET: { LV: 120, DLI: 80 },
-                LINK: { LV: 100, DIMU: 100, SW: 50, PLUG: 50, IO: 145 }
-            };
+        // Define power consumption values
+        const powerValues = {
+            NET: { LV: 120, DLI: 80 },
+            LINK: { LV: 100, DIMU: 100, SW: 50, PLUG: 50, IO: 145 }
+        };
 
-            parts.forEach((part, index) => {
-                if (part.type === "NET") {
-                    let netDevice = part.element.querySelector(".dropdown").value;
-                    let linkDevices = [];
-                    let rowPower = 0;
+        parts.forEach((part, index) => {
+            if (part.type === "NET") {
+                let netDevice = part.element.querySelector(".dropdown").value;
+                let linkDevices = [];
+                let rowPower = 0;
 
-                    // Add power consumption for the NET device
-                    rowPower += powerValues.NET[netDevice] || 0;
+                // Add power consumption for the NET device
+                rowPower += powerValues.NET[netDevice] || 0;
 
-                    let nextNetIndex = parts.findIndex((p, i) => i > index && p.type === "NET");
+                let nextNetIndex = parts.findIndex((p, i) => i > index && p.type === "NET");
 
-                    // Collect LINK devices between this NET and the next NET
-                    for (let i = index + 1; i < (nextNetIndex !== -1 ? nextNetIndex : parts.length); i++) {
-                        if (parts[i].type === "LINK") {
-                            let linkDevice = parts[i].element.querySelector(".dropdown").value;
-                            linkDevices.push(linkDevice);
-                            // Add power consumption for the LINK device
-                            rowPower += powerValues.LINK[linkDevice] || 0;
-                        }
+                // Collect LINK devices between this NET and the next NET
+                for (let i = index + 1; i < (nextNetIndex !== -1 ? nextNetIndex : parts.length); i++) {
+                    if (parts[i].type === "LINK") {
+                        let linkDevice = parts[i].element.querySelector(".dropdown").value;
+                        linkDevices.push(linkDevice);
+                        // Add power consumption for the LINK device
+                        rowPower += powerValues.LINK[linkDevice] || 0;
                     }
-
-                    // Add a row to the chart
-                    let row = document.createElement("tr");
-
-                    // Space (editable)
-                    let spaceCell = document.createElement("td");
-                    let spaceInput = document.createElement("input");
-                    spaceInput.type = "text";
-                    spaceInput.value = `Space ${netIndex + 1}`;
-                    spaceCell.appendChild(spaceInput);
-                    row.appendChild(spaceCell);
-
-                    // Net Device
-                    let netDeviceCell = document.createElement("td");
-                    netDeviceCell.textContent = netDevice;
-                    row.appendChild(netDeviceCell);
-
-                    // Link Devices
-                    let linkDevicesCell = document.createElement("td");
-                    linkDevicesCell.textContent = linkDevices.join(", ");
-                    row.appendChild(linkDevicesCell);
-
-                    // Power Consumption (row total)
-                    let powerCell = document.createElement("td");
-                    let powerInput = document.createElement("input");
-                    powerInput.type = "text";
-                    powerInput.value = rowPower; // Set the row's power consumption
-                    powerInput.readOnly = true; // Make it read-only
-                    powerCell.appendChild(powerInput);
-                    row.appendChild(powerCell);
-
-                    // Device mA (editable)
-                    let deviceMaCell = document.createElement("td");
-                    let deviceMaInput = document.createElement("input");
-                    deviceMaInput.type = "number";
-                    deviceMaInput.value = deviceMaValues[netIndex] || "0"; // Preserve Device mA value
-                    deviceMaInput.oninput = () => {
-                        // Ensure only numbers are entered
-                        deviceMaInput.value = deviceMaInput.value.replace(/[^0-9]/g, "");
-                        deviceMaValues[netIndex] = deviceMaInput.value; // Store Device mA value
-                    };
-                    deviceMaCell.appendChild(deviceMaInput);
-                    row.appendChild(deviceMaCell);
-
-                    // Total Space mA (read-only)
-                    let totalSpaceMaCell = document.createElement("td");
-                    let totalSpaceMaInput = document.createElement("input");
-                    totalSpaceMaInput.type = "text";
-                    totalSpaceMaInput.readOnly = true;
-                    totalSpaceMaInput.value = "0"; // Initialize to 0
-                    totalSpaceMaCell.appendChild(totalSpaceMaInput);
-                    row.appendChild(totalSpaceMaCell);
-
-                    // Calculate button
-                    let calculateCell = document.createElement("td");
-                    let calculateButton = document.createElement("button");
-                    calculateButton.textContent = "Calculate";
-                    calculateButton.onclick = () => {
-                        const powerConsumption = parseFloat(powerInput.value) || 0;
-                        const deviceMa = parseFloat(deviceMaInput.value) || 0;
-                        const totalSpaceMa = powerConsumption + deviceMa;
-                        totalSpaceMaInput.value = totalSpaceMa; // Update Total Space mA
-                        updateTotal(); // Update the total
-                    };
-                    calculateCell.appendChild(calculateButton);
-                    row.appendChild(calculateCell);
-
-                    chartTableBody.appendChild(row);
-                    netIndex++;
                 }
-            });
 
-            // Show the chart table
-            document.getElementById("chart-table").style.display = "table";
-        }, 2000); // Simulate a 2-second loading delay
-    }
+                // Add a row to the chart
+                let row = document.createElement("tr");
 
-    // Update Total
-    function updateTotal() {
-        let total = 0;
-        const rows = chartTableBody.querySelectorAll("tr");
-        rows.forEach(row => {
-            const totalSpaceMaInput = row.querySelector("td:nth-child(6) input");
-            if (totalSpaceMaInput) {
-                total += parseFloat(totalSpaceMaInput.value) || 0;
-            }
-        });
-        totalSpaceMaCell.textContent = total; // Update the total cell
-    }
+                // Space (editable)
+                let spaceCell = document.createElement("td");
+                let spaceInput = document.createElement("input");
+                spaceInput.type = "text";
+                spaceInput.value = `Space ${netIndex + 1}`;
+                spaceCell.appendChild(spaceInput);
+                row.appendChild(spaceCell);
 
-    // Generate Pick List
-    function generatePickList() {
-        pickListTableBody.innerHTML = ""; // Clear the table
+                // Net Device
+                let netDeviceCell = document.createElement("td");
+                netDeviceCell.textContent = netDevice;
+                row.appendChild(netDeviceCell);
 
-        // Check if all NET and LINK devices have a type selected
-        let hasError = false;
-        parts.forEach(part => {
-            if (part.type === "NET" || part.type === "LINK") {
-                const dropdown = part.element.querySelector(".dropdown");
-                if (!dropdown.value) {
-                    hasError = true;
-                    alert(`Error: ${part.type} device does not have a type selected.`);
-                }
+                // Link Devices
+                let linkDevicesCell = document.createElement("td");
+                linkDevicesCell.textContent = linkDevices.join(", ");
+                row.appendChild(linkDevicesCell);
+
+                // Power Consumption (row total)
+                let powerCell = document.createElement("td");
+                let powerInput = document.createElement("input");
+                powerInput.type = "text";
+                powerInput.value = rowPower; // Set the row's power consumption
+                powerInput.readOnly = true; // Make it read-only
+                powerCell.appendChild(powerInput);
+                row.appendChild(powerCell);
+
+                // Device mA (editable)
+                let deviceMaCell = document.createElement("td");
+                let deviceMaInput = document.createElement("input");
+                deviceMaInput.type = "number";
+                deviceMaInput.value = deviceMaValues[netIndex] || "0"; // Preserve Device mA value
+                deviceMaInput.oninput = () => {
+                    // Ensure only numbers are entered
+                    deviceMaInput.value = deviceMaInput.value.replace(/[^0-9]/g, "");
+                    deviceMaValues[netIndex] = deviceMaInput.value; // Store Device mA value
+                };
+                deviceMaCell.appendChild(deviceMaInput);
+                row.appendChild(deviceMaCell);
+
+                // Total Space mA (read-only)
+                let totalSpaceMaCell = document.createElement("td");
+                let totalSpaceMaInput = document.createElement("input");
+                totalSpaceMaInput.type = "text";
+                totalSpaceMaInput.readOnly = true;
+                totalSpaceMaInput.value = "0"; // Initialize to 0
+                totalSpaceMaCell.appendChild(totalSpaceMaInput);
+                row.appendChild(totalSpaceMaCell);
+
+                // Calculate button
+                let calculateCell = document.createElement("td");
+                let calculateButton = document.createElement("button");
+                calculateButton.textContent = "Calculate";
+                calculateButton.onclick = () => {
+                    const powerConsumption = parseFloat(powerInput.value) || 0;
+                    const deviceMa = parseFloat(deviceMaInput.value) || 0;
+                    const totalSpaceMa = powerConsumption + deviceMa;
+                    totalSpaceMaInput.value = totalSpaceMa; // Update Total Space mA
+                    updateTotal(); // Update the total
+                };
+                calculateCell.appendChild(calculateButton);
+                row.appendChild(calculateCell);
+
+                chartTableBody.appendChild(row);
+                netIndex++;
             }
         });
 
-        if (hasError) {
-            return;
+        // Show the chart table
+        document.getElementById("chart-table").style.display = "table";
+    }, 2000); // Simulate a 2-second loading delay
+}
+
+// Update Total
+function updateTotal() {
+    let total = 0;
+    const rows = chartTableBody.querySelectorAll("tr");
+    rows.forEach(row => {
+        const totalSpaceMaInput = row.querySelector("td:nth-child(6) input");
+        if (totalSpaceMaInput) {
+            total += parseFloat(totalSpaceMaInput.value) || 0;
+        }
+    });
+    totalSpaceMaCell.textContent = total; // Update the total cell
+}
+
+// Generate Pick List
+function generatePickList() {
+    pickListTableBody.innerHTML = ""; // Clear the table
+
+    // Check if all NET and LINK devices have a type selected
+    let hasError = false;
+    parts.forEach(part => {
+        if (part.type === "NET" || part.type === "LINK") {
+            const dropdown = part.element.querySelector(".dropdown");
+            if (!dropdown.value) {
+                hasError = true;
+                alert(`Error: ${part.type} device does not have a type selected.`);
+            }
+        }
+    });
+
+    if (hasError) {
+        return;
+    }
+
+    // Add the selected panel to the pick list
+    const selectedPanel = panelSelect.value;
+    let row = document.createElement("tr");
+
+    // Panel Name
+    let panelNameCell = document.createElement("td");
+    panelNameCell.textContent = selectedPanel;
+    row.appendChild(panelNameCell);
+
+    // Quantity
+    let quantityCell = document.createElement("td");
+    quantityCell.textContent = 1; // Only one panel
+    row.appendChild(quantityCell);
+
+    pickListTableBody.appendChild(row);
+
+    // Count the number of each part type
+    const partCounts = {};
+    parts.forEach(part => {
+        const partType = part.type;
+        const partOption = part.element.querySelector(".dropdown").value;
+        let partKey = `${partType}, ${partOption}`;
+
+        // Handle PSU parts (PSU1 - PSU9)
+        if (partType === "PSU" && partOption.startsWith("PSU")) {
+            partKey = "PSU"; // Map all PSU1-PSU9 to "PSU"
         }
 
-        // Add the selected panel to the pick list
-        const selectedPanel = panelSelect.value;
+        // Map the part key to the corresponding part name
+        const partNameMap = {
+            "NET, LV": "ZUMNET-DIN-16A-LV",
+            "NET, DLI": "ZUMNET-DIN-DLI",
+            "LINK, LV": "ZUMLINK-DIN-16A-LV",
+            "LINK, DIMU": "ZUMLINK-DIN-DIMU",
+            "LINK, SW": "ZUMLINK-DIN-20A-SW",
+            "LINK, PLUG": "ZUMLINK-DIN-20A-PLUG",
+            "LINK, IO": "ZUMLINK-DIN-IO",
+            "PSU": "ZUMLINK-DIN-PSU" // Map all PSU parts to ZUMLINK-DIN-PSU
+        };
+
+        const partName = partNameMap[partKey] || partType;
+
+        partCounts[partName] = (partCounts[partName] || 0) + 1;
+    });
+
+    // Add rows to the pick list table
+    for (const [partName, count] of Object.entries(partCounts)) {
         let row = document.createElement("tr");
 
-        // Panel Name
-        let panelNameCell = document.createElement("td");
-        panelNameCell.textContent = selectedPanel;
-        row.appendChild(panelNameCell);
+        // Part Name
+        let partNameCell = document.createElement("td");
+        partNameCell.textContent = partName;
+        row.appendChild(partNameCell);
 
         // Quantity
         let quantityCell = document.createElement("td");
-        quantityCell.textContent = 1; // Only one panel
+        quantityCell.textContent = count;
         row.appendChild(quantityCell);
 
         pickListTableBody.appendChild(row);
-
-        // Count the number of each part type
-        const partCounts = {};
-        parts.forEach(part => {
-            const partType = part.type;
-            const partOption = part.element.querySelector(".dropdown").value;
-            let partKey = `${partType}, ${partOption}`;
-
-            // Handle PSU parts (PSU1 - PSU9)
-            if (partType === "PSU" && partOption.startsWith("PSU")) {
-                partKey = "PSU"; // Map all PSU1-PSU9 to "PSU"
-            }
-
-            // Map the part key to the corresponding part name
-            const partNameMap = {
-                "NET, LV": "ZUMNET-DIN-16A-LV",
-                "NET, DLI": "ZUMNET-DIN-DLI",
-                "LINK, LV": "ZUMLINK-DIN-16A-LV",
-                "LINK, DIMU": "ZUMLINK-DIN-DIMU",
-                "LINK, SW": "ZUMLINK-DIN-20A-SW",
-                "LINK, PLUG": "ZUMLINK-DIN-20A-PLUG",
-                "LINK, IO": "ZUMLINK-DIN-IO",
-                "PSU": "ZUMLINK-DIN-PSU" // Map all PSU parts to ZUMLINK-DIN-PSU
-            };
-
-            const partName = partNameMap[partKey] || partType;
-
-            partCounts[partName] = (partCounts[partName] || 0) + 1;
-        });
-
-        // Add rows to the pick list table
-        for (const [partName, count] of Object.entries(partCounts)) {
-            let row = document.createElement("tr");
-
-            // Part Name
-            let partNameCell = document.createElement("td");
-            partNameCell.textContent = partName;
-            row.appendChild(partNameCell);
-
-            // Quantity
-            let quantityCell = document.createElement("td");
-            quantityCell.textContent = count;
-            row.appendChild(quantityCell);
-
-            pickListTableBody.appendChild(row);
-        }
-
-        // Show the pick list table
-        document.getElementById("pick-list-table").style.display = "table";
     }
 
-    // Next Rail
-    function nextRail() {
-        if (currentRailIndex < maxRails - 1) {
-            currentRailIndex++;
-        } else {
-            alert("No more rails left!");
+    // Show the pick list table
+    document.getElementById("pick-list-table").style.display = "table";
+}
+
+// Next Rail
+function nextRail() {
+    if (currentRailIndex < maxRails - 1) {
+        currentRailIndex++;
+    } else {
+        alert("No more rails left!");
+    }
+}
+
+// Remove Last Part
+function removeLastPart() {
+    if (partPositions[currentRailIndex].length === 0) {
+        if (currentRailIndex > 0) {
+            currentRailIndex--;
         }
+        return;
     }
 
-    // Remove Last Part
-    function removeLastPart() {
-        if (partPositions[currentRailIndex].length === 0) {
-            if (currentRailIndex > 0) {
-                currentRailIndex--;
-            }
-            return;
-        }
+    let lastPart = partPositions[currentRailIndex].pop();
+    railWidths[currentRailIndex] -= lastPart.offsetWidth;
+    railContainer.removeChild(lastPart);
 
-        let lastPart = partPositions[currentRailIndex].pop();
-        railWidths[currentRailIndex] -= lastPart.offsetWidth;
-        railContainer.removeChild(lastPart);
+    // Remove the part from the parts array
+    parts = parts.filter(p => p.element !== lastPart);
 
-        // Remove the part from the parts array
-        parts = parts.filter(p => p.element !== lastPart);
+    // Add to action stack for undo/redo
+    actionStack.push({ type: "remove", part: lastPart });
+    redoStack = []; // Clear redo stack
+    updatePartHistory(`Removed ${lastPart.className.split(" ")[1]} part`);
+}
 
-        // Add to action stack for undo/redo
-        actionStack.push({ type: "remove", part: lastPart });
-        redoStack = []; // Clear redo stack
-        updatePartHistory(`Removed ${lastPart.className.split(" ")[1]} part`);
+// Delete Rail
+function deleteRail(railIndex) {
+    if (railIndex < 0 || railIndex >= railPositions.length) {
+        alert("Invalid rail index!");
+        return;
     }
 
-    // Delete Rail
-    function deleteRail(railIndex) {
-        if (railIndex < 0 || railIndex >= railPositions.length) {
-            alert("Invalid rail index!");
-            return;
-        }
+    // Remove all parts on the rail
+    partPositions[railIndex].forEach(part => railContainer.removeChild(part));
+    partPositions[railIndex] = [];
 
-        // Remove all parts on the rail
-        partPositions[railIndex].forEach(part => railContainer.removeChild(part));
-        partPositions[railIndex] = [];
+    // Remove the rail from the DOM
+    const rail = document.getElementById(`rail-${railIndex}`);
+    if (rail) {
+        railContainer.removeChild(rail);
+    }
 
-        // Remove the rail from the DOM
-        const rail = document.getElementById(`rail-${railIndex}`);
+    // Update the state
+    railPositions.splice(railIndex, 1);
+    railWidths.splice(railIndex, 1);
+    partPositions.splice(railIndex, 1);
+
+    // Update the IDs of the remaining rails
+    for (let i = railIndex; i < railPositions.length; i++) {
+        const rail = document.getElementById(`rail-${i + 1}`);
         if (rail) {
-            railContainer.removeChild(rail);
+            rail.id = `rail-${i}`;
+            rail.style.top = `${100 + i * 200}px`; // Adjust the position
+        }
+    }
+
+    // Add to action stack for undo/redo
+    actionStack.push({ type: "deleteRail", railIndex });
+    redoStack = []; // Clear redo stack
+    updatePartHistory(`Deleted rail ${railIndex}`);
+}
+
+// Create Dropdown
+function createDropdown(type, options) {
+    let select = document.createElement("select");
+    select.className = `dropdown ${type}`;
+    options.forEach(option => {
+        let opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        select.appendChild(opt);
+    });
+    return select;
+}
+
+// Get Left Options
+function getLeftOptions(type) {
+    if (type === "NET") return ["LV", "DLI"];
+    if (type === "LINK") return ["LV", "DIMU", "SW", "PLUG", "IO"];
+    if (type === "PSU") return Array.from({ length: 9 }, (_, i) => `PSU${i + 1}`);
+    return [];
+}
+
+// Get Center Options
+function getCenterOptions(type) {
+    if (type === "NET") return Array.from({ length: 99 }, (_, i) => `N${i + 1}`);
+    if (type === "PSU") return Array.from({ length: 99 }, (_, i) => `L${i + 1}`);
+    return [];
+}
+
+// Get Right Options
+function getRightOptions(type) {
+    return Array.from({ length: 99 }, (_, i) => `L${i + 1}`);
+}
+
+// Tab Functionality
+function openTab(evt, tabName) {
+    let tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    let tablinks = document.getElementsByClassName("tablinks");
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
+// Open the default tab on page load
+document.getElementById("defaultOpen").click();
+
+// Save Configuration
+function saveConfiguration() {
+    const configuration = {
+        parts: parts.map(part => ({
+            type: part.type,
+            width: part.element.offsetWidth,
+            height: part.element.offsetHeight,
+            top: part.element.style.top,
+            left: part.element.style.left
+        })),
+        railPositions,
+        railWidths,
+        partPositions,
+        currentRailIndex,
+        currentLNumber,
+        deviceMaValues,
+        selectedPanel: panelSelect.value
+    };
+    localStorage.setItem("sandboxConfiguration", JSON.stringify(configuration));
+    alert("Configuration saved!");
+}
+
+// Load Configuration
+function loadConfiguration() {
+    const configuration = JSON.parse(localStorage.getItem("sandboxConfiguration"));
+    if (!configuration) {
+        alert("No saved configuration found!");
+        return;
+    }
+
+    // Clear existing parts
+    parts.forEach(part => railContainer.removeChild(part.element));
+    parts = [];
+    railPositions = configuration.railPositions;
+    railWidths = configuration.railWidths;
+    partPositions = configuration.partPositions;
+    currentRailIndex = configuration.currentRailIndex;
+    currentLNumber = configuration.currentLNumber;
+    deviceMaValues = configuration.deviceMaValues;
+
+    // Set the selected panel
+    panelSelect.value = configuration.selectedPanel || "DIN-EN-10x18";
+    updatePanel();
+
+    // Recreate parts
+    configuration.parts.forEach(partConfig => {
+        const part = document.createElement("div");
+        part.className = `part ${partConfig.type}`;
+        part.style.width = `${partConfig.width}px`;
+        part.style.height = `${partConfig.height}px`;
+        part.style.top = partConfig.top;
+        part.style.left = partConfig.left;
+
+        // Make the part draggable
+        part.draggable = true;
+        part.addEventListener("dragstart", dragStart);
+        part.addEventListener("dragend", dragEnd);
+
+        // Left Dropdown Container
+        let leftContainer = document.createElement("div");
+        leftContainer.className = "dropdown-container";
+        leftContainer.appendChild(createDropdown(partConfig.type, getLeftOptions(partConfig.type)));
+
+        // Center Dropdown Container (Only for NET and PSU)
+        let centerContainer = document.createElement("div");
+        centerContainer.className = "dropdown-container";
+        if (partConfig.type !== "LINK") {
+            centerContainer.appendChild(createDropdown(partConfig.type, getCenterOptions(partConfig.type)));
+            centerContainer.appendChild(createDropdown(partConfig.type, getCenterOptions(partConfig.type)));
         }
 
-        // Update the state
-        railPositions.splice(railIndex, 1);
-        railWidths.splice(railIndex, 1);
-        partPositions.splice(railIndex, 1);
+        // Right Dropdown Container
+        let rightContainer = document.createElement("div");
+        rightContainer.className = "dropdown-container";
+        rightContainer.appendChild(createDropdown(partConfig.type, getRightOptions(partConfig.type)));
+        rightContainer.appendChild(createDropdown(partConfig.type, getRightOptions(partConfig.type)));
 
-        // Update the IDs of the remaining rails
-        for (let i = railIndex; i < railPositions.length; i++) {
-            const rail = document.getElementById(`rail-${i + 1}`);
-            if (rail) {
-                rail.id = `rail-${i}`;
-                rail.style.top = `${100 + i * 200}px`; // Adjust the position
-            }
-        }
+        part.appendChild(leftContainer);
+        part.appendChild(centerContainer);
+        part.appendChild(rightContainer);
 
-        // Add to action stack for undo/redo
-        actionStack.push({ type: "deleteRail", railIndex });
-        redoStack = []; // Clear redo stack
-        updatePartHistory(`Deleted rail ${railIndex}`);
+        railContainer.appendChild(part);
+        parts.push({ type: partConfig.type, element: part });
+    });
+
+    alert("Configuration loaded!");
+}
+
+// Export as Image
+function exportAsImage() {
+    html2canvas(sandbox).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "sandbox.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+
+// Export as PDF
+function exportAsPDF() {
+    html2canvas(sandbox).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF();
+        pdf.addImage(imgData, "PNG", 10, 10);
+        pdf.save("sandbox.pdf");
+    });
+}
+
+// Open Custom Part Modal
+function openCustomPartModal() {
+    customPartModal.style.display = "block";
+}
+
+// Close Custom Part Modal
+function closeCustomPartModal() {
+    customPartModal.style.display = "none";
+}
+
+// Create Custom Part
+function createCustomPart() {
+    const partName = document.getElementById("partName").value;
+    const partWidth = parseInt(document.getElementById("partWidth").value);
+    const partHeight = parseInt(document.getElementById("partHeight").value);
+
+    if (!partName || !partWidth || !partHeight) {
+        alert("Please fill in all fields!");
+        return;
     }
 
-    // Create Dropdown
-    function createDropdown(type, options) {
-        let select = document.createElement("select");
-        select.className = `dropdown ${type}`;
-        options.forEach(option => {
-            let opt = document.createElement("option");
-            opt.value = option;
-            opt.textContent = option;
-            select.appendChild(opt);
-        });
-        return select;
+    addPart(partName, partWidth, partHeight);
+    closeCustomPartModal();
+}
+
+// Toggle Snap-to-Grid
+function toggleSnapToGrid() {
+    isSnapToGridEnabled = !isSnapToGridEnabled;
+    alert(`Snap-to-Grid ${isSnapToGridEnabled ? "Enabled" : "Disabled"}`);
+}
+
+// Undo
+function undo() {
+    if (actionStack.length === 0) {
+        alert("Nothing to undo!");
+        return;
     }
 
-    // Get Left Options
-    function getLeftOptions(type) {
-        if (type === "NET") return ["LV", "DLI"];
-        if (type === "LINK") return ["LV", "DIMU", "SW", "PLUG", "IO"];
-        if (type === "PSU") return Array.from({ length: 9 }, (_, i) => `PSU${i + 1}`);
-        return [];
+    const lastAction = actionStack.pop();
+    redoStack.push(lastAction);
+
+    switch (lastAction.type) {
+        case "add":
+            railContainer.removeChild(lastAction.part);
+            parts = parts.filter(p => p.element !== lastAction.part);
+            break;
+        case "remove":
+            railContainer.appendChild(lastAction.part);
+            parts.push({ type: lastAction.part.className.split(" ")[1], element: lastAction.part });
+            break;
+        case "deleteRail":
+            readdRail();
+            break;
+        case "addRail":
+            deleteRail(lastAction.railIndex);
+            break;
     }
 
-    // Get Center Options
-    function getCenterOptions(type) {
-        if (type === "NET") return Array.from({ length: 99 }, (_, i) => `N${i + 1}`);
-        if (type === "PSU") return Array.from({ length: 99 }, (_, i) => `L${i + 1}`);
-        return [];
+    updatePartHistory(`Undo: ${lastAction.type}`);
+}
+
+// Redo
+function redo() {
+    if (redoStack.length === 0) {
+        alert("Nothing to redo!");
+        return;
     }
 
-    // Get Right Options
-    function getRightOptions(type) {
-        return Array.from({ length: 99 }, (_, i) => `L${i + 1}`);
+    const lastAction = redoStack.pop();
+    actionStack.push(lastAction);
+
+    switch (lastAction.type) {
+        case "add":
+            railContainer.appendChild(lastAction.part);
+            parts.push({ type: lastAction.part.className.split(" ")[1], element: lastAction.part });
+            break;
+        case "remove":
+            railContainer.removeChild(lastAction.part);
+            parts = parts.filter(p => p.element !== lastAction.part);
+            break;
+        case "deleteRail":
+            deleteRail(lastAction.railIndex);
+            break;
+        case "addRail":
+            addRail();
+            break;
     }
 
-    // Tab Functionality
-    function openTab(evt, tabName) {
-        let tabcontent = document.getElementsByClassName("tabcontent");
-        for (let i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
-        let tablinks = document.getElementsByClassName("tablinks");
-        for (let i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
-        document.getElementById(tabName).style.display = "block";
-        evt.currentTarget.className += " active";
-    }
+    updatePartHistory(`Redo: ${lastAction.type}`);
+}
 
-    // Open the default tab on page load
-    document.getElementById("defaultOpen").click();
+// Update Part History
+function updatePartHistory(action) {
+    const historyItem = document.createElement("li");
+    historyItem.textContent = action;
+    partHistoryList.appendChild(historyItem);
+}
 
-    // Save Configuration
-    function saveConfiguration() {
-        const configuration = {
-            parts: parts.map(part => ({
-                type: part.type,
-                width: part.element.offsetWidth,
-                height: part.element.offsetHeight,
-                top: part.element.style.top,
-                left: part.element.style.left
-            })),
-            railPositions,
-            railWidths,
-            partPositions,
-            currentRailIndex,
-            currentLNumber,
-            deviceMaValues,
-            selectedPanel: panelSelect.value
-        };
-        localStorage.setItem("sandboxConfiguration", JSON.stringify(configuration));
-        alert("Configuration saved!");
-    }
+// Toggle Dark Mode
+function toggleDarkMode() {
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle("dark-mode", isDarkMode);
+}
 
-    // Load Configuration
-    function loadConfiguration() {
-        const configuration = JSON.parse(localStorage.getItem("sandboxConfiguration"));
-        if (!configuration) {
-            alert("No saved configuration found!");
-            return;
-        }
+// Generate Buildsheet
+function generateBuildsheet() {
+    // Clear the buildsheet content
+    buildsheetContent.innerHTML = "";
 
-        // Clear existing parts
-        parts.forEach(part => railContainer.removeChild(part.element));
-        parts = [];
-        railPositions = configuration.railPositions;
-        railWidths = configuration.railWidths;
-        partPositions = configuration.partPositions;
-        currentRailIndex = configuration.currentRailIndex;
-        currentLNumber = configuration.currentLNumber;
-        deviceMaValues = configuration.deviceMaValues;
+    // Add the sandbox graphic
+    const sandboxImage = document.createElement("img");
+    sandboxImage.src = sandbox.toDataURL();
+    buildsheetContent.appendChild(sandboxImage);
 
-        // Set the selected panel
-        panelSelect.value = configuration.selectedPanel || "DIN-EN-10x18";
-        updatePanel();
+    // Add the Bill of Material list from the 3rd tab
+    const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+    buildsheetContent.appendChild(pickListTable);
+}
 
-        // Recreate parts
-        configuration.parts.forEach(partConfig => {
-            const part = document.createElement("div");
-            part.className = `part ${partConfig.type}`;
-            part.style.width = `${partConfig.width}px`;
-            part.style.height = `${partConfig.height}px`;
-            part.style.top = partConfig.top;
-            part.style.left = partConfig.left;
-
-            // Make the part draggable
-            part.draggable = true;
-            part.addEventListener("dragstart", dragStart);
-            part.addEventListener("dragend", dragEnd);
-
-            // Left Dropdown Container
-            let leftContainer = document.createElement("div");
-            leftContainer.className = "dropdown-container";
-            leftContainer.appendChild(createDropdown(partConfig.type, getLeftOptions(partConfig.type)));
-
-            // Center Dropdown Container (Only for NET and PSU)
-            let centerContainer = document.createElement("div");
-            centerContainer.className = "dropdown-container";
-            if (partConfig.type !== "LINK") {
-                centerContainer.appendChild(createDropdown(partConfig.type, getCenterOptions(partConfig.type)));
-                centerContainer.appendChild(createDropdown(partConfig.type, getCenterOptions(partConfig.type)));
-            }
-
-            // Right Dropdown Container
-            let rightContainer = document.createElement("div");
-            rightContainer.className = "dropdown-container";
-            rightContainer.appendChild(createDropdown(partConfig.type, getRightOptions(partConfig.type)));
-            rightContainer.appendChild(createDropdown(partConfig.type, getRightOptions(partConfig.type)));
-
-            part.appendChild(leftContainer);
-            part.appendChild(centerContainer);
-            part.appendChild(rightContainer);
-
-            railContainer.appendChild(part);
-            parts.push({ type: partConfig.type, element: part });
-        });
-
-        alert("Configuration loaded!");
-    }
-
-    // Export as Image
-    function exportAsImage() {
-        html2canvas(sandbox).then(canvas => {
-            const link = document.createElement("a");
-            link.download = "sandbox.png";
-            link.href = canvas.toDataURL();
-            link.click();
-        });
-    }
-
-    // Export as PDF
-    function exportAsPDF() {
-        html2canvas(sandbox).then(canvas => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF();
-            pdf.addImage(imgData, "PNG", 10, 10);
-            pdf.save("sandbox.pdf");
-        });
-    }
-
-    // Open Custom Part Modal
-    function openCustomPartModal() {
-        customPartModal.style.display = "block";
-    }
-
-    // Close Custom Part Modal
-    function closeCustomPartModal() {
-        customPartModal.style.display = "none";
-    }
-
-    // Create Custom Part
-    function createCustomPart() {
-        const partName = document.getElementById("partName").value;
-        const partWidth = parseInt(document.getElementById("partWidth").value);
-        const partHeight = parseInt(document.getElementById("partHeight").value);
-
-        if (!partName || !partWidth || !partHeight) {
-            alert("Please fill in all fields!");
-            return;
-        }
-
-        addPart(partName, partWidth, partHeight);
-        closeCustomPartModal();
-    }
-
-    // Toggle Snap-to-Grid
-    function toggleSnapToGrid() {
-        isSnapToGridEnabled = !isSnapToGridEnabled;
-        alert(`Snap-to-Grid ${isSnapToGridEnabled ? "Enabled" : "Disabled"}`);
-    }
-
-    // Undo
-    function undo() {
-        if (actionStack.length === 0) {
-            alert("Nothing to undo!");
-            return;
-        }
-
-        const lastAction = actionStack.pop();
-        redoStack.push(lastAction);
-
-        switch (lastAction.type) {
-            case "add":
-                railContainer.removeChild(lastAction.part);
-                parts = parts.filter(p => p.element !== lastAction.part);
-                break;
-            case "remove":
-                railContainer.appendChild(lastAction.part);
-                parts.push({ type: lastAction.part.className.split(" ")[1], element: lastAction.part });
-                break;
-            case "deleteRail":
-                readdRail();
-                break;
-            case "addRail":
-                deleteRail(lastAction.railIndex);
-                break;
-        }
-
-        updatePartHistory(`Undo: ${lastAction.type}`);
-    }
-
-    // Redo
-    function redo() {
-        if (redoStack.length === 0) {
-            alert("Nothing to redo!");
-            return;
-        }
-
-        const lastAction = redoStack.pop();
-        actionStack.push(lastAction);
-
-        switch (lastAction.type) {
-            case "add":
-                railContainer.appendChild(lastAction.part);
-                parts.push({ type: lastAction.part.className.split(" ")[1], element: lastAction.part });
-                break;
-            case "remove":
-                railContainer.removeChild(lastAction.part);
-                parts = parts.filter(p => p.element !== lastAction.part);
-                break;
-            case "deleteRail":
-                deleteRail(lastAction.railIndex);
-                break;
-            case "addRail":
-                addRail();
-                break;
-        }
-
-        updatePartHistory(`Redo: ${lastAction.type}`);
-    }
-
-    // Update Part History
-    function updatePartHistory(action) {
-        const historyItem = document.createElement("li");
-        historyItem.textContent = action;
-        partHistoryList.appendChild(historyItem);
-    }
-
-    // Toggle Dark Mode
-    function toggleDarkMode() {
-        isDarkMode = !isDarkMode;
-        document.body.classList.toggle("dark-mode", isDarkMode);
-    }
+// Export Buildsheet to PDF
+function exportBuildsheetToPDF() {
+    html2canvas(buildsheetContent).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF();
+        pdf.addImage(imgData, "PNG", 10, 10);
+        pdf.save("buildsheet.pdf");
+    });
+}
 </script>
 
 </body>

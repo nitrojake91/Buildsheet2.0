@@ -1653,11 +1653,36 @@ function toggleDarkMode() {
     function exportBuildsheetToPDF() {
     const buildsheetContent = document.getElementById("buildsheet-content");
 
-    html2canvas(buildsheetContent, { useCORS: true }).then((canvas) => {
+    // Temporarily adjust the sandbox size to fit all content
+    const sandbox = document.getElementById("sandbox");
+    const originalWidth = sandbox.style.width;
+    const originalHeight = sandbox.style.height;
+    sandbox.style.width = "auto";
+    sandbox.style.height = "auto";
+
+    // Capture the entire buildsheet content
+    html2canvas(buildsheetContent, {
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: sandbox.scrollWidth,
+        windowHeight: sandbox.scrollHeight,
+        logging: true,
+        useCORS: true,
+    }).then((canvas) => {
+        // Restore the original sandbox size
+        sandbox.style.width = originalWidth;
+        sandbox.style.height = originalHeight;
+
+        // Generate PDF
         const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF();
-        pdf.addImage(imgData, "PNG", 10, 10, 190, 0); // Adjust dimensions as needed
+        const pdf = new jsPDF("p", "mm", "a4"); // A4 size
+        const imgWidth = 190; // Max width for A4
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+
+        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
         pdf.save("buildsheet.pdf");
+    }).catch((error) => {
+        console.error("Error exporting to PDF:", error);
     });
 }
 </script>

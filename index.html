@@ -1620,23 +1620,28 @@ function toggleDarkMode() {
     if (wasHidden) sandbox.style.display = "block";
 
     setTimeout(() => {
-        html2canvas(sandbox, { useCORS: true }).then((canvas) => {
+        html2canvas(sandbox, { useCORS: true, allowTaint: true }).then((canvas) => {
             if (wasHidden) sandbox.style.display = "none"; // Restore original state
 
             const sandboxImage = document.createElement("img");
-            sandboxImage.src = canvas.toDataURL();
+            sandboxImage.src = canvas.toDataURL("image/png");
             sandboxImage.style.maxWidth = "100%";
             sandboxImage.style.height = "auto";
             buildsheetContent.appendChild(sandboxImage);
-
-            // Add the Bill of Materials table
-            const pickListTable = document.getElementById("pick-list-table");
-            if (pickListTable) {
-                const clonedTable = pickListTable.cloneNode(true);
-                buildsheetContent.appendChild(clonedTable);
-            }
+        }).catch((error) => {
+            console.error("Error capturing sandbox:", error);
+            buildsheetContent.innerHTML = "<p style='color: red;'>Error: Unable to generate sandbox image.</p>";
         });
-    }, 500); // Small delay to ensure rendering is complete
+
+        // Clone the BOM table
+        const pickListTable = document.getElementById("pick-list-table");
+        if (pickListTable) {
+            const clonedTable = pickListTable.cloneNode(true);
+            buildsheetContent.appendChild(clonedTable);
+        }
+    }, 500);
+
+// Small delay to ensure rendering is complete
 }
 
     // Export Buildsheet to PDF
@@ -1654,4 +1659,3 @@ function toggleDarkMode() {
 
 </body>
 </html>
-*code created by Jake Skidmore*

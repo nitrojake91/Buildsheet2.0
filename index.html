@@ -1620,25 +1620,45 @@ function toggleDarkMode() {
     if (wasHidden) sandbox.style.display = "block";
 
     setTimeout(() => {
-        html2canvas(sandbox, { useCORS: true, allowTaint: true }).then((canvas) => {
-            if (wasHidden) sandbox.style.display = "none"; // Restore original state
+        // Convert all SVG elements to Canvas
+        const svgElements = sandbox.querySelectorAll("svg");
+        svgElements.forEach((svg) => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const svgData = new XMLSerializer().serializeToString(svg);
 
-            const sandboxImage = document.createElement("img");
-            sandboxImage.src = canvas.toDataURL("image/png");
-            sandboxImage.style.maxWidth = "100%";
-            sandboxImage.style.height = "auto";
-            buildsheetContent.appendChild(sandboxImage);
-        }).catch((error) => {
-            console.error("Error capturing sandbox:", error);
-            buildsheetContent.innerHTML = "<p style='color: red;'>Error: Unable to generate sandbox image.</p>";
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = svg.clientWidth;
+                canvas.height = svg.clientHeight;
+                ctx.drawImage(img, 0, 0);
+                svg.replaceWith(canvas);
+            };
+            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
         });
 
-        // Clone the BOM table
-        const pickListTable = document.getElementById("pick-list-table");
-        if (pickListTable) {
-            const clonedTable = pickListTable.cloneNode(true);
-            buildsheetContent.appendChild(clonedTable);
-        }
+        // Now, capture the sandbox
+        setTimeout(() => {
+            html2canvas(sandbox, { useCORS: true, allowTaint: true, logging: true }).then((canvas) => {
+                if (wasHidden) sandbox.style.display = "none"; // Restore original state
+
+                const sandboxImage = document.createElement("img");
+                sandboxImage.src = canvas.toDataURL("image/png");
+                sandboxImage.style.maxWidth = "100%";
+                sandboxImage.style.height = "auto";
+                buildsheetContent.appendChild(sandboxImage);
+            }).catch((error) => {
+                console.error("Error capturing sandbox:", error);
+                buildsheetContent.innerHTML = "<p style='color: red;'>Error: Unable to generate sandbox image.</p>";
+            });
+
+            // Clone the BOM table
+            const pickListTable = document.getElementById("pick-list-table");
+            if (pickListTable) {
+                const clonedTable = pickListTable.cloneNode(true);
+                buildsheetContent.appendChild(clonedTable);
+            }
+        }, 500); // Ensure SVGs are converted first
     }, 500);
 
 // Small delay to ensure rendering is complete

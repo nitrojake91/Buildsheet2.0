@@ -124,9 +124,9 @@
 
         .rail-container {
             position: relative;
-            width: 1800px;
-            height: 2000px;
-            transform-origin: top left;
+            width: 900px;
+            height: 900px;
+            transform-origin: top center;
             transform: scale(0.5); /* Initial scale */
         }
 
@@ -134,8 +134,8 @@
             position: absolute;
             width: 1800px;
             height: 100px;
-            background-color: #ecf0f1;
-            border: 1px solid #bdc3c7;
+            background-color: #A9A9A9;
+            border: 1px solid #FF0000;
             border-radius: 6px;
         }
 
@@ -188,16 +188,16 @@
         .dropdown-container {
             display: flex;
             justify-content: space-around;
-            margin-top: 10px;
+            margin-top: 1px;
         }
 
         .dropdown {
-            width: 80px;
-            padding: 5px;
-            border-radius: 4px;
+            width: 120px;
+            padding: 3px;
+            border-radius: 10px;
             border: 1px solid #bdc3c7;
             background-color: #fff;
-            font-size: 12px;
+            font-size: 35px;
         }
 
         .dark-mode .dropdown {
@@ -574,7 +574,7 @@
 
 <!-- Popup -->
 <div class="popup" id="popup">
-    <p>This tool is a beta version not meant for design use. This program was developed using only information from Crestron's website and does not contain any Crestron IP.</p>
+    <p>Code Created by Jake Skidmore. This tool is a beta version not meant for design use. This program was developed using only information from Crestron's website and does not contain any Crestron IP.</p>
     <button onclick="closePopup()">Confirm</button>
 </div>
 
@@ -598,9 +598,9 @@
     </select>
     <div class="container">
         <div class="parts-list">
-            <button class="button" onclick="addPart('NET', 400, 140)">Add NET</button>
-            <button class="button" onclick="addPart('PSU', 400, 140)">Add PSU</button>
-            <button class="button" onclick="addPart('LINK', 300, 140)">Add LINK</button>
+            <button class="button" onclick="addPart('NET', 400, 160)">Add NET</button>
+            <button class="button" onclick="addPart('PSU', 400, 160)">Add PSU</button>
+            <button class="button" onclick="addPart('LINK', 300, 160)">Add LINK</button>
             <button class="button" onclick="nextRail()">Next Rail</button>
             <button class="button" onclick="removeLastPart()">Remove Last Part</button>
             <button class="button" onclick="addRail()">Add Rail</button>
@@ -677,7 +677,6 @@
 
 <!-- Loading Popup -->
 <div class="loading-popup" id="loadingPopup">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Crestron_Electronics_logo.svg/1200px-Crestron_Electronics_logo.svg.png" alt="Crestron Logo">
     <p>Loading...</p>
 </div>
 
@@ -1608,83 +1607,92 @@ function toggleDarkMode() {
     isDarkMode = !isDarkMode;
     document.body.classList.toggle("dark-mode", isDarkMode);
 }
-    // Generate Buildsheet
+     // Generate Buildsheet
     function generateBuildsheet() {
-    const buildsheetContent = document.getElementById("buildsheet-content");
-    buildsheetContent.innerHTML = ""; // Clear previous content
+        const buildsheetContent = document.getElementById("buildsheet-content");
+        buildsheetContent.innerHTML = ""; // Clear previous content
 
-    // Capture the entire sandbox, including overflow
-    const sandbox = document.getElementById("sandbox");
+        const sandbox = document.getElementById("sandbox");
 
-    // Temporarily adjust the sandbox size to fit all content
-    const originalWidth = sandbox.style.width;
-    const originalHeight = sandbox.style.height;
-    sandbox.style.width = "auto"; // Allow the sandbox to expand to its full size
-    sandbox.style.height = "auto";
+        // Temporarily adjust the sandbox size to fit all content
+        const originalWidth = sandbox.style.width;
+        const originalHeight = sandbox.style.height;
+        sandbox.style.width = "auto";
+        sandbox.style.height = "auto";
 
-    // Use html2canvas to capture the entire sandbox
-    html2canvas(sandbox, {
-        scrollX: 0, // Capture horizontal scroll
-        scrollY: 0, // Capture vertical scroll
-        windowWidth: sandbox.scrollWidth, // Full width of the sandbox
-        windowHeight: sandbox.scrollHeight, // Full height of the sandbox
-        logging: true, // Enable logging for debugging
-        useCORS: true, // Handle cross-origin images if any
-    }).then((canvas) => {
-        // Restore the original sandbox size
-        sandbox.style.width = originalWidth;
-        sandbox.style.height = originalHeight;
+        console.log("Capturing sandbox...");
+        console.log("Sandbox dimensions:", sandbox.scrollWidth, sandbox.scrollHeight);
 
-        // Create an image from the canvas
-        const sandboxImage = document.createElement("img");
-        sandboxImage.src = canvas.toDataURL();
-        sandboxImage.style.maxWidth = "100%";
-        sandboxImage.style.height = "auto";
-        buildsheetContent.appendChild(sandboxImage);
+        html2canvas(sandbox, {
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: sandbox.scrollWidth,
+            windowHeight: sandbox.scrollHeight,
+            logging: true,
+            useCORS: true,
+            allowTaint: true, // Allow tainted images (use with caution)
+            onclone: (clonedDoc) => {
+                // Replace problematic images with placeholders
+                const images = clonedDoc.querySelectorAll("img");
+                images.forEach((img) => {
+                    if (!img.complete || img.naturalWidth === 0) {
+                        img.src = "placeholder.png"; // Replace with a local placeholder image
+                    }
+                });
+            },
+        }).then((canvas) => {
+            console.log("Sandbox captured successfully!");
 
-        // Add the Bill of Materials table
-        const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
-        buildsheetContent.appendChild(pickListTable);
-    }).catch((error) => {
-        console.error("Error capturing sandbox:", error);
-    });
-}
+            // Restore the original sandbox size
+            sandbox.style.width = originalWidth;
+            sandbox.style.height = originalHeight;
+
+            // Create an image from the canvas
+            const sandboxImage = document.createElement("img");
+            sandboxImage.src = canvas.toDataURL();
+            sandboxImage.style.maxWidth = "100%";
+            sandboxImage.style.height = "auto";
+            buildsheetContent.appendChild(sandboxImage);
+
+            // Add the Bill of Materials table
+            const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+            buildsheetContent.appendChild(pickListTable);
+        }).catch((error) => {
+            console.error("Error capturing sandbox:", error);
+
+            // Fallback: Display an error message
+            const errorMessage = document.createElement("p");
+            errorMessage.textContent = "Failed to generate buildsheet. Please try again.";
+            errorMessage.style.color = "red";
+            buildsheetContent.appendChild(errorMessage);
+        });
+    }
+
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
-    const buildsheetContent = document.getElementById("buildsheet-content");
+        const { jsPDF } = window.jspdf; // Initialize jsPDF
+        const buildsheetContent = document.getElementById("buildsheet-content");
 
-    // Temporarily adjust the sandbox size to fit all content
-    const sandbox = document.getElementById("sandbox");
-    const originalWidth = sandbox.style.width;
-    const originalHeight = sandbox.style.height;
-    sandbox.style.width = "auto";
-    sandbox.style.height = "auto";
+        html2canvas(buildsheetContent, {
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: buildsheetContent.scrollWidth,
+            windowHeight: buildsheetContent.scrollHeight,
+            logging: true,
+            useCORS: true,
+            allowTaint: true,
+        }).then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4"); // A4 size
+            const imgWidth = 190; // Max width for A4
+            const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
 
-    // Capture the entire buildsheet content
-    html2canvas(buildsheetContent, {
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: sandbox.scrollWidth,
-        windowHeight: sandbox.scrollHeight,
-        logging: true,
-        useCORS: true,
-    }).then((canvas) => {
-        // Restore the original sandbox size
-        sandbox.style.width = originalWidth;
-        sandbox.style.height = originalHeight;
-
-        // Generate PDF
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4"); // A4 size
-        const imgWidth = 190; // Max width for A4
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
-
-        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-        pdf.save("buildsheet.pdf");
-    }).catch((error) => {
-        console.error("Error exporting to PDF:", error);
-    });
-}
+            pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+            pdf.save("buildsheet.pdf");
+        }).catch((error) => {
+            console.error("Error exporting to PDF:", error);
+        });
+    }
 </script>
 
 </body>

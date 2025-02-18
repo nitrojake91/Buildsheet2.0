@@ -1644,29 +1644,56 @@ function toggleDarkMode() {
 }
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
-        const { jsPDF } = window.jspdf; // Initialize jsPDF
-        const buildsheetContent = document.getElementById("buildsheet-content");
+    const { jsPDF } = window.jspdf; // Initialize jsPDF
+    const buildsheetContent = document.getElementById("buildsheet-content");
 
-        html2canvas(buildsheetContent, {
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: buildsheetContent.scrollWidth,
-            windowHeight: buildsheetContent.scrollHeight,
-            logging: true,
-            useCORS: true,
-            allowTaint: true,
-        }).then((canvas) => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4"); // A4 size
-            const imgWidth = 190; // Max width for A4
-            const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+    // Get the cloned sandbox element
+    const clonedSandbox = buildsheetContent.querySelector("#sandbox-duplicate");
 
-            pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-            pdf.save("buildsheet.pdf");
-        }).catch((error) => {
-            console.error("Error exporting to PDF:", error);
-        });
+    if (!clonedSandbox) {
+        alert("No sandbox found in the Complete Buildsheet tab. Please generate the buildsheet first.");
+        return;
     }
+
+    // Temporarily adjust the sandbox styling to ensure all content is visible
+    const originalOverflow = clonedSandbox.style.overflow;
+    clonedSandbox.style.overflow = "visible"; // Ensure all content is visible
+    clonedSandbox.style.width = "auto"; // Allow the sandbox to expand to its full width
+    clonedSandbox.style.height = "auto"; // Allow the sandbox to expand to its full height
+
+    // Use html2canvas to capture the entire sandbox
+    html2canvas(clonedSandbox, {
+        scrollX: 0, // Capture content outside the viewport horizontally
+        scrollY: 0, // Capture content outside the viewport vertically
+        windowWidth: clonedSandbox.scrollWidth, // Use the full width of the sandbox
+        windowHeight: clonedSandbox.scrollHeight, // Use the full height of the sandbox
+        logging: true, // Enable logging for debugging
+        useCORS: true, // Handle cross-origin images (if any)
+        allowTaint: true, // Allow tainted canvases (if necessary)
+    }).then((canvas) => {
+        // Restore the original sandbox styling
+        clonedSandbox.style.overflow = originalOverflow;
+        clonedSandbox.style.width = ""; // Reset width
+        clonedSandbox.style.height = ""; // Reset height
+
+        // Convert the canvas to an image
+        const imgData = canvas.toDataURL("image/png");
+
+        // Create a PDF and add the image
+        const pdf = new jsPDF("p", "mm", "a4"); // A4 size, portrait orientation
+        const imgWidth = 190; // Max width for A4 (210mm - 20mm margins)
+        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
+
+        // Add the image to the PDF
+        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+
+        // Save the PDF
+        pdf.save("buildsheet.pdf");
+    }).catch((error) => {
+        console.error("Error exporting to PDF:", error);
+        alert("An error occurred while exporting the buildsheet to PDF. Please try again.");
+    });
+}
 </script>
 
 </body>

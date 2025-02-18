@@ -1610,11 +1610,19 @@ function toggleDarkMode() {
 }
     // Generate Buildsheet
     function generateBuildsheet() {
-        const buildsheetContent = document.getElementById("buildsheet-content");
-        buildsheetContent.innerHTML = ""; // Clear previous content
+    const buildsheetContent = document.getElementById("buildsheet-content");
+    buildsheetContent.innerHTML = ""; // Clear previous content
 
-        // Capture the sandbox graphic
-        html2canvas(document.getElementById("sandbox")).then((canvas) => {
+    const sandbox = document.getElementById("sandbox");
+    const wasHidden = sandbox.style.display === "none";
+
+    // Temporarily make the sandbox visible if it's hidden
+    if (wasHidden) sandbox.style.display = "block";
+
+    setTimeout(() => {
+        html2canvas(sandbox, { useCORS: true }).then((canvas) => {
+            if (wasHidden) sandbox.style.display = "none"; // Restore original state
+
             const sandboxImage = document.createElement("img");
             sandboxImage.src = canvas.toDataURL();
             sandboxImage.style.maxWidth = "100%";
@@ -1622,22 +1630,26 @@ function toggleDarkMode() {
             buildsheetContent.appendChild(sandboxImage);
 
             // Add the Bill of Materials table
-            const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
-            buildsheetContent.appendChild(pickListTable);
+            const pickListTable = document.getElementById("pick-list-table");
+            if (pickListTable) {
+                const clonedTable = pickListTable.cloneNode(true);
+                buildsheetContent.appendChild(clonedTable);
+            }
         });
-    }
+    }, 500); // Small delay to ensure rendering is complete
+}
 
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
-        const buildsheetContent = document.getElementById("buildsheet-content");
+    const buildsheetContent = document.getElementById("buildsheet-content");
 
-        html2canvas(buildsheetContent).then((canvas) => {
-            const imgData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF();
-            pdf.addImage(imgData, "PNG", 10, 10, 190, 0); // Adjust dimensions as needed
-            pdf.save("buildsheet.pdf");
-        });
-    }
+    html2canvas(buildsheetContent, { useCORS: true }).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF();
+        pdf.addImage(imgData, "PNG", 10, 10, 190, 0); // Adjust dimensions as needed
+        pdf.save("buildsheet.pdf");
+    });
+}
 </script>
 
 </body>

@@ -526,6 +526,7 @@
     <!-- Panel Selection Dropdown -->
     <label for="panel-select">Select Panel:</label>
     <select id="panel-select" onchange="updatePanel()">
+        <option value="" disabled selected>Select a panel</option>
         <option value="DIN-EN-2x18">DIN-EN-2x18 (2 rails)</option>
         <option value="DIN-EN-3x18">DIN-EN-3x18 (3 rails)</option>
         <option value="DIN-EN-6x18">DIN-EN-6x18 (6 rails)</option>
@@ -660,7 +661,8 @@
     let isDarkMode = false; // Dark mode state
     let isDrawingPolyline = false; // Polyline drawing state
     let selectedPart = null; // Track the first selected part for polyline drawing
-    let maxRails = 10; // Default maximum rails
+    let maxRails = 0; // Start with 0 rails
+    let isPSUOverride = false; // Track if the PSU warning has been overridden
 
     // Panel limits
     const panelLimits = {
@@ -787,6 +789,10 @@
     // Update Panel
     function updatePanel() {
         const selectedPanel = panelSelect.value;
+        if (!selectedPanel) {
+            alert("Please select a panel first!");
+            return;
+        }
         maxRails = panelLimits[selectedPanel];
 
         // Recreate rails based on the new limit
@@ -796,6 +802,10 @@
     // Add Rail
     function addRail() {
         const selectedPanel = panelSelect.value;
+        if (!selectedPanel) {
+            alert("Please select a panel first!");
+            return;
+        }
         const maxRailsForPanel = panelLimits[selectedPanel];
 
         if (railPositions.length >= maxRailsForPanel) {
@@ -833,8 +843,24 @@
 
     // Add Part
     function addPart(type, width, height) {
+        const selectedPanel = panelSelect.value;
+        if (!selectedPanel) {
+            alert("Please select a panel first!");
+            return;
+        }
+
+        // Check if the first part is not a PSU
+        if (parts.length === 0 && type !== "PSU" && !isPSUOverride) {
+            const confirmOverride = confirm("Panels require at least 1 PSU. Do you want to override this requirement?");
+            if (!confirmOverride) {
+                return;
+            } else {
+                isPSUOverride = true; // Prevent the popup from showing again
+            }
+        }
+
         if (currentRailIndex >= maxRails) {
-            alert(`Cannot add more rails. The selected panel (${panelSelect.value}) only supports ${maxRails} rails.`);
+            alert(`Cannot add more rails. The selected panel (${selectedPanel}) only supports ${maxRails} rails.`);
             return;
         }
 
@@ -1096,6 +1122,22 @@
     // Generate Pick List
     function generatePickList() {
         pickListTableBody.innerHTML = ""; // Clear the table
+
+        // Check if all NET and LINK devices have a type selected
+        let hasError = false;
+        parts.forEach(part => {
+            if (part.type === "NET" || part.type === "LINK") {
+                const dropdown = part.element.querySelector(".dropdown");
+                if (!dropdown.value) {
+                    hasError = true;
+                    alert(`Error: ${part.type} device does not have a type selected.`);
+                }
+            }
+        });
+
+        if (hasError) {
+            return;
+        }
 
         // Add the selected panel to the pick list
         const selectedPanel = panelSelect.value;

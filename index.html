@@ -1655,11 +1655,26 @@ function toggleDarkMode() {
         return;
     }
 
-    // Temporarily adjust the sandbox styling to ensure all content is visible
-    const originalOverflow = clonedSandbox.style.overflow;
+    // Temporarily adjust the sandbox and rail styles for export
+    const originalSandboxStyles = {
+        overflow: clonedSandbox.style.overflow,
+        width: clonedSandbox.style.width,
+        height: clonedSandbox.style.height,
+        backgroundColor: clonedSandbox.style.backgroundColor,
+    };
+
     clonedSandbox.style.overflow = "visible"; // Ensure all content is visible
     clonedSandbox.style.width = "auto"; // Allow the sandbox to expand to its full width
     clonedSandbox.style.height = "auto"; // Allow the sandbox to expand to its full height
+    clonedSandbox.style.backgroundColor = "white"; // Set a solid background color
+
+    // Temporarily adjust rail styles to ensure they are fully rendered
+    const rails = clonedSandbox.querySelectorAll(".rail");
+    rails.forEach((rail) => {
+        rail.style.backgroundColor = "white"; // Set a solid background color for rails
+        rail.style.transform = "none"; // Remove any transformations
+        rail.style.position = "static"; // Temporarily set to static positioning
+    });
 
     // Use html2canvas to capture the entire sandbox
     html2canvas(clonedSandbox, {
@@ -1671,10 +1686,17 @@ function toggleDarkMode() {
         useCORS: true, // Handle cross-origin images (if any)
         allowTaint: true, // Allow tainted canvases (if necessary)
     }).then((canvas) => {
-        // Restore the original sandbox styling
-        clonedSandbox.style.overflow = originalOverflow;
-        clonedSandbox.style.width = ""; // Reset width
-        clonedSandbox.style.height = ""; // Reset height
+        // Restore the original sandbox and rail styles
+        clonedSandbox.style.overflow = originalSandboxStyles.overflow;
+        clonedSandbox.style.width = originalSandboxStyles.width;
+        clonedSandbox.style.height = originalSandboxStyles.height;
+        clonedSandbox.style.backgroundColor = originalSandboxStyles.backgroundColor;
+
+        rails.forEach((rail) => {
+            rail.style.backgroundColor = ""; // Restore original background color
+            rail.style.transform = ""; // Restore original transformations
+            rail.style.position = ""; // Restore original positioning
+        });
 
         // Convert the canvas to an image
         const imgData = canvas.toDataURL("image/png");

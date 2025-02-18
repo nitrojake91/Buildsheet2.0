@@ -1645,76 +1645,82 @@ function toggleDarkMode() {
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
     const { jsPDF } = window.jspdf; // Initialize jsPDF
-    const buildsheetContent = document.getElementById("buildsheet-content");
+    const pdf = new jsPDF("p", "mm", "a4"); // A4 size, portrait orientation
 
     // Get the cloned sandbox element
-    const clonedSandbox = buildsheetContent.querySelector("#sandbox-duplicate");
+    const clonedSandbox = document.getElementById("sandbox-duplicate");
 
     if (!clonedSandbox) {
         alert("No sandbox found in the Complete Buildsheet tab. Please generate the buildsheet first.");
         return;
     }
 
-    // Temporarily adjust the sandbox and rail styles for export
-    const originalSandboxStyles = {
-        overflow: clonedSandbox.style.overflow,
-        width: clonedSandbox.style.width,
-        height: clonedSandbox.style.height,
-        backgroundColor: clonedSandbox.style.backgroundColor,
-    };
-
-    clonedSandbox.style.overflow = "visible"; // Ensure all content is visible
-    clonedSandbox.style.width = "auto"; // Allow the sandbox to expand to its full width
-    clonedSandbox.style.height = "auto"; // Allow the sandbox to expand to its full height
-    clonedSandbox.style.backgroundColor = "white"; // Set a solid background color
-
-    // Temporarily adjust rail styles to ensure they are fully rendered
+    // Extract rails and parts data
     const rails = clonedSandbox.querySelectorAll(".rail");
+    const parts = clonedSandbox.querySelectorAll(".part");
+
+    // Define scaling and offset for the PDF
+    const scale = 0.5; // Scale down the sandbox to fit the PDF
+    const offsetX = 10; // X offset in mm
+    const offsetY = 10; // Y offset in mm
+
+    // Draw rails
     rails.forEach((rail) => {
-        rail.style.backgroundColor = "white"; // Set a solid background color for rails
-        rail.style.transform = "none"; // Remove any transformations
-        rail.style.position = "static"; // Temporarily set to static positioning
+        const rect = rail.getBoundingClientRect();
+        pdf.setDrawColor(0); // Black color
+        pdf.setFillColor(169, 169, 169); // Gray color for rails
+        pdf.rect(
+            offsetX + rect.left * scale,
+            offsetY + rect.top * scale,
+            rect.width * scale,
+            rect.height * scale,
+            "F" // Fill the rectangle
+        );
     });
 
-    // Use html2canvas to capture the entire sandbox
-    html2canvas(clonedSandbox, {
-        scrollX: 0, // Capture content outside the viewport horizontally
-        scrollY: 0, // Capture content outside the viewport vertically
-        windowWidth: clonedSandbox.scrollWidth, // Use the full width of the sandbox
-        windowHeight: clonedSandbox.scrollHeight, // Use the full height of the sandbox
-        logging: true, // Enable logging for debugging
-        useCORS: true, // Handle cross-origin images (if any)
-        allowTaint: true, // Allow tainted canvases (if necessary)
-    }).then((canvas) => {
-        // Restore the original sandbox and rail styles
-        clonedSandbox.style.overflow = originalSandboxStyles.overflow;
-        clonedSandbox.style.width = originalSandboxStyles.width;
-        clonedSandbox.style.height = originalSandboxStyles.height;
-        clonedSandbox.style.backgroundColor = originalSandboxStyles.backgroundColor;
+    // Draw parts
+    parts.forEach((part) => {
+        const rect = part.getBoundingClientRect();
+        const partType = part.classList.contains("NET") ? "NET" :
+                         part.classList.contains("LINK") ? "LINK" :
+                         part.classList.contains("PSU") ? "PSU" : "UNKNOWN";
 
-        rails.forEach((rail) => {
-            rail.style.backgroundColor = ""; // Restore original background color
-            rail.style.transform = ""; // Restore original transformations
-            rail.style.position = ""; // Restore original positioning
-        });
+        // Set part color based on type
+        switch (partType) {
+            case "NET":
+                pdf.setFillColor(155, 89, 182); // Purple for NET
+                break;
+            case "LINK":
+                pdf.setFillColor(230, 126, 34); // Orange for LINK
+                break;
+            case "PSU":
+                pdf.setFillColor(149, 165, 166); // Gray for PSU
+                break;
+            default:
+                pdf.setFillColor(200, 200, 200); // Default gray
+        }
 
-        // Convert the canvas to an image
-        const imgData = canvas.toDataURL("image/png");
+        // Draw the part as a rectangle
+        pdf.rect(
+            offsetX + rect.left * scale,
+            offsetY + rect.top * scale,
+            rect.width * scale,
+            rect.height * scale,
+            "F" // Fill the rectangle
+        );
 
-        // Create a PDF and add the image
-        const pdf = new jsPDF("p", "mm", "a4"); // A4 size, portrait orientation
-        const imgWidth = 190; // Max width for A4 (210mm - 20mm margins)
-        const imgHeight = (canvas.height * imgWidth) / canvas.width; // Maintain aspect ratio
-
-        // Add the image to the PDF
-        pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
-
-        // Save the PDF
-        pdf.save("buildsheet.pdf");
-    }).catch((error) => {
-        console.error("Error exporting to PDF:", error);
-        alert("An error occurred while exporting the buildsheet to PDF. Please try again.");
+        // Add part label
+        pdf.setFontSize(8);
+        pdf.setTextColor(0); // Black text
+        pdf.text(
+            partType,
+            offsetX + rect.left * scale + 2,
+            offsetY + rect.top * scale + 5
+        );
     });
+
+    // Save the PDF
+    pdf.save("buildsheet.pdf");
 }
 </script>
 

@@ -1725,11 +1725,11 @@ function toggleDarkMode() {
             const dropdownRect = dropdown.getBoundingClientRect();
 
             // Position the dropdown text relative to the part
-            pdf.setFontSize(6); // Smaller font size for dropdown text
+            pdf.setFontSize(35); // Smaller font size for dropdown text
             pdf.text(
                 dropdownText,
-                offsetX + dropdownRect.left * scale + 2,
-                offsetY + dropdownRect.top * scale + 10 + (index * 5) // Adjust vertical spacing
+                offsetX + dropdownRect.left * scale + 1,
+                offsetY + dropdownRect.top * scale + 1 + (index * 1) // Adjust vertical spacing
             );
         });
     });

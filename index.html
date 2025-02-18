@@ -1611,76 +1611,75 @@ function toggleDarkMode() {
 }
      // Generate Buildsheet
     function generateBuildsheet() {
-        const buildsheetContent = document.getElementById("buildsheet-content");
-        buildsheetContent.innerHTML = ""; // Clear previous content
+    const buildsheetContent = document.getElementById("buildsheet-content");
+    buildsheetContent.innerHTML = ""; // Clear previous content
 
-        const sandbox = document.getElementById("sandbox");
+    const sandbox = document.getElementById("sandbox");
 
-        // Clone the sandbox to capture hidden elements
-        const clonedSandbox = sandbox.cloneNode(true);
-        clonedSandbox.style.position = "absolute";
-        clonedSandbox.style.left = "-9999px"; // Move off-screen
-        clonedSandbox.style.display = "block";
-        document.body.appendChild(clonedSandbox);
+    // Clone the sandbox to capture hidden elements
+    const clonedSandbox = sandbox.cloneNode(true);
+    clonedSandbox.style.position = "absolute";
+    clonedSandbox.style.left = "-9999px"; // Move off-screen
+    clonedSandbox.style.display = "block";
+    clonedSandbox.style.backgroundColor = "#fff"; // Ensure solid background
+    document.body.appendChild(clonedSandbox);
 
-        // Ensure all parts are solid by forcing background color
-        const parts = clonedSandbox.querySelectorAll(".part");
-        parts.forEach(part => {
-            part.style.backgroundColor = window.getComputedStyle(part).backgroundColor || "#ccc";
+    // Ensure all parts have a solid background color
+    const parts = clonedSandbox.querySelectorAll(".part");
+    parts.forEach(part => {
+        const computedStyle = window.getComputedStyle(part);
+        part.style.backgroundColor = computedStyle.backgroundColor !== "transparent" ? computedStyle.backgroundColor : "#ccc"; // Default to gray
+    });
+
+    // Replace all dropdowns with static text
+    const originalDropdowns = sandbox.querySelectorAll("select");
+    const clonedDropdowns = clonedSandbox.querySelectorAll("select");
+    clonedDropdowns.forEach((clonedSelect, index) => {
+        if (originalDropdowns[index]) {
+            const selectedText = originalDropdowns[index].options[originalDropdowns[index].selectedIndex].text;
+            const span = document.createElement("span");
+            span.textContent = selectedText;
+            span.style.fontFamily = window.getComputedStyle(originalDropdowns[index]).fontFamily;
+            span.style.fontSize = "45px";
+            span.style.textAlign = "center";
+            span.style.display = "inline-block";
+            span.style.width = clonedSelect.offsetWidth + "px";
+            span.style.height = clonedSelect.offsetHeight + "px";
+            span.style.lineHeight = clonedSelect.offsetHeight + "px";
+            clonedSelect.parentNode.replaceChild(span, clonedSelect);
+        }
+    });
+
+    setTimeout(() => {
+        html2canvas(clonedSandbox, {
+            scrollX: 0,
+            scrollY: 0,
+            width: clonedSandbox.scrollWidth,
+            height: clonedSandbox.scrollHeight,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#fff", // Ensure solid white background
+            scale: 2
+        }).then((canvas) => {
+            document.body.removeChild(clonedSandbox); // Remove cloned sandbox
+
+            const sandboxImage = document.createElement("img");
+            sandboxImage.src = canvas.toDataURL("image/png");
+            sandboxImage.style.maxWidth = "100%";
+            sandboxImage.style.height = "auto";
+            buildsheetContent.appendChild(sandboxImage);
+
+            const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+            buildsheetContent.appendChild(pickListTable);
+        }).catch((error) => {
+            console.error("Error capturing sandbox:", error);
+            const errorMessage = document.createElement("p");
+            errorMessage.textContent = "Failed to generate buildsheet. Please try again.";
+            errorMessage.style.color = "red";
+            buildsheetContent.appendChild(errorMessage);
         });
-
-        // Replace all dropdowns with static text spans
-        const originalDropdowns = sandbox.querySelectorAll("select");
-        const clonedDropdowns = clonedSandbox.querySelectorAll("select");
-        clonedDropdowns.forEach((clonedSelect, index) => {
-            if (originalDropdowns[index]) {
-                const selectedText = originalDropdowns[index].options[originalDropdowns[index].selectedIndex].text;
-                const span = document.createElement("span");
-                span.textContent = selectedText;
-                span.style.fontFamily = window.getComputedStyle(originalDropdowns[index]).fontFamily;
-                span.style.fontSize = "45px"; // Larger font size for visibility
-                span.style.textAlign = "center";
-                span.style.display = "inline-block";
-                span.style.width = clonedSelect.offsetWidth + "px";
-                span.style.height = clonedSelect.offsetHeight + "px";
-                span.style.lineHeight = clonedSelect.offsetHeight + "px";
-                clonedSelect.parentNode.replaceChild(span, clonedSelect);
-            }
-        });
-
-        // Ensure all fonts and images are loaded before capturing
-        setTimeout(() => {
-            html2canvas(clonedSandbox, {
-                scrollX: 0,
-                scrollY: 0,
-                width: clonedSandbox.scrollWidth,
-                height: clonedSandbox.scrollHeight,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: "#fff", // Ensure white background
-                scale: 2
-            }).then((canvas) => {
-                document.body.removeChild(clonedSandbox); // Remove cloned sandbox
-
-                // Create an image from the canvas
-                const sandboxImage = document.createElement("img");
-                sandboxImage.src = canvas.toDataURL("image/png");
-                sandboxImage.style.maxWidth = "100%";
-                sandboxImage.style.height = "auto";
-                buildsheetContent.appendChild(sandboxImage);
-
-                // Add the Bill of Materials table
-                const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
-                buildsheetContent.appendChild(pickListTable);
-            }).catch((error) => {
-                console.error("Error capturing sandbox:", error);
-                const errorMessage = document.createElement("p");
-                errorMessage.textContent = "Failed to generate buildsheet. Please try again.";
-                errorMessage.style.color = "red";
-                buildsheetContent.appendChild(errorMessage);
-            });
-        }, 1500); // Short delay to ensure rendering
-    }
+    }, 1500);
+}
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
         const { jsPDF } = window.jspdf; // Initialize jsPDF

@@ -1681,8 +1681,8 @@ function toggleDarkMode() {
     // Draw parts and dropdown text
     parts.forEach((part) => {
         const rect = part.getBoundingClientRect();
-        const partType = part.classList.contains("NET") ? "NET" :
-                         part.classList.contains("LINK") ? "LINK" :
+        const partType = part.classList.contains("NET") ? "NET" : "UNKNOWN";
+                         part.classList.contains("LINK") ? "LINK" : "UNKNOWN";
                          part.classList.contains("PSU") ? "PSU" : "UNKNOWN";
 
         // Set part color based on type
@@ -1728,8 +1728,8 @@ function toggleDarkMode() {
             pdf.setFontSize(15); // Smaller font size for dropdown text
             pdf.text(
                 dropdownText,
-                offsetX + dropdownRect.left * scale + 1,
-                offsetY + dropdownRect.top * scale + 1 + (index * 1) // Adjust vertical spacing
+                offsetX + dropdownRect.left * scale + .5,
+                offsetY + dropdownRect.top * scale + .5 + (index * .5) // Adjust vertical spacing
             );
         });
     });

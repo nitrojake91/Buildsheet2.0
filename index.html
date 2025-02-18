@@ -107,7 +107,7 @@
         .sandbox {
             flex-grow: 1;
             position: relative;
-            height: 80vh; /* Adjust based on viewport height */
+            height: 100vh; /* Adjust based on viewport height */
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -126,7 +126,7 @@
             position: relative;
             width: 900px;
             height: 900px;
-            transform-origin: top center;
+            transform-origin: top left;
             transform: scale(0.5); /* Initial scale */
         }
 
@@ -188,7 +188,7 @@
         .dropdown-container {
             display: flex;
             justify-content: space-around;
-            margin-top: 1px;
+            margin-top: 5px;
         }
 
         .dropdown {
@@ -197,14 +197,15 @@
             border-radius: 10px;
             border: 1px solid #bdc3c7;
             background-color: #fff;
-            font-size: 35px;
+            font-size: 30px;
         }
 
         .dark-mode .dropdown {
-            background-color: #34495e;
-            border-color: #2c3e50;
-            color: #f8f9fa;
-        }
+    background-color: #34495e;
+    border-color: #2c3e50;
+    color: #f8f9fa; /* This makes the text white */
+}
+
 
         /* Loading Popup */
         .loading-popup {
@@ -1614,60 +1615,71 @@ function toggleDarkMode() {
 
         const sandbox = document.getElementById("sandbox");
 
-        // Temporarily adjust the sandbox size to fit all content
-        const originalWidth = sandbox.style.width;
-        const originalHeight = sandbox.style.height;
-        sandbox.style.width = "auto";
-        sandbox.style.height = "auto";
+        // Clone the sandbox to capture hidden elements
+        const clonedSandbox = sandbox.cloneNode(true);
+        clonedSandbox.style.position = "absolute";
+        clonedSandbox.style.left = "-9999px"; // Move off-screen
+        clonedSandbox.style.display = "block";
+        document.body.appendChild(clonedSandbox);
 
-        console.log("Capturing sandbox...");
-        console.log("Sandbox dimensions:", sandbox.scrollWidth, sandbox.scrollHeight);
-
-        html2canvas(sandbox, {
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: sandbox.scrollWidth,
-            windowHeight: sandbox.scrollHeight,
-            logging: true,
-            useCORS: true,
-            allowTaint: true, // Allow tainted images (use with caution)
-            onclone: (clonedDoc) => {
-                // Replace problematic images with placeholders
-                const images = clonedDoc.querySelectorAll("img");
-                images.forEach((img) => {
-                    if (!img.complete || img.naturalWidth === 0) {
-                        img.src = "placeholder.png"; // Replace with a local placeholder image
-                    }
-                });
-            },
-        }).then((canvas) => {
-            console.log("Sandbox captured successfully!");
-
-            // Restore the original sandbox size
-            sandbox.style.width = originalWidth;
-            sandbox.style.height = originalHeight;
-
-            // Create an image from the canvas
-            const sandboxImage = document.createElement("img");
-            sandboxImage.src = canvas.toDataURL();
-            sandboxImage.style.maxWidth = "100%";
-            sandboxImage.style.height = "auto";
-            buildsheetContent.appendChild(sandboxImage);
-
-            // Add the Bill of Materials table
-            const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
-            buildsheetContent.appendChild(pickListTable);
-        }).catch((error) => {
-            console.error("Error capturing sandbox:", error);
-
-            // Fallback: Display an error message
-            const errorMessage = document.createElement("p");
-            errorMessage.textContent = "Failed to generate buildsheet. Please try again.";
-            errorMessage.style.color = "red";
-            buildsheetContent.appendChild(errorMessage);
+        // Ensure all parts are solid by forcing background color
+        const parts = clonedSandbox.querySelectorAll(".part");
+        parts.forEach(part => {
+            part.style.backgroundColor = window.getComputedStyle(part).backgroundColor || "#ccc";
         });
-    }
 
+        // Replace all dropdowns with static text spans
+        const originalDropdowns = sandbox.querySelectorAll("select");
+        const clonedDropdowns = clonedSandbox.querySelectorAll("select");
+        clonedDropdowns.forEach((clonedSelect, index) => {
+            if (originalDropdowns[index]) {
+                const selectedText = originalDropdowns[index].options[originalDropdowns[index].selectedIndex].text;
+                const span = document.createElement("span");
+                span.textContent = selectedText;
+                span.style.fontFamily = window.getComputedStyle(originalDropdowns[index]).fontFamily;
+                span.style.fontSize = "45px"; // Larger font size for visibility
+                span.style.textAlign = "center";
+                span.style.display = "inline-block";
+                span.style.width = clonedSelect.offsetWidth + "px";
+                span.style.height = clonedSelect.offsetHeight + "px";
+                span.style.lineHeight = clonedSelect.offsetHeight + "px";
+                clonedSelect.parentNode.replaceChild(span, clonedSelect);
+            }
+        });
+
+        // Ensure all fonts and images are loaded before capturing
+        setTimeout(() => {
+            html2canvas(clonedSandbox, {
+                scrollX: 0,
+                scrollY: 0,
+                width: clonedSandbox.scrollWidth,
+                height: clonedSandbox.scrollHeight,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#fff", // Ensure white background
+                scale: 2
+            }).then((canvas) => {
+                document.body.removeChild(clonedSandbox); // Remove cloned sandbox
+
+                // Create an image from the canvas
+                const sandboxImage = document.createElement("img");
+                sandboxImage.src = canvas.toDataURL("image/png");
+                sandboxImage.style.maxWidth = "100%";
+                sandboxImage.style.height = "auto";
+                buildsheetContent.appendChild(sandboxImage);
+
+                // Add the Bill of Materials table
+                const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+                buildsheetContent.appendChild(pickListTable);
+            }).catch((error) => {
+                console.error("Error capturing sandbox:", error);
+                const errorMessage = document.createElement("p");
+                errorMessage.textContent = "Failed to generate buildsheet. Please try again.";
+                errorMessage.style.color = "red";
+                buildsheetContent.appendChild(errorMessage);
+            });
+        }, 1500); // Short delay to ensure rendering
+    }
     // Export Buildsheet to PDF
     function exportBuildsheetToPDF() {
         const { jsPDF } = window.jspdf; // Initialize jsPDF

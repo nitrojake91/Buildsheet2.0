@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sandbox Parts Placement</title>
+    <!-- Include html2canvas and jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Modern Font */
+/* Modern Font */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
@@ -561,12 +564,10 @@
         .dark-mode #buildsheet-content td {
             background-color: #34495e;
         }
+
     </style>
 </head>
 <body>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <!-- Dark Mode Toggle -->
 <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
@@ -1607,31 +1608,36 @@ function toggleDarkMode() {
     isDarkMode = !isDarkMode;
     document.body.classList.toggle("dark-mode", isDarkMode);
 }
+    // Generate Buildsheet
+    function generateBuildsheet() {
+        const buildsheetContent = document.getElementById("buildsheet-content");
+        buildsheetContent.innerHTML = ""; // Clear previous content
 
-// Generate Buildsheet
-function generateBuildsheet() {
-    // Clear the buildsheet content
-    buildsheetContent.innerHTML = "";
+        // Capture the sandbox graphic
+        html2canvas(document.getElementById("sandbox")).then((canvas) => {
+            const sandboxImage = document.createElement("img");
+            sandboxImage.src = canvas.toDataURL();
+            sandboxImage.style.maxWidth = "100%";
+            sandboxImage.style.height = "auto";
+            buildsheetContent.appendChild(sandboxImage);
 
-    // Add the sandbox graphic
-    const sandboxImage = document.createElement("img");
-    sandboxImage.src = sandbox.toDataURL();
-    buildsheetContent.appendChild(sandboxImage);
+            // Add the Bill of Materials table
+            const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
+            buildsheetContent.appendChild(pickListTable);
+        });
+    }
 
-    // Add the Bill of Material list from the 3rd tab
-    const pickListTable = document.getElementById("pick-list-table").cloneNode(true);
-    buildsheetContent.appendChild(pickListTable);
-}
+    // Export Buildsheet to PDF
+    function exportBuildsheetToPDF() {
+        const buildsheetContent = document.getElementById("buildsheet-content");
 
-// Export Buildsheet to PDF
-function exportBuildsheetToPDF() {
-    html2canvas(buildsheetContent).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF();
-        pdf.addImage(imgData, "PNG", 10, 10);
-        pdf.save("buildsheet.pdf");
-    });
-}
+        html2canvas(buildsheetContent).then((canvas) => {
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF();
+            pdf.addImage(imgData, "PNG", 10, 10, 190, 0); // Adjust dimensions as needed
+            pdf.save("buildsheet.pdf");
+        });
+    }
 </script>
 
 </body>

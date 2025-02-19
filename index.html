@@ -12,10 +12,35 @@
             background: #f4f4f4;
         }
 
+        /* Title Banner */
+        #title-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #003366; /* Crestron dark blue */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        #title-banner h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        #title-banner p {
+            margin: 0;
+            font-size: 14px;
+            color: #FFA500; /* Crestron orange */
+        }
+
         /* Toolbar */
         #toolbar {
             width: 200px;
-            background: #222;
+            background: #003366; /* Crestron dark blue */
             color: white;
             padding: 10px;
             display: flex;
@@ -23,12 +48,13 @@
             gap: 10px;
             transition: transform 0.3s;
             box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.2);
+            margin-top: 80px; /* Adjusted for title banner */
         }
 
         #toolbar button {
             padding: 12px;
             border: none;
-            background: linear-gradient(to bottom, #444, #222);
+            background: linear-gradient(to bottom, #004080, #003366); /* Dark blue gradient */
             color: white;
             cursor: pointer;
             font-size: 16px;
@@ -37,7 +63,7 @@
         }
 
         #toolbar button:hover {
-            background: linear-gradient(to bottom, #666, #444);
+            background: linear-gradient(to bottom, #00509E, #004080); /* Lighter blue gradient */
             transform: scale(1.05);
         }
 
@@ -45,18 +71,18 @@
         #hideButton {
             position: absolute;
             left: 220px;
-            top: 10px;
+            top: 90px; /* Adjusted for title banner */
             padding: 8px;
             border-radius: 6px;
             cursor: pointer;
-            background: #222;
+            background: #003366; /* Crestron dark blue */
             color: white;
             border: none;
             transition: 0.2s;
         }
 
         #hideButton:hover {
-            background: #444;
+            background: #004080; /* Lighter blue */
             transform: scale(1.1);
         }
 
@@ -64,6 +90,7 @@
         #container {
             flex-grow: 1;
             padding: 20px;
+            margin-top: 80px; /* Adjusted for title banner */
         }
 
         #panel {
@@ -165,12 +192,18 @@
         }
 
         #pick-list-table th {
-            background: #222;
+            background: #003366; /* Crestron dark blue */
             color: white;
         }
     </style>
 </head>
 <body>
+    <!-- Title Banner -->
+    <div id="title-banner">
+        <h1>Buildsheet Generator</h1>
+        <p>Created by Jake Skidmore</p>
+    </div>
+
     <!-- Left Toolbar -->
     <div id="toolbar">
         <button onclick="addPart('PSU')">Add PSU</button>

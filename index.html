@@ -426,8 +426,9 @@ function addZone(zoneCount) {
                 .filter(value => value.startsWith("L")); // Get L values
 
             selectedL.forEach(L => {
-                if (!loadMap[L]) loadMap[L] = []; // Use an array to store all parts with the same L value
-                loadMap[L].push(`${type}, ${subtype}`); // Add part to the array
+                if (!loadMap[L]) loadMap[L] = {}; // Use an object to store parts and their counts
+                const partKey = `${type}, ${subtype}`;
+                loadMap[L][partKey] = (loadMap[L][partKey] || 0) + 1; // Increment the count for this part
             });
         });
     });
@@ -441,11 +442,12 @@ function addZone(zoneCount) {
         spaceCell.innerHTML = `<input type="text" placeholder="Enter Space">`;
         row.appendChild(spaceCell);
 
-        // Generate load controllers list (with full part numbers)
+        // Generate load controllers list (with full part numbers and quantities)
         const loadControllersCell = document.createElement("td");
-        const partList = loadMap[L].map(part => {
+        const partList = Object.entries(loadMap[L]).map(([part, count]) => {
             const [type, subtype] = part.split(", ");
-            return partNumberMap[part] || part; // Use full part number if available
+            const partNumber = partNumberMap[part] || part; // Use full part number if available
+            return `${partNumber} (x${count})`; // Display part number with quantity
         }).join("<br>"); // Display each part number on a new line
         loadControllersCell.innerHTML = partList;
         row.appendChild(loadControllersCell);
@@ -494,19 +496,12 @@ function addZone(zoneCount) {
 }
 
 // Function to calculate module draw (total power draw of parts)
-function calculateModuleDraw(partsArray) {
-    const totalPower = partsArray.reduce((sum, part) => {
-        return sum + (powerDrawMap[part] || 0);
+function calculateModuleDraw(partsObject) {
+    const totalPower = Object.entries(partsObject).reduce((sum, [part, count]) => {
+        return sum + (powerDrawMap[part] || 0) * count; // Multiply power draw by quantity
     }, 0);
     return totalPower + " mA";
 }
-        // Function to calculate device draw (total power draw of devices)
-        function calculateDeviceDraw(row) {
-            const keypadCount = parseInt(row.querySelector('select[data-type="Keypad"]').value);
-            const sensorCount = parseInt(row.querySelector('select[data-type="Sensor"]').value);
-            const totalPower = (keypadCount * powerDrawMap["Keypad"]) + (sensorCount * powerDrawMap["Sensor"]);
-            return totalPower + " mA";
-        }
 
         // Function to calculate total draw (module draw + device draw)
         function calculateTotalDraw(button) {

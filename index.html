@@ -408,101 +408,106 @@ function addZone(zoneCount) {
             generateLoadControllerTable();
         }
 
-        // Function to generate the load controller table
         function generateLoadControllerTable() {
-            const tableBody = document.getElementById("load-controller-table").getElementsByTagName("tbody")[0];
-            tableBody.innerHTML = ""; // Clear existing rows
+    const tableBody = document.getElementById("load-controller-table").getElementsByTagName("tbody")[0];
+    tableBody.innerHTML = ""; // Clear existing rows
 
-            let loadMap = {}; // Store parts grouped by L values
+    let loadMap = {}; // Store parts grouped by L values
 
-            // Populate loadMap with parts from rails
-            rails.forEach(rail => {
-                Array.from(rail.children).forEach(part => {
-                    if (part.classList.contains("PSU")) return; // Skip PSU
+    // Populate loadMap with parts from rails
+    rails.forEach(rail => {
+        Array.from(rail.children).forEach(part => {
+            if (part.classList.contains("PSU")) return; // Skip PSU
 
-                    const type = part.classList[1]; // e.g., "NET, DLI", "NET, LV", "LINK, SW", "LINK, LV", "LINK, PLUG", "LINK, DIMU", "IO, IO"
-                    const subtype = part.querySelector(".type-dropdown").value;
-                    const selectedL = Array.from(part.querySelectorAll(".bottom-dropdowns select"))
-                        .map(select => select.value)
-                        .filter(value => value.startsWith("L")); // Get L values
+            const type = part.classList[1]; // e.g., "NET, DLI", "NET, LV", "LINK, SW", "LINK, LV", "LINK, PLUG", "LINK, DIMU", "IO, IO"
+            const subtype = part.querySelector(".type-dropdown").value;
+            const selectedL = Array.from(part.querySelectorAll(".bottom-dropdowns select"))
+                .map(select => select.value)
+                .filter(value => value.startsWith("L")); // Get L values
 
-                    selectedL.forEach(L => {
-                        if (!loadMap[L]) loadMap[L] = new Set(); // Use a Set to avoid duplicates
-                        loadMap[L].add(`${type}, ${subtype}`); // Add part to the Set
-                    });
-                });
+            selectedL.forEach(L => {
+                if (!loadMap[L]) loadMap[L] = []; // Use an array to store all parts with the same L value
+                loadMap[L].push(`${type}, ${subtype}`); // Add part to the array
             });
+        });
+    });
 
-            // Populate the table
-            Object.keys(loadMap).forEach(L => {
-                const row = document.createElement("tr");
+    // Populate the table
+    Object.keys(loadMap).forEach(L => {
+        const row = document.createElement("tr");
 
-                // Generate space input field
-                const spaceCell = document.createElement("td");
-                spaceCell.innerHTML = `<input type="text" placeholder="Enter Space">`;
-                row.appendChild(spaceCell);
+        // Generate space input field
+        const spaceCell = document.createElement("td");
+        spaceCell.innerHTML = `<input type="text" placeholder="Enter Space">`;
+        row.appendChild(spaceCell);
 
-                // Generate load controllers list (with full part numbers)
-                const loadControllersCell = document.createElement("td");
-                const partList = Array.from(loadMap[L]).map(part => {
-                    const [type, subtype] = part.split(", ");
-                    return partNumberMap[part] || part; // Use full part number if available
-                }).join("<br>"); // Display each part number on a new line
-                loadControllersCell.innerHTML = partList;
-                row.appendChild(loadControllersCell);
+        // Generate load controllers list (with full part numbers and counts)
+        const loadControllersCell = document.createElement("td");
 
-                // Generate devices dropdown
-                const devicesCell = document.createElement("td");
-                devicesCell.innerHTML = `
-                    <label>Keypads:</label> 
-                    <select class="device-select" data-type="Keypad">
-                        ${generateDeviceOptions()}
-                    </select>
-                    <br>
-                    <label>Sensors:</label> 
-                    <select class="device-select" data-type="Sensor">
-                        ${generateDeviceOptions()}
-                    </select>
-                `;
-                row.appendChild(devicesCell);
+        // Count occurrences of each part
+        const partCounts = {};
+        loadMap[L].forEach(part => {
+            partCounts[part] = (partCounts[part] || 0) + 1;
+        });
 
-                // Generate Module Draw column
-                const moduleDrawCell = document.createElement("td");
-                const moduleDraw = calculateModuleDraw(loadMap[L]);
-                moduleDrawCell.textContent = moduleDraw;
-                row.appendChild(moduleDrawCell);
+        // Display each part with its count
+        const partList = Object.entries(partCounts).map(([part, count]) => {
+            const partNumber = partNumberMap[part] || part; // Use full part number if available
+            return `${partNumber} (x${count})`; // Show part number and count
+        }).join("<br>"); // Display each part on a new line
 
-                // Generate Device Draw column
-                const deviceDrawCell = document.createElement("td");
-                deviceDrawCell.textContent = "0 mA"; // Initial value
-                row.appendChild(deviceDrawCell);
+        loadControllersCell.innerHTML = partList;
+        row.appendChild(loadControllersCell);
 
-                // Generate Total Draw column
-                const totalDrawCell = document.createElement("td");
-                totalDrawCell.textContent = "0 mA"; // Initial value
-                row.appendChild(totalDrawCell);
+        // Generate devices dropdown
+        const devicesCell = document.createElement("td");
+        devicesCell.innerHTML = `
+            <label>Keypads:</label> 
+            <select class="device-select" data-type="Keypad">
+                ${generateDeviceOptions()}
+            </select>
+            <br>
+            <label>Sensors:</label> 
+            <select class="device-select" data-type="Sensor">
+                ${generateDeviceOptions()}
+            </select>
+        `;
+        row.appendChild(devicesCell);
 
-                // Generate Calculate button
-                const calculateCell = document.createElement("td");
-                calculateCell.innerHTML = `<button onclick="calculateTotalDraw(this)">Calculate</button>`;
-                row.appendChild(calculateCell);
+        // Generate Module Draw column
+        const moduleDrawCell = document.createElement("td");
+        const moduleDraw = calculateModuleDraw(loadMap[L]);
+        moduleDrawCell.textContent = moduleDraw;
+        row.appendChild(moduleDrawCell);
 
-                tableBody.appendChild(row);
-            });
+        // Generate Device Draw column
+        const deviceDrawCell = document.createElement("td");
+        deviceDrawCell.textContent = "0 mA"; // Initial value
+        row.appendChild(deviceDrawCell);
 
-            // Add event listeners to all dropdowns
-            addDropdownListeners();
-        }
+        // Generate Total Draw column
+        const totalDrawCell = document.createElement("td");
+        totalDrawCell.textContent = "0 mA"; // Initial value
+        row.appendChild(totalDrawCell);
 
-        // Function to calculate module draw (total power draw of parts)
-        function calculateModuleDraw(partsSet) {
-            const partsArray = Array.from(partsSet);
-            const totalPower = partsArray.reduce((sum, part) => {
-                return sum + (powerDrawMap[part] || 0);
-            }, 0);
-            return totalPower + " mA";
-        }
+        // Generate Calculate button
+        const calculateCell = document.createElement("td");
+        calculateCell.innerHTML = `<button onclick="calculateTotalDraw(this)">Calculate</button>`;
+        row.appendChild(calculateCell);
 
+        tableBody.appendChild(row);
+    });
+
+    // Add event listeners to all dropdowns
+    addDropdownListeners();
+}
+
+        function calculateModuleDraw(partsArray) {
+    const totalPower = partsArray.reduce((sum, part) => {
+        return sum + (powerDrawMap[part] || 0);
+    }, 0);
+    return totalPower + " mA";
+}
         // Function to calculate device draw (total power draw of devices)
         function calculateDeviceDraw(row) {
             const keypadCount = parseInt(row.querySelector('select[data-type="Keypad"]').value);

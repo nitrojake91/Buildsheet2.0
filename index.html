@@ -441,21 +441,12 @@ function addZone(zoneCount) {
         spaceCell.innerHTML = `<input type="text" placeholder="Enter Space">`;
         row.appendChild(spaceCell);
 
-        // Generate load controllers list (with full part numbers and counts)
+        // Generate load controllers list (with full part numbers)
         const loadControllersCell = document.createElement("td");
-
-        // Count occurrences of each part
-        const partCounts = {};
-        loadMap[L].forEach(part => {
-            partCounts[part] = (partCounts[part] || 0) + 1;
-        });
-
-        // Display each part with its count
-        const partList = Object.entries(partCounts).map(([part, count]) => {
-            const partNumber = partNumberMap[part] || part; // Use full part number if available
-            return `${partNumber} (x${count})`; // Show part number and count
-        }).join("<br>"); // Display each part on a new line
-
+        const partList = loadMap[L].map(part => {
+            const [type, subtype] = part.split(", ");
+            return partNumberMap[part] || part; // Use full part number if available
+        }).join("<br>"); // Display each part number on a new line
         loadControllersCell.innerHTML = partList;
         row.appendChild(loadControllersCell);
 
@@ -502,7 +493,8 @@ function addZone(zoneCount) {
     addDropdownListeners();
 }
 
-        function calculateModuleDraw(partsArray) {
+// Function to calculate module draw (total power draw of parts)
+function calculateModuleDraw(partsArray) {
     const totalPower = partsArray.reduce((sum, part) => {
         return sum + (powerDrawMap[part] || 0);
     }, 0);

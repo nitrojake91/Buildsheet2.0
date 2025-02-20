@@ -309,15 +309,15 @@
     <!-- Main Content (Default) -->
 <div id="main-tab">
     <!-- Left Toolbar -->
-  <div id="toolbar">
+<div id="toolbar">
     <button onclick="addPart('PSU')">Add PSU</button>
     <button onclick="addPart('NET')">Add NET</button>
     <button onclick="addPart('LINK')">Add LINK</button>
     <button onclick="addPart('IO')">Add IO</button>
-    <button onclick="addZone(2)">2 Zone</button>
-    <button onclick="addZone(4)">4 Zone</button>
-    <button onclick="addZone(8)">8 Zone</button>
-    <button onclick="addZone(12)">12 Zone</button>
+    <button onclick="showLSelectionPopup(2)">2 Zone</button>
+    <button onclick="showLSelectionPopup(4)">4 Zone</button>
+    <button onclick="showLSelectionPopup(8)">8 Zone</button>
+    <button onclick="showLSelectionPopup(12)">12 Zone</button>
     <button onclick="exportToPDF()">Export to PDF</button>
 </div>
 
@@ -389,16 +389,39 @@
             "Sensor": 20,
             "Keypad": 5
         };
-function addZone(zoneCount) {
-    // Ask the user to select an L value
-    const selectedL = prompt("Enter the L value for all the dropdowns (e.g., L1, L2, etc.):");
+	function showLSelectionPopup(zoneCount) {
+    // Create the popup container
+    const popup = document.createElement("div");
+    popup.style.position = "fixed";
+    popup.style.top = "50%";
+    popup.style.left = "50%";
+    popup.style.transform = "translate(-50%, -50%)";
+    popup.style.backgroundColor = "white";
+    popup.style.padding = "20px";
+    popup.style.border = "1px solid #ccc";
+    popup.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.2)";
+    popup.style.zIndex = "1000";
 
-    // Validate the input
-    if (!selectedL || !selectedL.startsWith("L")) {
-        alert("Invalid L value. Please enter a value starting with 'L' (e.g., L1, L2).");
-        return; // Exit if the input is invalid
-    }
+    // Create the dropdown for L selection
+    const dropdown = document.createElement("select");
+    dropdown.innerHTML = generateDropdownOptions(1, 99, "L"); // Generate L options (L1, L2, ..., L99)
+    popup.appendChild(dropdown);
 
+    // Create the confirm button
+    const confirmButton = document.createElement("button");
+    confirmButton.textContent = "Confirm";
+    confirmButton.style.marginTop = "10px";
+    confirmButton.onclick = () => {
+        const selectedL = dropdown.value; // Get the selected L value
+        document.body.removeChild(popup); // Remove the popup
+        addZone(zoneCount, selectedL); // Add the parts with the selected L value
+    };
+    popup.appendChild(confirmButton);
+
+    // Add the popup to the body
+    document.body.appendChild(popup);
+}
+function addZone(zoneCount, selectedL) {
     // Add the specified number of LINK parts
     for (let i = 0; i < zoneCount; i++) {
         addPart('LINK', selectedL); // Pass the selectedL value to the addPart function
@@ -408,12 +431,11 @@ function addZone(zoneCount) {
 function addPart(type, selectedL = null) {
     const part = document.createElement("div");
     part.classList.add("part", type);
-    part.draggable = true; // Make the part draggable
+    part.draggable = true;
 
     let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
     let bottomDropdowns = getBottomDropdowns(type);
 
-    // Add arrows to the part
     part.innerHTML = `
         <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
         <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
@@ -421,43 +443,45 @@ function addPart(type, selectedL = null) {
         <div class="bottom-dropdowns">${bottomDropdowns}</div>
     `;
 
-    // Add double-click event listener to the part
     part.addEventListener("dblclick", () => showDeletePopup(part));
-
-    // Add drag-and-drop event listeners
     part.addEventListener("dragstart", handleDragStart);
     part.addEventListener("dragend", handleDragEnd);
 
-    // Calculate the width of the part (including margin)
     const partWidth = getPartWidth(type);
+    
+    console.log("Adding part:", type, "| Selected L:", selectedL);
 
-    // Find the first rail with enough space
     for (let rail of rails) {
         const railChildren = Array.from(rail.children);
         const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
 
-        // Check if adding the new part would exceed the rail's width (900px)
         if (totalWidth + partWidth <= 900) {
-            // Position the part at the end of the rail
             part.style.left = `${totalWidth}px`;
             rail.appendChild(part);
+            console.log("Part added to rail at position:", totalWidth);
 
-            // Set the selected L value for all L dropdowns in the part
-            if (selectedL) {
+            // Ensure dropdowns update after rendering
+            setTimeout(() => {
                 const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
+                console.log("Dropdowns found in new part:", lDropdowns.length);
+                if (lDropdowns.length === 0) {
+                    console.warn("No dropdowns found in new part! Check HTML structure.");
+                }
                 lDropdowns.forEach(dropdown => {
+                    console.log("Before update, dropdown value:", dropdown.value);
                     dropdown.value = selectedL;
+                    console.log("After update, dropdown value:", dropdown.value);
                 });
-            }
+            }, 50); // Slight delay ensures dropdowns are rendered
 
             updatePickList();
-            updatePanelSizeSelection(); // Update panel size selection
-            generateLoadControllerTable(); // Update Load Controller chart
+            updatePanelSizeSelection();
+            generateLoadControllerTable();
             return;
         }
     }
 
-    // If no rail has enough space, create a new rail
+    // If no rail has space, create a new rail
     const newRail = document.createElement("div");
     newRail.classList.add("rail");
     newRail.addEventListener("dragover", handleDragOver);
@@ -465,22 +489,31 @@ function addPart(type, selectedL = null) {
     panel.appendChild(newRail);
     rails.push(newRail);
 
-    // Position the part at the start of the new rail
     part.style.left = "0";
     newRail.appendChild(part);
+    console.log("Part added to a new rail.");
 
-    // Set the selected L value for all L dropdowns in the part
-    if (selectedL) {
+    // Ensure dropdowns update after rendering
+    setTimeout(() => {
         const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
+        console.log("Dropdowns found in new part (new rail):", lDropdowns.length);
+        if (lDropdowns.length === 0) {
+            console.warn("No dropdowns found in new part (new rail)! Check HTML structure.");
+        }
         lDropdowns.forEach(dropdown => {
+            console.log("Before update, dropdown value:", dropdown.value);
             dropdown.value = selectedL;
+            console.log("After update, dropdown value:", dropdown.value);
         });
-    }
+    }, 50);
 
     updatePickList();
-    updatePanelSizeSelection(); // Update panel size selection
-    generateLoadControllerTable(); // Update Load Controller chart
+    updatePanelSizeSelection();
+    generateLoadControllerTable();
 }
+
+
+
         function openTab(tabId) {
             document.getElementById("main-tab").style.display = tabId === "main-tab" ? "block" : "none";
             document.getElementById("load-controller-tab").style.display = tabId === "load-controller-tab" ? "block" : "none";
@@ -660,101 +693,117 @@ function calculateModuleDraw(partsObject) {
         }
 
         // Function to add a part
-        function addPart(type) {
-            const part = document.createElement("div");
-            part.classList.add("part", type);
-            part.draggable = true; // Make the part draggable
+        let lastUsedRailIndex = 0; // Track the last rail where a part was added
 
-            let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
-            let bottomDropdowns = getBottomDropdowns(type);
+function addPart(type, selectedL = null) {
+    const part = document.createElement("div");
+    part.classList.add("part", type);
+    part.draggable = true;
 
-            // Add arrows to the part
-            part.innerHTML = `
-                <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
-                <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
-                ${dropdown}
-                <div class="bottom-dropdowns">${bottomDropdowns}</div>
-            `;
+    let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
+    let bottomDropdowns = getBottomDropdowns(type);
 
-            // Add double-click event listener to the part
-            part.addEventListener("dblclick", () => showDeletePopup(part));
+    part.innerHTML = `
+        <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
+        <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
+        ${dropdown}
+        <div class="bottom-dropdowns">${bottomDropdowns}</div>
+    `;
 
-            // Add drag-and-drop event listeners
-            part.addEventListener("dragstart", handleDragStart);
-            part.addEventListener("dragend", handleDragEnd);
+    part.addEventListener("dblclick", () => showDeletePopup(part));
+    part.addEventListener("dragstart", handleDragStart);
+    part.addEventListener("dragend", handleDragEnd);
 
-            // Calculate the width of the part (including margin)
-            const partWidth = getPartWidth(type);
+    const partWidth = getPartWidth(type);
 
-            // Find the first rail with enough space
-            for (let rail of rails) {
-                const railChildren = Array.from(rail.children);
-                const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
+    // 1️⃣ Always start with the last used rail
+    let rail = rails[lastUsedRailIndex];
 
-                // Check if adding the new part would exceed the rail's width (900px)
-                if (totalWidth + partWidth <= 900) {
-                    // Position the part at the end of the rail
-                    part.style.left = `${totalWidth}px`;
-                    rail.appendChild(part);
-                    updatePickList();
-                    updatePanelSizeSelection(); // Update panel size selection
-                    generateLoadControllerTable(); // Update Load Controller chart
-                    return;
-                }
-            }
+    if (rail) {
+        const railChildren = Array.from(rail.children);
+        const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
 
-            // If no rail has enough space, create a new rail
-            const newRail = document.createElement("div");
-            newRail.classList.add("rail");
-            newRail.addEventListener("dragover", handleDragOver);
-            newRail.addEventListener("drop", handleDrop);
-            panel.appendChild(newRail);
-            rails.push(newRail);
+        if (totalWidth + partWidth <= 900) {
+            part.style.left = `${totalWidth}px`;
+            rail.appendChild(part);
+            console.log("Added part to rail index:", lastUsedRailIndex);
 
-            // Position the part at the start of the new rail
-            part.style.left = "0";
-            newRail.appendChild(part);
-            updatePickList();
-            updatePanelSizeSelection(); // Update panel size selection
-            generateLoadControllerTable(); // Update Load Controller chart
+            updateDropdowns(part, selectedL);
+            updatePickList(); // Ensure picklist is updated
+            return;
         }
+    }
 
-        // Function to move a part left or right
-        function movePart(part, distance) {
-            const rail = part.parentElement;
-            const currentLeft = parseInt(part.style.left) || 0;
-            const newLeft = currentLeft + distance;
+    // 2️⃣ Move to the next rail and ensure all future parts go there
+    lastUsedRailIndex++; 
+    if (lastUsedRailIndex >= rails.length) {
+        // If no available rails, create a new one
+        const newRail = document.createElement("div");
+        newRail.classList.add("rail");
+        newRail.addEventListener("dragover", handleDragOver);
+        newRail.addEventListener("drop", handleDrop);
+        panel.appendChild(newRail);
+        rails.push(newRail);
+    }
 
-            // Ensure the part doesn't overflow the rail
-            const partWidth = getPartWidth(part.classList[1]);
-            const railWidth = rail.offsetWidth;
-            const maxLeft = railWidth - partWidth;
+    // 3️⃣ Add part to the new rail
+    rail = rails[lastUsedRailIndex];
+    part.style.left = "0";
+    rail.appendChild(part);
+    console.log("Added part to NEW rail index:", lastUsedRailIndex);
 
-            if (newLeft < 0 || newLeft > maxLeft) {
-                return; // Stop if the part would go out of bounds
-            }
+    updateDropdowns(part, selectedL);
+    updatePickList(); // Ensure picklist is updated
+}
 
-            // Check for overlapping parts
-            const railChildren = Array.from(rail.children);
-            for (let otherPart of railChildren) {
-                if (otherPart === part) continue; // Skip the current part
-
-                const otherLeft = parseInt(otherPart.style.left) || 0;
-                const otherWidth = getPartWidth(otherPart.classList[1]);
-
-                // Check if the new position overlaps with another part
-                if (
-                    (newLeft >= otherLeft && newLeft < otherLeft + otherWidth) ||
-                    (newLeft + partWidth > otherLeft && newLeft + partWidth <= otherLeft + otherWidth)
-                ) {
-                    return; // Stop if there's an overlap
-                }
-            }
-
-            // Move the part if no overlap is detected
-            part.style.left = `${newLeft}px`;
+// Separate function to update dropdowns after part is added
+function updateDropdowns(part, selectedL) {
+    setTimeout(() => {
+        if (selectedL) {
+            const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
+            console.log("Dropdowns found in new part:", lDropdowns.length);
+            
+            lDropdowns.forEach(dropdown => {
+                console.log("Before update, dropdown value:", dropdown.value);
+                dropdown.value = selectedL;
+                console.log("After update, dropdown value:", dropdown.value);
+            });
         }
+    }, 50);
+}
 
+// Function to update the pick list
+function updatePickList() {
+    const pickListTable = document.getElementById("pick-list-table").getElementsByTagName("tbody")[0];
+    pickListTable.innerHTML = "";
+
+    const partCounts = {};
+
+    // Count parts
+    rails.forEach(rail => {
+        Array.from(rail.children).forEach(part => {
+            const type = part.classList[1];
+            const subtype = part.querySelector(".type-dropdown").value;
+            const key = `${type}, ${subtype}`;
+            partCounts[key] = (partCounts[key] || 0) + 1;
+        });
+    });
+
+    // Add rails to the pick list
+    const railCount = parseInt(document.getElementById("railSelect").value);
+    const railKey = `${railCount} rail`;
+    partCounts[railKey] = 1;
+
+    // Populate the pick list table
+    for (const [key, count] of Object.entries(partCounts)) {
+        const partNumber = partNumberMap[key];
+        if (partNumber) {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${partNumber}</td><td>${count}</td>`;
+            pickListTable.appendChild(row);
+        }
+    }
+}
         // Function to show a delete confirmation popup
         function showDeletePopup(part) {
             const confirmDelete = confirm("Are you sure you want to delete this part?");
@@ -905,34 +954,32 @@ function calculateModuleDraw(partsObject) {
             return "<option>PSU</option>";
         }
 
-        function getBottomDropdowns(type) {
+       function getBottomDropdowns(type) {
     let optionsN = generateDropdownOptions(1, 99, "N");
     let optionsL = generateDropdownOptions(1, 99, "L");
 
     if (type === "NET") {
-        // NET: Keep 2 N dropdowns and 1 L dropdown
         return `
-            <select onchange="updatePickList()">${optionsN}</select>
-            <select onchange="updatePickList()">${optionsN}</select>
-            <select onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
         `;
     } else if (type === "PSU") {
-        // PSU: Keep all 4 L dropdowns
         return `
-            <select onchange="updatePickList()">${optionsL}</select>
-            <select onchange="updatePickList()">${optionsL}</select>
-            <select onchange="updatePickList()">${optionsL}</select>
-            <select onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
         `;
     } else if (type === "LINK" || type === "IO") {
-        // LINK and IO: Keep 1 L dropdown
         return `
-            <select onchange="updatePickList()">${optionsL}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
         `;
     } else {
-        return ""; // Default case (should not happen)
+        return "";
     }
 }
+
         function generateDropdownOptions(start, end, prefix) {
             return Array.from({ length: end - start + 1 }, (_, i) => `<option>${prefix}${i + start}</option>`).join("");
         }
@@ -968,7 +1015,6 @@ function calculateModuleDraw(partsObject) {
                 }
             }
         }
-
    function exportToPDF() {
     const railsElement = document.getElementById("panel");
     const pickListElement = document.getElementById("pick-list");

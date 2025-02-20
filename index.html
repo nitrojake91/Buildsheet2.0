@@ -331,26 +331,23 @@
         </select>
     </div>
 
-    <!-- Wrap the rails and pick list in a container -->
-    <div id="export-container">
-        <!-- Panel (Rails) -->
-        <div id="panel"></div>
+    <!-- Rails Container -->
+    <div id="panel"></div>
 
-        <!-- Pick List -->
-        <div id="pick-list">
-            <h3>PICK LIST</h3>
-            <table id="pick-list-table">
-                <thead>
-                    <tr>
-                        <th>Part Number</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be populated dynamically -->
-                </tbody>
-            </table>
-        </div>
+    <!-- Pick List -->
+    <div id="pick-list">
+        <h3>PICK LIST</h3>
+        <table id="pick-list-table">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -869,14 +866,44 @@
             }
         }
 
-        function exportToPDF() {
-    const element = document.getElementById("export-container"); // Target the export container
-    html2pdf(element, {
+   function exportToPDF() {
+    const railsElement = document.getElementById("panel"); // Get the rails container
+    const pickListElement = document.getElementById("pick-list"); // Get the pick list container
+
+    // Create a new container for the PDF content
+    const pdfContainer = document.createElement("div");
+    pdfContainer.style.width = "100%"; // Ensure the container takes full width
+
+    // Clone the rails and pick list elements to avoid modifying the original DOM
+    const railsClone = railsElement.cloneNode(true);
+    const pickListClone = pickListElement.cloneNode(true);
+
+    // Add the rails to the PDF container
+    pdfContainer.appendChild(railsClone);
+
+    // Add a page break before the pick list
+    const pageBreak = document.createElement("div");
+    pageBreak.style.pageBreakBefore = "always"; // Force a new page for the pick list
+    pdfContainer.appendChild(pageBreak);
+
+    // Add the pick list to the PDF container
+    pdfContainer.appendChild(pickListClone);
+
+    // Export the PDF
+    html2pdf(pdfContainer, {
         margin: 10,
         filename: "buildsheet.pdf",
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }, // Use A4 for better readability
+        html2canvas: { 
+            scale: 2, // Increase scale for better quality
+            width: 1100, // Adjust width to fit 11x17 paper
+            useCORS: true // Ensure images load correctly
+        },
+        jsPDF: { 
+            unit: "mm", 
+            format: [279.4, 431.8], // 11x17 in millimeters (portrait)
+            orientation: "portrait" 
+        },
     });
 }
         generateRails();

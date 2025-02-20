@@ -819,18 +819,33 @@ function calculateModuleDraw(partsObject) {
         }
 
         function getBottomDropdowns(type) {
-            let optionsN = generateDropdownOptions(1, 99, "N");
-            let optionsL = generateDropdownOptions(1, 99, "L");
+    let optionsN = generateDropdownOptions(1, 99, "N");
+    let optionsL = generateDropdownOptions(1, 99, "L");
 
-            if (type === "NET") {
-                return `<select onchange="updatePickList()">${optionsN}</select><select onchange="updatePickList()">${optionsN}</select><select onchange="updatePickList()">${optionsL}</select><select onchange="updatePickList()">${optionsL}</select>`;
-            } else if (type === "PSU") {
-                return `<select onchange="updatePickList()">${optionsL}</select><select onchange="updatePickList()">${optionsL}</select><select onchange="updatePickList()">${optionsL}</select><select onchange="updatePickList()">${optionsL}</select>`;
-            } else {
-                return `<select onchange="updatePickList()">${optionsL}</select><select onchange="updatePickList()">${optionsL}</select>`;
-            }
-        }
-
+    if (type === "NET") {
+        // NET: Keep 2 N dropdowns and 1 L dropdown
+        return `
+            <select onchange="updatePickList()">${optionsN}</select>
+            <select onchange="updatePickList()">${optionsN}</select>
+            <select onchange="updatePickList()">${optionsL}</select>
+        `;
+    } else if (type === "PSU") {
+        // PSU: Keep all 4 L dropdowns
+        return `
+            <select onchange="updatePickList()">${optionsL}</select>
+            <select onchange="updatePickList()">${optionsL}</select>
+            <select onchange="updatePickList()">${optionsL}</select>
+            <select onchange="updatePickList()">${optionsL}</select>
+        `;
+    } else if (type === "LINK" || type === "IO") {
+        // LINK and IO: Keep 1 L dropdown
+        return `
+            <select onchange="updatePickList()">${optionsL}</select>
+        `;
+    } else {
+        return ""; // Default case (should not happen)
+    }
+}
         function generateDropdownOptions(start, end, prefix) {
             return Array.from({ length: end - start + 1 }, (_, i) => `<option>${prefix}${i + start}</option>`).join("");
         }

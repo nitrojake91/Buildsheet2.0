@@ -294,25 +294,6 @@
 </head>
 <body>
 <!-- Wrap the rails and pick list in a container -->
-<div id="export-container">
-    <!-- Panel (Rails) -->
-    <div id="panel"></div>
-
-    <!-- Pick List -->
-    <div id="pick-list">
-        <h3>PICK LIST</h3>
-        <table id="pick-list-table">
-            <thead>
-                <tr>
-                    <th>Part Number</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be populated dynamically -->
-            </tbody>
-        </table>
-    </div>
 </div>
     <div id="title-banner">
         <h1>Buildsheet Generator</h1>
@@ -326,31 +307,33 @@
     </div>
 
     <!-- Main Content (Default) -->
-    <div id="main-tab">
-        <!-- Left Toolbar -->
-        <div id="toolbar">
-            <button onclick="addPart('PSU')">Add PSU</button>
-            <button onclick="addPart('NET')">Add NET</button>
-            <button onclick="addPart('LINK')">Add LINK</button>
-            <button onclick="addPart('IO')">Add IO</button>
-            <button onclick="exportToPDF()">Export to PDF</button>
-        </div>
+<div id="main-tab">
+    <!-- Left Toolbar -->
+    <div id="toolbar">
+        <button onclick="addPart('PSU')">Add PSU</button>
+        <button onclick="addPart('NET')">Add NET</button>
+        <button onclick="addPart('LINK')">Add LINK</button>
+        <button onclick="addPart('IO')">Add IO</button>
+        <button onclick="exportToPDF()">Export to PDF</button>
+    </div>
 
-        <!-- Hide Button -->
-        <button id="hideButton" onclick="toggleToolbar()">Hide</button>
+    <!-- Hide Button -->
+    <button id="hideButton" onclick="toggleToolbar()">Hide</button>
 
-        <!-- Rail Selector -->
-        <div id="controls">
-            <label for="railSelect">Select Rails:</label>
-            <select id="railSelect" onchange="generateRails()">
-                <option value="2">2 Rail</option>
-                <option value="3">3 Rail</option>
-                <option value="6">6 Rail</option>
-                <option value="10">10 Rail</option>
-            </select>
-        </div>
+    <!-- Rail Selector -->
+    <div id="controls">
+        <label for="railSelect">Select Rails:</label>
+        <select id="railSelect" onchange="generateRails()">
+            <option value="2">2 Rail</option>
+            <option value="3">3 Rail</option>
+            <option value="6">6 Rail</option>
+            <option value="10">10 Rail</option>
+        </select>
+    </div>
 
-        <!-- Panel -->
+    <!-- Wrap the rails and pick list in a container -->
+    <div id="export-container">
+        <!-- Panel (Rails) -->
         <div id="panel"></div>
 
         <!-- Pick List -->
@@ -369,6 +352,7 @@
             </table>
         </div>
     </div>
+</div>
 
     <!-- Load Controller Tab (Initially Hidden) -->
     <div id="load-controller-tab" style="display: none;">

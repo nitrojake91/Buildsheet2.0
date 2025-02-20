@@ -867,41 +867,44 @@
         }
 
    function exportToPDF() {
-    const railsElement = document.getElementById("panel"); // Get the rails container
-    const pickListElement = document.getElementById("pick-list"); // Get the pick list container
+    const railsElement = document.getElementById("panel");
+    const pickListElement = document.getElementById("pick-list");
 
-    // Create a new container for the PDF content
-    const pdfContainer = document.createElement("div");
-    pdfContainer.style.width = "100%"; // Ensure the container takes full width
-
-    // Clone the rails and pick list elements to avoid modifying the original DOM
+    // Clone elements to avoid modifying the original DOM
     const railsClone = railsElement.cloneNode(true);
     const pickListClone = pickListElement.cloneNode(true);
 
-    // Add the rails to the PDF container
-    pdfContainer.appendChild(railsClone);
+    // Ensure the cloned elements are visible for export
+    railsClone.style.display = "block";
+    pickListClone.style.display = "block";
 
-    // Add a page break before the pick list
+    // Add a page break inside the cloned elements
     const pageBreak = document.createElement("div");
-    pageBreak.style.pageBreakBefore = "always"; // Force a new page for the pick list
-    pdfContainer.appendChild(pageBreak);
+    pageBreak.style.pageBreakBefore = "always";
+    pageBreak.style.width = "100%";
+    pageBreak.style.height = "20px"; // Some height to ensure it's recognized
+    pageBreak.style.background = "white"; // Avoid any artifacts
 
-    // Add the pick list to the PDF container
+    railsClone.appendChild(pageBreak); // Insert page break inside the railsClone
+
+    // Create a container to hold the content
+    const pdfContainer = document.createElement("div");
+    pdfContainer.appendChild(railsClone);
     pdfContainer.appendChild(pickListClone);
 
-    // Export the PDF
+    // Export to PDF
     html2pdf(pdfContainer, {
         margin: 10,
         filename: "buildsheet.pdf",
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { 
-            scale: 2, // Increase scale for better quality
-            width: 1100, // Adjust width to fit 11x17 paper
-            useCORS: true // Ensure images load correctly
+            scale: 2, 
+            width: 1100,
+            useCORS: true 
         },
         jsPDF: { 
             unit: "mm", 
-            format: [279.4, 431.8], // 11x17 in millimeters (portrait)
+            format: [279.4, 431.8], 
             orientation: "portrait" 
         },
     });

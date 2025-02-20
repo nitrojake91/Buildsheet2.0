@@ -309,13 +309,17 @@
     <!-- Main Content (Default) -->
 <div id="main-tab">
     <!-- Left Toolbar -->
-    <div id="toolbar">
-        <button onclick="addPart('PSU')">Add PSU</button>
-        <button onclick="addPart('NET')">Add NET</button>
-        <button onclick="addPart('LINK')">Add LINK</button>
-        <button onclick="addPart('IO')">Add IO</button>
-        <button onclick="exportToPDF()">Export to PDF</button>
-    </div>
+  <div id="toolbar">
+    <button onclick="addPart('PSU')">Add PSU</button>
+    <button onclick="addPart('NET')">Add NET</button>
+    <button onclick="addPart('LINK')">Add LINK</button>
+    <button onclick="addPart('IO')">Add IO</button>
+    <button onclick="addZone(2)">2 Zone</button>
+    <button onclick="addZone(4)">4 Zone</button>
+    <button onclick="addZone(8)">8 Zone</button>
+    <button onclick="addZone(12)">12 Zone</button>
+    <button onclick="exportToPDF()">Export to PDF</button>
+</div>
 
     <!-- Hide Button -->
     <button id="hideButton" onclick="toggleToolbar()">Hide</button>
@@ -373,6 +377,7 @@
     </div>
 
     <script>
+    
         const powerDrawMap = {
             "NET, LV": 120,
             "NET, DLI": 150,
@@ -384,7 +389,11 @@
             "Sensor": 20,
             "Keypad": 5
         };
-
+function addZone(zoneCount) {
+    for (let i = 0; i < zoneCount; i++) {
+        addPart('LINK');
+    }
+}
         function openTab(tabId) {
             document.getElementById("main-tab").style.display = tabId === "main-tab" ? "block" : "none";
             document.getElementById("load-controller-tab").style.display = tabId === "load-controller-tab" ? "block" : "none";

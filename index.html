@@ -390,9 +390,96 @@
             "Keypad": 5
         };
 function addZone(zoneCount) {
-    for (let i = 0; i < zoneCount; i++) {
-        addPart('LINK');
+    // Ask the user to select an L value
+    const selectedL = prompt("Enter the L value for all the dropdowns (e.g., L1, L2, etc.):");
+
+    // Validate the input
+    if (!selectedL || !selectedL.startsWith("L")) {
+        alert("Invalid L value. Please enter a value starting with 'L' (e.g., L1, L2).");
+        return; // Exit if the input is invalid
     }
+
+    // Add the specified number of LINK parts
+    for (let i = 0; i < zoneCount; i++) {
+        addPart('LINK', selectedL); // Pass the selectedL value to the addPart function
+    }
+}
+
+function addPart(type, selectedL = null) {
+    const part = document.createElement("div");
+    part.classList.add("part", type);
+    part.draggable = true; // Make the part draggable
+
+    let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
+    let bottomDropdowns = getBottomDropdowns(type);
+
+    // Add arrows to the part
+    part.innerHTML = `
+        <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
+        <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
+        ${dropdown}
+        <div class="bottom-dropdowns">${bottomDropdowns}</div>
+    `;
+
+    // Add double-click event listener to the part
+    part.addEventListener("dblclick", () => showDeletePopup(part));
+
+    // Add drag-and-drop event listeners
+    part.addEventListener("dragstart", handleDragStart);
+    part.addEventListener("dragend", handleDragEnd);
+
+    // Calculate the width of the part (including margin)
+    const partWidth = getPartWidth(type);
+
+    // Find the first rail with enough space
+    for (let rail of rails) {
+        const railChildren = Array.from(rail.children);
+        const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
+
+        // Check if adding the new part would exceed the rail's width (900px)
+        if (totalWidth + partWidth <= 900) {
+            // Position the part at the end of the rail
+            part.style.left = `${totalWidth}px`;
+            rail.appendChild(part);
+
+            // Set the selected L value for all L dropdowns in the part
+            if (selectedL) {
+                const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
+                lDropdowns.forEach(dropdown => {
+                    dropdown.value = selectedL;
+                });
+            }
+
+            updatePickList();
+            updatePanelSizeSelection(); // Update panel size selection
+            generateLoadControllerTable(); // Update Load Controller chart
+            return;
+        }
+    }
+
+    // If no rail has enough space, create a new rail
+    const newRail = document.createElement("div");
+    newRail.classList.add("rail");
+    newRail.addEventListener("dragover", handleDragOver);
+    newRail.addEventListener("drop", handleDrop);
+    panel.appendChild(newRail);
+    rails.push(newRail);
+
+    // Position the part at the start of the new rail
+    part.style.left = "0";
+    newRail.appendChild(part);
+
+    // Set the selected L value for all L dropdowns in the part
+    if (selectedL) {
+        const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
+        lDropdowns.forEach(dropdown => {
+            dropdown.value = selectedL;
+        });
+    }
+
+    updatePickList();
+    updatePanelSizeSelection(); // Update panel size selection
+    generateLoadControllerTable(); // Update Load Controller chart
 }
         function openTab(tabId) {
             document.getElementById("main-tab").style.display = tabId === "main-tab" ? "block" : "none";

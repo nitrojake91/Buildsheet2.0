@@ -189,31 +189,43 @@
             cursor: grabbing; /* Change cursor when dragging */
         }
 
-        /* Specific Module Sizes */
-        .part.NET {
-            width: 200px; /* Fixed width */
-            height: 70px; /* Fixed height */
-            background: rgba(128, 0, 128, 0.8); /* Purple */
-        }
+/* Specific Module Sizes */
+.part.NET {
+    width: 200px; /* Fixed width */
+    height: 70px; /* Fixed height */
+    background: rgba(128, 0, 128, 0.8); /* Purple */
+}
 
-        .part.PSU {
-            width: 200px; /* Fixed width */
-            height: 70px; /* Fixed height */
-            background: rgba(128, 128, 128, 0.8); /* Grey */
-        }
+.part.PSU {
+    width: 200px; /* Fixed width */
+    height: 70px; /* Fixed height */
+    background: rgba(128, 128, 128, 0.8); /* Grey */
+}
 
-        .part.LINK {
-            width: 150px; /* Fixed width */
-            height: 70px; /* Fixed height */
-            background: rgba(255, 165, 0, 0.8); /* Orange */
-        }
+.part.LINK {
+    width: 150px; /* Fixed width */
+    height: 70px; /* Fixed height */
+    background: rgba(255, 165, 0, 0.8); /* Orange */
+}
 
-        .part.IO {
-            width: 200px; /* Fixed width */
-            height: 70px; /* Fixed height */
-            background: rgba(255, 165, 0, 0.8); /* Orange */
-        }
+.part.IO {
+    width: 200px; /* Fixed width */
+    height: 70px; /* Fixed height */
+    background: rgba(255, 165, 0, 0.8); /* Orange */
+}
 
+/* Add styles for the new parts */
+.part.SWITCH {
+    width: 500px; /* Fixed width */
+    height: 80px; /* Fixed height */
+    background: rgba(0, 128, 128, 0.8); /* Teal */
+}
+
+.part.HUB4 {
+    width: 500px; /* Fixed width */
+    height: 250px; /* Fixed height */
+    background: rgba(128, 0, 0, 0.8); /* Maroon */
+}
         .part:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
@@ -314,13 +326,15 @@
     <button onclick="addPart('NET')">Add NET</button>
     <button onclick="addPart('LINK')">Add LINK</button>
     <button onclick="addPart('IO')">Add IO</button>
+    <!-- Add buttons for the new parts -->
+    <button onclick="addPart('SWITCH')">Add SWITCH</button>
+    <button onclick="addPart('HUB4')">Add HUB4</button>
     <button onclick="showLSelectionPopup(2)">2 Zone</button>
     <button onclick="showLSelectionPopup(4)">4 Zone</button>
     <button onclick="showLSelectionPopup(8)">8 Zone</button>
     <button onclick="showLSelectionPopup(12)">12 Zone</button>
     <button onclick="exportToPDF()">Export to PDF</button>
 </div>
-
     <!-- Hide Button -->
     <button id="hideButton" onclick="toggleToolbar()">Hide</button>
 
@@ -654,19 +668,22 @@ function calculateModuleDraw(partsObject) {
         }
 
         const partNumberMap = {
-            "NET, LV": "ZUMNET-DIN-16A-LV",
-            "NET, DLI": "ZUMNET-DIN-DLI",
-            "LINK, LV": "ZUMLINK-DIN-16A-LV",
-            "LINK, DIMU": "ZUMLINK-DIN-DIMU",
-            "LINK, SW": "ZUMLINK-DIN-20A-SW",
-            "LINK, PLUG": "ZUMLINK-DIN-20A-PLUG",
-            "IO, IO": "ZUMLINK-DIN-IO",
-            "PSU, PSU": "ZUMLINK-DIN-PSU",
-            "2 rail": "DIN-EN-2x18",
-            "3 rail": "DIN-EN-3x18",
-            "6 rail": "DIN-EN-6x18",
-            "10 rail": "DIN-EN-10x18",
-        };
+    "NET, LV": "ZUMNET-DIN-16A-LV",
+    "NET, DLI": "ZUMNET-DIN-DLI",
+    "LINK, LV": "ZUMLINK-DIN-16A-LV",
+    "LINK, DIMU": "ZUMLINK-DIN-DIMU",
+    "LINK, SW": "ZUMLINK-DIN-20A-SW",
+    "LINK, PLUG": "ZUMLINK-DIN-20A-PLUG",
+    "IO, IO": "ZUMLINK-DIN-IO",
+    "PSU, PSU": "ZUMLINK-DIN-PSU",
+    "2 rail": "DIN-EN-2x18",
+    "3 rail": "DIN-EN-3x18",
+    "6 rail": "DIN-EN-6x18",
+    "10 rail": "DIN-EN-10x18",
+    // Add part numbers for the new parts
+    "SWITCH, SWITCH": "CEN-SWPOE-5AC",
+    "HUB4, HUB4": "ZUM-HUB4",
+};
 
         function toggleToolbar() {
             const toolbar = document.getElementById("toolbar");
@@ -886,19 +903,23 @@ function updatePickList() {
 
         // Helper function to get the exact width of a part based on its type
         function getPartWidth(type) {
-            switch (type) {
-                case "NET":
-                    return 200; // NET parts are 200px wide
-                case "PSU":
-                    return 200; // PSU parts are 200px wide
-                case "LINK":
-                    return 150; // LINK parts are 150px wide
-                case "IO":
-                    return 200; // IO parts are 200px wide
-                default:
-                    return 0;
-            }
-        }
+    switch (type) {
+        case "NET":
+            return 200; // NET parts are 200px wide
+        case "PSU":
+            return 200; // PSU parts are 200px wide
+        case "LINK":
+            return 150; // LINK parts are 150px wide
+        case "IO":
+            return 200; // IO parts are 200px wide
+        case "SWITCH":
+            return 500; // SWITCH parts are 500px wide
+        case "HUB4":
+            return 500; // HUB4 parts are 500px wide
+        default:
+            return 0;
+    }
+}
 
         // Function to show a delete confirmation popup
         function showDeletePopup(part) {
@@ -947,13 +968,14 @@ function updatePickList() {
             }
         }
 
-        function getDropdownOptions(type) {
-            if (type === "NET") return "<option>LV</option><option>DLI</option>";
-            if (type === "LINK") return "<option>LV</option><option>DIMU</option><option>SW</option><option>PLUG</option>";
-            if (type === "IO") return "<option>IO</option>";
-            return "<option>PSU</option>";
-        }
-
+       function getDropdownOptions(type) {
+    if (type === "NET") return "<option>LV</option><option>DLI</option>";
+    if (type === "LINK") return "<option>LV</option><option>DIMU</option><option>SW</option><option>PLUG</option>";
+    if (type === "IO") return "<option>IO</option>";
+    if (type === "SWITCH") return "<option>SWITCH</option>";
+    if (type === "HUB4") return "<option>HUB4</option>";
+    return "<option>PSU</option>";
+}
        function getBottomDropdowns(type) {
     let optionsN = generateDropdownOptions(1, 99, "N");
     let optionsL = generateDropdownOptions(1, 99, "L");
@@ -974,6 +996,19 @@ function updatePickList() {
     } else if (type === "LINK" || type === "IO") {
         return `
             <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
+        `;
+    } else if (type === "SWITCH") {
+        return `
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+        `;
+    } else if (type === "HUB4") {
+        return `
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
+            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
         `;
     } else {
         return "";

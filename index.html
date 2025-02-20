@@ -31,7 +31,21 @@
             left: 0;
             z-index: 1000;
         }
+#export-container {
+    width: 100%;
+    padding: 20px;
+    background: white; /* Ensure the background is white for the PDF */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
 
+#export-container #panel {
+    margin-bottom: 20px; /* Add space between rails and pick list */
+}
+
+#export-container #pick-list {
+    margin-top: 20px; /* Add space between rails and pick list */
+}
         #title-banner h1 {
             margin: 0;
             font-size: 28px;
@@ -279,7 +293,27 @@
     </style>
 </head>
 <body>
+<!-- Wrap the rails and pick list in a container -->
+<div id="export-container">
+    <!-- Panel (Rails) -->
+    <div id="panel"></div>
 
+    <!-- Pick List -->
+    <div id="pick-list">
+        <h3>PICK LIST</h3>
+        <table id="pick-list-table">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+</div>
     <div id="title-banner">
         <h1>Buildsheet Generator</h1>
         <p>Created by Jake Skidmore</p>
@@ -852,16 +886,15 @@
         }
 
         function exportToPDF() {
-            const element = document.getElementById("main-tab");
-            html2pdf(element, {
-                margin: 10,
-                filename: "buildsheet.pdf",
-                image: { type: "jpeg", quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: "mm", format: "tabloid", orientation: "portrait" },
-            });
-        }
-
+    const element = document.getElementById("export-container"); // Target the export container
+    html2pdf(element, {
+        margin: 10,
+        filename: "buildsheet.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }, // Use A4 for better readability
+    });
+}
         generateRails();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>

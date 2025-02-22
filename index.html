@@ -1,1100 +1,891 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buildsheet Generator</title>
-    <style>
-        /* General Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #f4f4f4, #e0e0e0);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel and Parts Configuration</title>
+  <style>
+    /* Modern Color Palette (Inspired by Crestron) */
+    :root {
+      --primary-color: #003366; /* Dark Blue */
+      --secondary-color: #0099CC; /* Light Blue */
+      --accent-color: #FF6600; /* Orange */
+      --background-color: #F5F5F5; /* Light Gray */
+      --text-color: #333333; /* Dark Gray */
+      --button-gradient: linear-gradient(135deg, #0099CC, #003366);
+      --button-hover-gradient: linear-gradient(135deg, #0077B3, #002244);
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
 
-        /* Title Banner */
-        #title-banner {
-            width: 100%;
-            background: linear-gradient(135deg, #003366, #004080);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-#export-container {
-    width: 100%;
-    padding: 20px;
-    background: white; /* Ensure the background is white for the PDF */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-#export-container #panel {
-    margin-bottom: 20px; /* Add space between rails and pick list */
-}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-#export-container #pick-list {
-    margin-top: 20px; /* Add space between rails and pick list */
-}
-        #title-banner h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: bold;
-        }
+    .container {
+      width: 90%;
+      min-width: 1200px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
 
-        #title-banner p {
-            margin: 0;
-            font-size: 16px;
-            color: #FFA500;
-        }
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      padding: 20px;
+      background-color: var(--primary-color);
+      border-radius: 12px 12px 0 0;
+    }
 
-        /* Navigation Tabs */
-        #nav-tabs {
-            margin-top: 100px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+    .tab-buttons button {
+      padding: 10px 20px;
+      background: var(--button-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
 
-        #nav-tabs button {
-            padding: 10px 20px;
-            border: none;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+    .tab-buttons button:hover {
+      background: var(--button-hover-gradient);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
 
-        #nav-tabs button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+    .tab-buttons button.active {
+      background: var(--accent-color);
+    }
 
-        /* Load Controller Table */
-        #load-controller-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-            margin-top: 20px;
-        }
+    .tab {
+      display: none;
+      padding: 20px;
+    }
 
-        #load-controller-table th,
-        #load-controller-table td {
-            padding: 12px;
-            text-align: left;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+    .tab.active {
+      display: flex;
+      gap: 20px;
+    }
 
-        #load-controller-table th {
-            background: linear-gradient(135deg, #003366, #004080);
-            color: white;
-            font-weight: bold;
-        }
+    .sidebar {
+      width: 250px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
 
-        /* Toolbar */
-        #toolbar {
-            position: fixed;
-            left: 20px;
-            top: 150px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+    .sidebar button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: var(--button-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
 
-        #toolbar button {
-            padding: 12px 20px;
-            border: none;
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+    .sidebar button:hover {
+      background: var(--button-hover-gradient);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
 
-        #toolbar button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+    .panel-container {
+      flex: 1;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: auto;
+      height: 80vh;
+    }
 
-        /* Panel & Rails */
-        #panel {
-            width: 900px;
-            height: 1000px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-top: 20px;
-        }
+    .panel {
+      position: relative;
+      background-color: white;
+      min-height: 100%;
+      padding: 20px;
+    }
 
-        /* Rail Styles */
-        .rail {
-            width: 900px; /* Fixed width for the rail */
-            height: 70px; /* Fixed height for the rail */
-            background: rgba(221, 221, 221, 0.8); /* Light grey background for the rail */
-            border-bottom: 2px solid #bbb; /* Rail border */
-            border-radius: 10px;
-            position: relative; /* Make the rail a positioning context for parts */
-            margin-bottom: 20px; /* Space between rails */
-        }
+    .rail-graphic {
+      position: absolute;
+      background-color: var(--secondary-color);
+      height: 18px;
+      width: 50%;
+      border-radius: 4px;
+      z-index: 1;
+    }
 
-        /* Part Styles */
-        .part {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-            position: absolute; /* Position parts absolutely within the rail */
-            top: 0; /* Align parts to the top of the rail */
-            left: 0; /* Start from the left edge of the rail */
-            margin: 0; /* Remove margin */
-            flex-shrink: 0; /* Prevent parts from shrinking */
-            cursor: grab; /* Change cursor to indicate draggable */
-        }
+    .part {
+      position: absolute;
+      background-color: var(--accent-color);
+      border: none;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      text-align: center;
+      flex-direction: column;
+      z-index: 2;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+    }
 
-        .part:active {
-            cursor: grabbing; /* Change cursor when dragging */
-        }
+    .part:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-hover);
+    }
 
-/* Specific Module Sizes */
-.part.NET {
-    width: 200px; /* Fixed width */
-    height: 70px; /* Fixed height */
-    background: rgba(128, 0, 128, 0.8); /* Purple */
-}
+    .wiring-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: all;
+    }
 
-.part.PSU {
-    width: 200px; /* Fixed width */
-    height: 70px; /* Fixed height */
-    background: rgba(128, 128, 128, 0.8); /* Grey */
-}
+    .wiring-svg path {
+      stroke-width: 2;
+      fill: none;
+    }
 
-.part.LINK {
-    width: 150px; /* Fixed width */
-    height: 70px; /* Fixed height */
-    background: rgba(255, 165, 0, 0.8); /* Orange */
-}
+    .wire-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      z-index: 1000;
+    }
 
-.part.IO {
-    width: 200px; /* Fixed width */
-    height: 70px; /* Fixed height */
-    background: rgba(255, 165, 0, 0.8); /* Orange */
-}
+    .wire-popup button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: var(--button-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
 
-/* Add styles for the new parts */
-.part.SWITCH {
-    width: 500px; /* Fixed width */
-    height: 80px; /* Fixed height */
-    background: rgba(0, 128, 128, 0.8); /* Teal */
-}
+    .wire-popup button:hover {
+      background: var(--button-hover-gradient);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
 
-.part.HUB4 {
-    width: 500px; /* Fixed width */
-    height: 250px; /* Fixed height */
-    background: rgba(128, 0, 0, 0.8); /* Maroon */
-}
-        .part:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
+    .space-layout,
+    .load-schedule {
+      padding: 20px;
+    }
 
-        /* Part Colors */
-        .NET { background: rgba(128, 0, 128, 0.8); }
-        .PSU { background: rgba(128, 128, 128, 0.8); }
-        .LINK { background: rgba(255, 165, 0, 0.8); }
-        .IO { background: rgba(255, 165, 0, 0.8); }
+    .space-layout h2,
+    .load-schedule h2 {
+      margin-bottom: 20px;
+    }
 
-        /* Dropdowns */
-        .part select {
-            width: 50px;
-            padding: 1px;
-            border: none;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+    .space-layout table,
+    .load-schedule table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
 
-        /* Pick List */
-        #pick-list {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
+    .space-layout th,
+    .space-layout td,
+    .load-schedule th,
+    .load-schedule td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
 
-        #pick-list h3 {
-            margin: 0 0 10px 0;
-            font-size: 20px;
-            font-weight: bold;
-        }
+    .space-layout th,
+    .load-schedule th {
+      background-color: var(--primary-color);
+      color: white;
+    }
 
-        #pick-list-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-        }
+    .space-layout tr:nth-child(even),
+    .load-schedule tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
 
-        #pick-list-table th,
-        #pick-list-table td {
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+    .space-layout input[type="text"],
+    .space-layout input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-        #pick-list-table th {
-            background: linear-gradient(135deg, #003366, #004080);
-            color: white;
-            font-weight: bold;
-        }
+    .nested-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-        /* Arrow Styles */
-        .part .arrow {
-            position: absolute;
-            top: 0;
-            cursor: pointer;
-            font-size: 20px;
-            color: #00000;
-            user-select: none;
-        }
-
-        .part .arrow.left {
-            left: 5px;
-        }
-
-        .part .arrow.right {
-            right: 5px;
-        }
-    </style>
+    .nested-table td {
+      padding: 5px;
+      border: 1px solid #ddd;
+    }
+  </style>
 </head>
 <body>
-<!-- Wrap the rails and pick list in a container -->
-</div>
-    <div id="title-banner">
-        <h1>Buildsheet Generator</h1>
-        <p>Created by Jake Skidmore</p>
+  <div class="container">
+    <!-- Tab Buttons -->
+    <div class="tab-buttons">
+      <button id="main-tab-button" class="active">Main Page</button>
+      <button id="wiring-tab-button">Panel Wiring</button>
+      <button id="space-tab-button">Space Layout</button>
+      <button id="load-tab-button">Load Schedule</button>
     </div>
 
-    <!-- Move the Tabs Below the Title -->
-    <div id="nav-tabs">
-        <button onclick="openTab('main-tab')">Main Page</button>
-        <button onclick="openTab('load-controller-tab')">Load Controllers</button>
-    </div>
-
-    <!-- Main Content (Default) -->
-<div id="main-tab">
-    <!-- Left Toolbar -->
-<div id="toolbar">
-    <button onclick="addPart('PSU')">Add PSU</button>
-    <button onclick="addPart('NET')">Add NET</button>
-    <button onclick="addPart('LINK')">Add LINK</button>
-    <button onclick="addPart('IO')">Add IO</button>
-    <!-- Add buttons for the new parts -->
-    <button onclick="addPart('SWITCH')">Add SWITCH</button>
-    <button onclick="addPart('HUB4')">Add HUB4</button>
-    <button onclick="showLSelectionPopup(2)">2 Zone</button>
-    <button onclick="showLSelectionPopup(4)">4 Zone</button>
-    <button onclick="showLSelectionPopup(8)">8 Zone</button>
-    <button onclick="showLSelectionPopup(12)">12 Zone</button>
-    <button onclick="exportToPDF()">Export to PDF</button>
-</div>
-    <!-- Hide Button -->
-    <button id="hideButton" onclick="toggleToolbar()">Hide</button>
-
-    <!-- Rail Selector -->
-    <div id="controls">
-        <label for="railSelect">Select Rails:</label>
-        <select id="railSelect" onchange="generateRails()">
-            <option value="2">2 Rail</option>
-            <option value="3">3 Rail</option>
-            <option value="6">6 Rail</option>
-            <option value="10">10 Rail</option>
+    <!-- Main Page Tab -->
+    <div id="main-tab" class="tab active">
+      <div class="sidebar">
+        <label for="panel-select">Panel Selection:</label>
+        <select id="panel-select">
+          <option value="DIN-EN-2X18">DIN-EN-2X18</option>
+          <option value="DIN-EN-3X18">DIN-EN-3X18</option>
+          <option value="DIN-EN-6X18">DIN-EN-6X18</option>
+          <option value="DIN-EN-10X18">DIN-EN-10X18</option>
         </select>
+        <button data-part="ZUMNET-DIN-DLI">Add ZUMNET-DIN-DLI</button>
+        <button data-part="ZUMNET-DIN-16A-LV">Add ZUMNET-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-PSU">Add ZUMLINK-DIN-PSU</button>
+        <button data-part="ZUMLINK-DIN-IO">Add ZUMLINK-DIN-IO</button>
+        <button data-part="ZUM-HUB4">Add ZUM-HUB4</button>
+        <button data-part="CEN-SWPOE-5AC">Add CEN-SWPOE-5AC</button>
+        <button data-part="ZUMLINK-DIN-16A-LV">Add ZUMLINK-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-20A-SW">Add ZUMLINK-DIN-20A-SW</button>
+        <button data-part="ZUMLINK-DIN-20A-PLUG">Add ZUMLINK-DIN-20A-PLUG</button>
+        <button data-part="ZUMLINK-DIN-DIMU">Add ZUMLINK-DIN-DIMU</button>
+        <button data-part="DIN-DMX">Add DIN-DMX</button>
+        <button data-part="DIN-AP4">Add DIN-AP4</button>
+        <button data-part="DIN-PWS60">Add DIN-PWS60</button>
+        <button data-part="DIN-DALI-2">Add DIN-DALI-2</button>
+      </div>
+      <div class="panel-container" id="panel-container">
+        <div class="panel" id="panel"></div>
+      </div>
     </div>
 
-    <!-- Rails Container -->
-    <div id="panel"></div>
+    <!-- Panel Wiring Tab -->
+    <div id="wiring-tab" class="tab">
+      <div class="sidebar">
+        <button id="generate-panel">Generate Panel</button>
+        <button id="draw-wiring">Draw Wiring</button>
+        <button id="clear-wiring">Clear All Wiring</button>
+      </div>
+      <div class="panel-container">
+        <div id="wiring-panel" class="panel"></div>
+        <svg class="wiring-svg" id="wiring-svg"></svg>
+      </div>
+    </div>
 
-    <!-- Pick List -->
-    <div id="pick-list">
-        <h3>PICK LIST</h3>
-        <table id="pick-list-table">
-            <thead>
-                <tr>
-                    <th>Part Number</th>
-                    <th>Quantity</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be populated dynamically -->
-            </tbody>
+    <!-- Space Layout Tab -->
+    <div id="space-tab" class="tab">
+      <div class="space-layout">
+        <h2>Space Layout</h2>
+        <table id="space-table">
+          <thead>
+            <tr>
+              <th>Space Name</th>
+              <th>Load Controller</th>
+              <th>mA Draw</th>
+              <th>Device mA</th>
+              <th>Total Power Draw</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
         </table>
+      </div>
     </div>
-</div>
 
-    <!-- Load Controller Tab (Initially Hidden) -->
-    <div id="load-controller-tab" style="display: none;">
-        <h2>Load Controller Chart</h2>
-        <table id="load-controller-table">
-            <thead>
-                <tr>
-                    <th>Space</th>
-                    <th>Load Controllers</th>
-                    <th>Devices</th>
-                    <th>Module Draw</th>
-                    <th>Device Draw</th>
-                    <th>Total Draw</th>
-                    <th>Calculate</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be populated dynamically -->
-            </tbody>
+    <!-- Load Schedule Tab -->
+    <div id="load-tab" class="tab">
+      <div class="load-schedule">
+        <h2>Load Schedule</h2>
+        <table id="load-table">
+          <thead>
+            <tr>
+              <th>Space Name</th>
+              <th>Circuit #</th>
+              <th>Zone</th>
+              <th>Load Controller</th>
+              <th>Lighting Load</th>
+              <th>Circuit Load Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
         </table>
+      </div>
     </div>
+  </div>
 
-    <script>
-    
-        const powerDrawMap = {
-            "NET, LV": 120,
-            "NET, DLI": 150,
-            "LINK, LV": 100,
-            "LINK, DIMU": 100,
-            "LINK, SW": 50,
-            "LINK, PLUG": 50,
-            "IO, IO": 145,
-            "Sensor": 20,
-            "Keypad": 5
-        };
-	function showLSelectionPopup(zoneCount) {
-    // Create the popup container
-    const popup = document.createElement("div");
-    popup.style.position = "fixed";
-    popup.style.top = "50%";
-    popup.style.left = "50%";
-    popup.style.transform = "translate(-50%, -50%)";
-    popup.style.backgroundColor = "white";
-    popup.style.padding = "20px";
-    popup.style.border = "1px solid #ccc";
-    popup.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.2)";
-    popup.style.zIndex = "1000";
+  <!-- Part Information Popup -->
+  <div id="part-popup" class="wire-popup" style="display: none;">
+    <h3>Part Information</h3>
+    <form id="part-form">
+      <label for="space-name">Space Name*:</label>
+      <input type="text" id="space-name" required>
+      <label for="circuit-number">Circuit #:</label>
+      <input type="text" id="circuit-number">
+      <label for="zone">Zone:</label>
+      <input type="text" id="zone">
+      <label for="lighting-load">Lighting Load (watts):</label>
+      <input type="number" id="lighting-load">
+      <label for="device-ma">Device mA:</label>
+      <input type="number" id="device-ma">
+      <button type="submit">Save</button>
+    </form>
+  </div>
 
-    // Create the dropdown for L selection
-    const dropdown = document.createElement("select");
-    dropdown.innerHTML = generateDropdownOptions(1, 99, "L"); // Generate L options (L1, L2, ..., L99)
-    popup.appendChild(dropdown);
+  <!-- Wire Selection Popup -->
+  <div id="wire-popup" class="wire-popup" style="display: none;">
+    <h3>Select Wire Type</h3>
+    <button data-type="CRESNET">CRESNET (Green)</button>
+    <button data-type="ETHERNET">ETHERNET (Blue)</button>
+    <button data-type="ZUMNET">ZUMNET (Purple)</button>
+    <button data-type="ZUMLINK">ZUMLINK (Orange)</button>
+    <button data-type="POWER">POWER (Black)</button>
+    <button data-type="DMX">DMX (Rainbow Dotted)</button>
+  </div>
 
-    // Create the confirm button
-    const confirmButton = document.createElement("button");
-    confirmButton.textContent = "Confirm";
-    confirmButton.style.marginTop = "10px";
-    confirmButton.onclick = () => {
-        const selectedL = dropdown.value; // Get the selected L value
-        document.body.removeChild(popup); // Remove the popup
-        addZone(zoneCount, selectedL); // Add the parts with the selected L value
+  <script>
+    // Main Page Logic
+    const panelSelect = document.getElementById('panel-select');
+    const panel = document.getElementById('panel');
+    const parts = {
+      'ZUMNET-DIN-DLI': { width: 71, height: 94, color: 'purple', mA: 150 },
+      'ZUMNET-DIN-16A-LV': { width: 71, height: 71, color: 'purple', mA: 120 },
+      'ZUMLINK-DIN-PSU': { width: 71, height: 71, color: 'orange', mA: 0 }, // Excluded
+      'ZUMLINK-DIN-IO': { width: 71, height: 94, color: 'orange', mA: 145 },
+      'ZUM-HUB4': { width: 439, height: 165, noSnap: true },
+      'CEN-SWPOE-5AC': { width: 187, height: 120, noSnap: true },
+      'ZUMLINK-DIN-16A-LV': { width: 53, height: 94, color: 'orange', mA: 100 },
+      'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, color: 'orange', mA: 50 },
+      'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 71, color: 'orange', mA: 50 },
+      'ZUMLINK-DIN-DIMU': { width: 53, height: 94, color: 'orange', mA: 100 },
+      'DIN-DMX': { width: 144, height: 90 },
+      'DIN-AP4': { width: 161, height: 91 },
+      'DIN-PWS60': { width: 108, height: 94 },
+      'DIN-DALI-2': { width: 159, height: 95 },
     };
-    popup.appendChild(confirmButton);
 
-    // Add the popup to the body
-    document.body.appendChild(popup);
-}
-function addZone(zoneCount, selectedL) {
-    // Add the specified number of LINK parts
-    for (let i = 0; i < zoneCount; i++) {
-        addPart('LINK', selectedL); // Pass the selectedL value to the addPart function
+    const panelSizes = {
+      'DIN-EN-2X18': { width: 324, height: 323, rails: 2 },
+      'DIN-EN-3X18': { width: 324, height: 597, rails: 3 },
+      'DIN-EN-6X18': { width: 324, height: 989, rails: 6 },
+      'DIN-EN-10X18': { width: 324, height: 1594, rails: 10 },
+    };
+
+    let rails = [];
+    let currentRailIndex = 0;
+    let currentXPosition = 0;
+    let spaces = [];
+    let currentSpace = null;
+    let partsData = [];
+
+    function initializePanel() {
+      const selectedPanel = panelSelect.value;
+      const { width, height, rails: railCount } = panelSizes[selectedPanel];
+      panel.style.width = `${width * 2.5}px`;
+      panel.style.height = `${height}px`;
+      panel.innerHTML = '';
+
+      rails = [];
+      const railSpacing = (height / (railCount + 1)) * 1.3; // Increase spacing by 30%
+      for (let i = 1; i <= railCount; i++) {
+        const rail = document.createElement('div');
+        rail.className = 'rail-graphic';
+        rail.style.top = `${railSpacing * i - 9}px`;
+        rail.style.left = '100px';
+        panel.appendChild(rail);
+        rails.push({ element: rail, parts: [], widthUsed: 0 });
+      }
+
+      currentRailIndex = 0;
+      currentXPosition = 60;
     }
-}
 
-function addPart(type, selectedL = null) {
-    const part = document.createElement("div");
-    part.classList.add("part", type);
-    part.draggable = true;
+    function addPart(partType) {
+      const partData = parts[partType];
+      if (currentRailIndex >= rails.length && !partData.noSnap) {
+        alert('No more rails available in this panel!');
+        return;
+      }
 
-    let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
-    let bottomDropdowns = getBottomDropdowns(type);
+      const part = document.createElement('div');
+      part.className = `part ${partData.noSnap ? 'draggable' : ''}`;
+      part.style.width = `${partData.width}px`;
+      part.style.height = `${partData.height}px`;
+      part.textContent = partType;
 
-    part.innerHTML = `
-        <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
-        <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
-        ${dropdown}
-        <div class="bottom-dropdowns">${bottomDropdowns}</div>
-    `;
+      if (partType.startsWith('ZUMLINK')) {
+        part.style.backgroundColor = 'orange';
+      } else if (partType.startsWith('ZUMNET')) {
+        part.style.backgroundColor = 'purple';
+      } else {
+        part.style.backgroundColor = partData.color || '#4CAF50';
+      }
 
-    part.addEventListener("dblclick", () => showDeletePopup(part));
-    part.addEventListener("dragstart", handleDragStart);
-    part.addEventListener("dragend", handleDragEnd);
-
-    const partWidth = getPartWidth(type);
-    
-    console.log("Adding part:", type, "| Selected L:", selectedL);
-
-    for (let rail of rails) {
-        const railChildren = Array.from(rail.children);
-        const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
-
-        if (totalWidth + partWidth <= 900) {
-            part.style.left = `${totalWidth}px`;
-            rail.appendChild(part);
-            console.log("Part added to rail at position:", totalWidth);
-
-            // Ensure dropdowns update after rendering
-            setTimeout(() => {
-                const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
-                console.log("Dropdowns found in new part:", lDropdowns.length);
-                if (lDropdowns.length === 0) {
-                    console.warn("No dropdowns found in new part! Check HTML structure.");
-                }
-                lDropdowns.forEach(dropdown => {
-                    console.log("Before update, dropdown value:", dropdown.value);
-                    dropdown.value = selectedL;
-                    console.log("After update, dropdown value:", dropdown.value);
-                });
-            }, 50); // Slight delay ensures dropdowns are rendered
-
-            updatePickList();
-            updatePanelSizeSelection();
-            generateLoadControllerTable();
+      if (partData.noSnap) {
+        part.style.left = `${(panel.offsetWidth - partData.width) / 2}px`;
+        part.style.top = `${(panel.offsetHeight - partData.height) / 2}px`;
+      } else {
+        const rail = rails[currentRailIndex];
+        if (rail.widthUsed + partData.width * 2 > 648) {
+          currentRailIndex++;
+          currentXPosition = 60;
+          if (currentRailIndex >= rails.length) {
+            alert('No more rails available in this panel!');
             return;
+          }
+          addPart(partType);
+          return;
         }
+        part.style.left = `${currentXPosition}px`;
+        part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
+        rail.parts.push(part);
+        rail.widthUsed += partData.width * 2;
+        currentXPosition += partData.width * 2;
+      }
+
+      panel.appendChild(part);
+
+      // Show part information popup for ZUMNET and ZUMLINK parts
+      if (partType.startsWith('ZUMNET') || partType.startsWith('ZUMLINK')) {
+        showPartPopup(partType, part);
+      }
     }
 
-    // If no rail has space, create a new rail
-    const newRail = document.createElement("div");
-    newRail.classList.add("rail");
-    newRail.addEventListener("dragover", handleDragOver);
-    newRail.addEventListener("drop", handleDrop);
-    panel.appendChild(newRail);
-    rails.push(newRail);
+    function showPartPopup(partType, partElement) {
+      const partPopup = document.getElementById('part-popup');
+      const partForm = document.getElementById('part-form');
 
-    part.style.left = "0";
-    newRail.appendChild(part);
-    console.log("Part added to a new rail.");
+      partPopup.style.display = 'block';
 
-    // Ensure dropdowns update after rendering
-    setTimeout(() => {
-        const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
-        console.log("Dropdowns found in new part (new rail):", lDropdowns.length);
-        if (lDropdowns.length === 0) {
-            console.warn("No dropdowns found in new part (new rail)! Check HTML structure.");
+      partForm.onsubmit = (e) => {
+        e.preventDefault();
+
+        const spaceName = document.getElementById('space-name').value;
+        const circuitNumber = document.getElementById('circuit-number').value;
+        const zone = document.getElementById('zone').value;
+        const lightingLoad = document.getElementById('lighting-load').value;
+        const deviceMA = document.getElementById('device-ma').value;
+
+        if (!spaceName) {
+          alert('Space Name is required!');
+          return;
         }
-        lDropdowns.forEach(dropdown => {
-            console.log("Before update, dropdown value:", dropdown.value);
-            dropdown.value = selectedL;
-            console.log("After update, dropdown value:", dropdown.value);
+
+        // Store part data
+        partsData.push({
+          partType,
+          spaceName,
+          circuitNumber,
+          zone,
+          lightingLoad: parseInt(lightingLoad) || 0,
+          deviceMA: parseInt(deviceMA) || 0,
+          partElement,
         });
-    }, 50);
 
-    updatePickList();
-    updatePanelSizeSelection();
-    generateLoadControllerTable();
-}
+        // Hide popup
+        partPopup.style.display = 'none';
+        partForm.reset();
 
+        // Update Space Layout and Load Schedule
+        updateSpaceTable();
+        updateLoadSchedule();
+      };
+    }
 
+    function updateSpaceTable() {
+      const spaceTableBody = document.querySelector('#space-table tbody');
+      spaceTableBody.innerHTML = '';
 
-        function openTab(tabId) {
-            document.getElementById("main-tab").style.display = tabId === "main-tab" ? "block" : "none";
-            document.getElementById("load-controller-tab").style.display = tabId === "load-controller-tab" ? "block" : "none";
+      const spaceMap = {};
 
-            if (tabId === "load-controller-tab") {
-                generateLoadControllerTable();
-            }
+      partsData.forEach((part) => {
+        if (part.partType === 'ZUMLINK-DIN-PSU') return; // Exclude ZUMLINK-DIN-PSU
+
+        if (!spaceMap[part.spaceName]) {
+          spaceMap[part.spaceName] = {
+            parts: [],
+            mA: 0,
+            deviceMA: 0,
+          };
         }
 
-        // Function to regenerate the entire chart
-        function regenerateChart() {
-            generateLoadControllerTable();
-        }
+        // Add part and zone to the list
+        spaceMap[part.spaceName].parts.push({ partType: part.partType, zone: part.zone });
 
-        function generateLoadControllerTable() {
-    const tableBody = document.getElementById("load-controller-table").getElementsByTagName("tbody")[0];
-    tableBody.innerHTML = ""; // Clear existing rows
+        // Sum mA
+        spaceMap[part.spaceName].mA += parts[part.partType].mA || 0;
+        spaceMap[part.spaceName].deviceMA += part.deviceMA || 0;
+      });
 
-    let loadMap = {}; // Store parts grouped by L values
+      Object.keys(spaceMap).forEach((spaceName) => {
+        const row = document.createElement('tr');
 
-    // Populate loadMap with parts from rails
-    rails.forEach(rail => {
-        Array.from(rail.children).forEach(part => {
-            if (part.classList.contains("PSU")) return; // Skip PSU
-
-            const type = part.classList[1]; // e.g., "NET, DLI", "NET, LV", "LINK, SW", "LINK, LV", "LINK, PLUG", "LINK, DIMU", "IO, IO"
-            const subtype = part.querySelector(".type-dropdown").value;
-            const selectedL = Array.from(part.querySelectorAll(".bottom-dropdowns select"))
-                .map(select => select.value)
-                .filter(value => value.startsWith("L")); // Get L values
-
-            selectedL.forEach(L => {
-                if (!loadMap[L]) loadMap[L] = {}; // Use an object to store parts and their counts
-                const partKey = `${type}, ${subtype}`;
-                loadMap[L][partKey] = (loadMap[L][partKey] || 0) + 1; // Increment the count for this part
-            });
+        // Create nested table for Load Controller column
+        const nestedTable = document.createElement('table');
+        nestedTable.className = 'nested-table';
+        spaceMap[spaceName].parts.forEach((part) => {
+          const nestedRow = document.createElement('tr');
+          nestedRow.innerHTML = `
+            <td>${part.partType}</td>
+            <td>${part.zone}</td>
+          `;
+          nestedTable.appendChild(nestedRow);
         });
-    });
 
-    // Populate the table
-    Object.keys(loadMap).forEach(L => {
-        const row = document.createElement("tr");
-
-        // Generate space input field
-        const spaceCell = document.createElement("td");
-        spaceCell.innerHTML = `<input type="text" placeholder="Enter Space">`;
-        row.appendChild(spaceCell);
-
-        // Generate load controllers list (with full part numbers and quantities)
-        const loadControllersCell = document.createElement("td");
-        const partList = Object.entries(loadMap[L]).map(([part, count]) => {
-            const [type, subtype] = part.split(", ");
-            const partNumber = partNumberMap[part] || part; // Use full part number if available
-            return `${partNumber} (x${count})`; // Display part number with quantity
-        }).join("<br>"); // Display each part number on a new line
-        loadControllersCell.innerHTML = partList;
-        row.appendChild(loadControllersCell);
-
-        // Generate devices dropdown
-        const devicesCell = document.createElement("td");
-        devicesCell.innerHTML = `
-            <label>Keypads:</label> 
-            <select class="device-select" data-type="Keypad">
-                ${generateDeviceOptions()}
-            </select>
-            <br>
-            <label>Sensors:</label> 
-            <select class="device-select" data-type="Sensor">
-                ${generateDeviceOptions()}
-            </select>
+        row.innerHTML = `
+          <td><input type="text" value="${spaceName}" onchange="updateSpaceName('${spaceName}', this.value)"></td>
+          <td></td>
+          <td>${spaceMap[spaceName].mA} mA</td>
+          <td>${spaceMap[spaceName].deviceMA} mA</td>
+          <td>${spaceMap[spaceName].mA + spaceMap[spaceName].deviceMA} mA</td>
         `;
-        row.appendChild(devicesCell);
+        row.querySelector('td:nth-child(2)').appendChild(nestedTable);
+        spaceTableBody.appendChild(row);
+      });
+    }
 
-        // Generate Module Draw column
-        const moduleDrawCell = document.createElement("td");
-        const moduleDraw = calculateModuleDraw(loadMap[L]);
-        moduleDrawCell.textContent = moduleDraw;
-        row.appendChild(moduleDrawCell);
+    function updateLoadSchedule() {
+      const loadTableBody = document.querySelector('#load-table tbody');
+      loadTableBody.innerHTML = '';
 
-        // Generate Device Draw column
-        const deviceDrawCell = document.createElement("td");
-        deviceDrawCell.textContent = "0 mA"; // Initial value
-        row.appendChild(deviceDrawCell);
+      partsData.forEach((part) => {
+        if (!part.circuitNumber) return;
 
-        // Generate Total Draw column
-        const totalDrawCell = document.createElement("td");
-        totalDrawCell.textContent = "0 mA"; // Initial value
-        row.appendChild(totalDrawCell);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${part.spaceName}</td>
+          <td>${part.circuitNumber}</td>
+          <td>${part.zone}</td>
+          <td>${part.partType}</td>
+          <td>${part.lightingLoad} W</td>
+          <td>${part.lightingLoad} W</td>
+        `;
+        loadTableBody.appendChild(row);
+      });
+    }
 
-        // Generate Calculate button
-        const calculateCell = document.createElement("td");
-        calculateCell.innerHTML = `<button onclick="calculateTotalDraw(this)">Calculate</button>`;
-        row.appendChild(calculateCell);
+    function updateSpaceName(oldName, newName) {
+      partsData.forEach((part) => {
+        if (part.spaceName === oldName) {
+          part.spaceName = newName;
+        }
+      });
+      updateSpaceTable();
+      updateLoadSchedule();
+    }
 
-        tableBody.appendChild(row);
+    // Generate Panel Functionality
+    document.getElementById('generate-panel').addEventListener('click', () => {
+      const wiringPanel = document.getElementById('wiring-panel');
+      wiringPanel.innerHTML = panel.innerHTML; // Copy the panel contents
+      wiringPanel.classList.add('non-editable'); // Make it non-editable
     });
 
-    // Add event listeners to all dropdowns
-    addDropdownListeners();
-}
+    panelSelect.addEventListener('change', initializePanel);
+    document.querySelectorAll('.sidebar button[data-part]').forEach((button) => {
+      button.addEventListener('click', () => {
+        addPart(button.getAttribute('data-part'));
+      });
+    });
 
-// Function to calculate module draw (total power draw of parts)
-function calculateModuleDraw(partsObject) {
-    const totalPower = Object.entries(partsObject).reduce((sum, [part, count]) => {
-        return sum + (powerDrawMap[part] || 0) * count; // Multiply power draw by quantity
-    }, 0);
-    return totalPower + " mA";
-}
+    initializePanel();
 
-        // Function to calculate total draw (module draw + device draw)
-        function calculateTotalDraw(button) {
-            const row = button.closest("tr");
+    // Tab Switching Logic
+    const mainTabButton = document.getElementById('main-tab-button');
+    const wiringTabButton = document.getElementById('wiring-tab-button');
+    const spaceTabButton = document.getElementById('space-tab-button');
+    const loadTabButton = document.getElementById('load-tab-button');
+    const mainTab = document.getElementById('main-tab');
+    const wiringTab = document.getElementById('wiring-tab');
+    const spaceTab = document.getElementById('space-tab');
+    const loadTab = document.getElementById('load-tab');
 
-            // Get module draw and device draw
-            const moduleDraw = row.children[3].textContent.replace(" mA", "");
-            const deviceDraw = calculateDeviceDraw(row).replace(" mA", "");
+    mainTabButton.addEventListener('click', () => {
+      mainTab.classList.add('active');
+      wiringTab.classList.remove('active');
+      spaceTab.classList.remove('active');
+      loadTab.classList.remove('active');
+      mainTabButton.classList.add('active');
+      wiringTabButton.classList.remove('active');
+      spaceTabButton.classList.remove('active');
+      loadTabButton.classList.remove('active');
+    });
 
-            // Calculate total draw
-            const totalDraw = parseInt(moduleDraw) + parseInt(deviceDraw);
-            row.children[5].textContent = totalDraw + " mA"; // Update Total Draw column
+    wiringTabButton.addEventListener('click', () => {
+      wiringTab.classList.add('active');
+      mainTab.classList.remove('active');
+      spaceTab.classList.remove('active');
+      loadTab.classList.remove('active');
+      wiringTabButton.classList.add('active');
+      mainTabButton.classList.remove('active');
+      spaceTabButton.classList.remove('active');
+      loadTabButton.classList.remove('active');
+    });
+
+    spaceTabButton.addEventListener('click', () => {
+      spaceTab.classList.add('active');
+      mainTab.classList.remove('active');
+      wiringTab.classList.remove('active');
+      loadTab.classList.remove('active');
+      spaceTabButton.classList.add('active');
+      mainTabButton.classList.remove('active');
+      wiringTabButton.classList.remove('active');
+      loadTabButton.classList.remove('active');
+    });
+
+    loadTabButton.addEventListener('click', () => {
+      loadTab.classList.add('active');
+      mainTab.classList.remove('active');
+      wiringTab.classList.remove('active');
+      spaceTab.classList.remove('active');
+      loadTabButton.classList.add('active');
+      mainTabButton.classList.remove('active');
+      wiringTabButton.classList.remove('active');
+      spaceTabButton.classList.remove('active');
+    });
+
+    // Wire Drawing Logic
+    const wiringSvg = document.getElementById('wiring-svg');
+    const wirePopup = document.getElementById('wire-popup');
+    const drawWiringButton = document.getElementById('draw-wiring');
+    const clearWiringButton = document.getElementById('clear-wiring');
+    let isDrawing = false;
+    let currentWireType = 'POWER'; // Default wire type
+    let wirePoints = []; // Stores the points of the current wire
+    let previewLine = null; // Preview line for the wire
+    let lastPoint = null; // Last point in the wire
+
+    // Show wire selection popup
+    drawWiringButton.addEventListener('click', () => {
+      if (!isDrawing) {
+        wirePopup.style.display = 'block';
+      }
+    });
+
+    // Handle wire type selection
+    wirePopup.querySelectorAll('button').forEach((button) => {
+      button.addEventListener('click', () => {
+        currentWireType = button.getAttribute('data-type');
+        wirePopup.style.display = 'none';
+        startDrawing();
+      });
+    });
+
+    // Start drawing a wire
+    function startDrawing() {
+      isDrawing = true;
+      wirePoints = [];
+      lastPoint = null;
+      wiringSvg.style.pointerEvents = 'all';
+      wiringSvg.addEventListener('click', handleClick);
+      wiringSvg.addEventListener('dblclick', handleDoubleClick);
+      wiringSvg.addEventListener('mousemove', handleMouseMove);
+    }
+
+    // Handle mouse clicks to add points
+    function handleClick(e) {
+      const rect = wiringSvg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (!lastPoint) {
+        // First click: start the wire
+        wirePoints.push({ x, y });
+        lastPoint = { x, y };
+      } else {
+        // Subsequent clicks: add a new point in 90-degree direction
+        const dx = x - lastPoint.x;
+        const dy = y - lastPoint.y;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          // Horizontal movement
+          wirePoints.push({ x, y: lastPoint.y });
+        } else {
+          // Vertical movement
+          wirePoints.push({ x: lastPoint.x, y });
         }
 
-        // Function to generate device options
-        function generateDeviceOptions() {
-            return Array.from({ length: 11 }, (_, i) => `<option value="${i}">${i}</option>`).join("");
-        }
+        lastPoint = wirePoints[wirePoints.length - 1];
+        drawWireSegment();
+      }
+    }
 
-        // Function to add event listeners to all dropdowns
-        function addDropdownListeners() {
-            const dropdowns = document.querySelectorAll(".device-select");
-            dropdowns.forEach(dropdown => {
-                dropdown.addEventListener("change", function () {
-                    const row = this.closest("tr");
-                    const deviceDraw = calculateDeviceDraw(row);
-                    row.children[4].textContent = deviceDraw; // Update Device Draw column
-                });
-            });
-        }
+    // Handle double-click to end the wire
+    function handleDoubleClick() {
+      if (wirePoints.length > 1) {
+        // Draw the final wire
+        drawWireSegment();
+        endDrawing();
+      }
+    }
 
-        const partNumberMap = {
-    "NET, LV": "ZUMNET-DIN-16A-LV",
-    "NET, DLI": "ZUMNET-DIN-DLI",
-    "LINK, LV": "ZUMLINK-DIN-16A-LV",
-    "LINK, DIMU": "ZUMLINK-DIN-DIMU",
-    "LINK, SW": "ZUMLINK-DIN-20A-SW",
-    "LINK, PLUG": "ZUMLINK-DIN-20A-PLUG",
-    "IO, IO": "ZUMLINK-DIN-IO",
-    "PSU, PSU": "ZUMLINK-DIN-PSU",
-    "2 rail": "DIN-EN-2x18",
-    "3 rail": "DIN-EN-3x18",
-    "6 rail": "DIN-EN-6x18",
-    "10 rail": "DIN-EN-10x18",
-    // Add part numbers for the new parts
-    "SWITCH, SWITCH": "CEN-SWPOE-5AC",
-    "HUB4, HUB4": "ZUM-HUB4",
-};
+    // Handle mouse movement to show preview
+    function handleMouseMove(e) {
+      if (!isDrawing || wirePoints.length === 0) return;
 
-        function toggleToolbar() {
-            const toolbar = document.getElementById("toolbar");
-            const button = document.getElementById("hideButton");
-            toolbar.style.display = toolbar.style.display === "none" ? "flex" : "none";
-            button.textContent = toolbar.style.display === "none" ? "Show" : "Hide";
-        }
+      const rect = wiringSvg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
 
-        const panel = document.getElementById("panel");
-        let rails = [];
+      // Remove existing preview line
+      if (previewLine) {
+        previewLine.remove();
+      }
 
-        function generateRails() {
-            panel.innerHTML = "";
-            rails = [];
-            const railCount = parseInt(document.getElementById("railSelect").value);
-            
-            for (let i = 0; i < railCount; i++) {
-                const rail = document.createElement("div");
-                rail.classList.add("rail");
-                panel.appendChild(rail);
-                rails.push(rail);
-            }
-            updatePickList();
-        }
+      // Draw preview line in 90-degree direction
+      const lastPoint = wirePoints[wirePoints.length - 1];
+      const dx = x - lastPoint.x;
+      const dy = y - lastPoint.y;
 
-        // Function to add a part
-        let lastUsedRailIndex = 0; // Track the last rail where a part was added
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal preview
+        previewLine = drawLine(lastPoint.x, lastPoint.y, x, lastPoint.y, currentWireType, true);
+      } else {
+        // Vertical preview
+        previewLine = drawLine(lastPoint.x, lastPoint.y, lastPoint.x, y, currentWireType, true);
+      }
+    }
 
-function addPart(type, selectedL = null) {
-    const part = document.createElement("div");
-    part.classList.add("part", type);
-    part.draggable = true;
+    // Draw a wire segment between the last two points
+    function drawWireSegment() {
+      if (wirePoints.length < 2) return;
 
-    let dropdown = `<select class="type-dropdown" onchange="updatePickList()">${getDropdownOptions(type)}</select>`;
-    let bottomDropdowns = getBottomDropdowns(type);
+      const start = wirePoints[wirePoints.length - 2];
+      const end = wirePoints[wirePoints.length - 1];
+      drawLine(start.x, start.y, end.x, end.y, currentWireType);
+    }
 
-    part.innerHTML = `
-        <div class="arrow left" onclick="movePart(this.parentElement, -50)">&#9664;</div>
-        <div class="arrow right" onclick="movePart(this.parentElement, 50)">&#9654;</div>
-        ${dropdown}
-        <div class="bottom-dropdowns">${bottomDropdowns}</div>
+    // Draw a line between two points
+    function drawLine(x1, y1, x2, y2, type, isPreview = false) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1);
+      line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2);
+      line.setAttribute('y2', y2);
+      line.setAttribute('stroke', getWireColor(type));
+      line.setAttribute('stroke-width', '2');
+
+      if (type === 'DMX') {
+        line.setAttribute('stroke-dasharray', '5,5');
+      }
+
+      if (isPreview) {
+        line.setAttribute('stroke-opacity', '0.5');
+      }
+
+      wiringSvg.appendChild(line);
+      return line;
+    }
+
+    // End drawing and reset state
+    function endDrawing() {
+      isDrawing = false;
+      wirePoints = [];
+      lastPoint = null;
+      wiringSvg.removeEventListener('click', handleClick);
+      wiringSvg.removeEventListener('dblclick', handleDoubleClick);
+      wiringSvg.removeEventListener('mousemove', handleMouseMove);
+
+      // Remove preview line
+      if (previewLine) {
+        previewLine.remove();
+        previewLine = null;
+      }
+
+      // Wait 2 seconds before allowing the next wire run
+      setTimeout(() => {
+        wiringSvg.style.pointerEvents = 'none';
+      }, 2000);
+    }
+
+    // Get wire color based on type
+    function getWireColor(type) {
+      switch (type) {
+        case 'CRESNET': return 'green';
+        case 'ETHERNET': return 'blue';
+        case 'ZUMNET': return 'purple';
+        case 'ZUMLINK': return 'orange';
+        case 'POWER': return 'black';
+        case 'DMX': return 'url(#rainbow)';
+        default: return 'black';
+      }
+    }
+
+    // Clear all wires
+    clearWiringButton.addEventListener('click', () => {
+      wiringSvg.innerHTML = '';
+      // Re-add the gradient definition for DMX wires
+      wiringSvg.appendChild(defs);
+    });
+
+    // Add rainbow gradient for DMX wires
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+    gradient.setAttribute('id', 'rainbow');
+    gradient.setAttribute('x1', '0%');
+    gradient.setAttribute('y1', '0%');
+    gradient.setAttribute('x2', '100%');
+    gradient.setAttribute('y2', '0%');
+    gradient.innerHTML = `
+      <stop offset="0%" style="stop-color:red;stop-opacity:1" />
+      <stop offset="16.67%" style="stop-color:orange;stop-opacity:1" />
+      <stop offset="33.33%" style="stop-color:yellow;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:green;stop-opacity:1" />
+      <stop offset="66.67%" style="stop-color:blue;stop-opacity:1" />
+      <stop offset="83.33%" style="stop-color:indigo;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:violet;stop-opacity:1" />
     `;
-
-    part.addEventListener("dblclick", () => showDeletePopup(part));
-    part.addEventListener("dragstart", handleDragStart);
-    part.addEventListener("dragend", handleDragEnd);
-
-    const partWidth = getPartWidth(type);
-
-    // 1️⃣ Always start with the last used rail
-    let rail = rails[lastUsedRailIndex];
-
-    if (rail) {
-        const railChildren = Array.from(rail.children);
-        const totalWidth = railChildren.reduce((sum, el) => sum + getPartWidth(el.classList[1]), 0);
-
-        if (totalWidth + partWidth <= 900) {
-            part.style.left = `${totalWidth}px`;
-            rail.appendChild(part);
-            console.log("Added part to rail index:", lastUsedRailIndex);
-
-            updateDropdowns(part, selectedL);
-            updatePickList(); // Ensure picklist is updated
-            return;
-        }
-    }
-
-    // 2️⃣ Move to the next rail and ensure all future parts go there
-    lastUsedRailIndex++; 
-    if (lastUsedRailIndex >= rails.length) {
-        // If no available rails, create a new one
-        const newRail = document.createElement("div");
-        newRail.classList.add("rail");
-        newRail.addEventListener("dragover", handleDragOver);
-        newRail.addEventListener("drop", handleDrop);
-        panel.appendChild(newRail);
-        rails.push(newRail);
-    }
-
-    // 3️⃣ Add part to the new rail
-    rail = rails[lastUsedRailIndex];
-    part.style.left = "0";
-    rail.appendChild(part);
-    console.log("Added part to NEW rail index:", lastUsedRailIndex);
-
-    updateDropdowns(part, selectedL);
-    updatePickList(); // Ensure picklist is updated
-}
-
-// Separate function to update dropdowns after part is added
-function updateDropdowns(part, selectedL) {
-    setTimeout(() => {
-        if (selectedL) {
-            const lDropdowns = part.querySelectorAll('.bottom-dropdowns select');
-            console.log("Dropdowns found in new part:", lDropdowns.length);
-            
-            lDropdowns.forEach(dropdown => {
-                console.log("Before update, dropdown value:", dropdown.value);
-                dropdown.value = selectedL;
-                console.log("After update, dropdown value:", dropdown.value);
-            });
-        }
-    }, 50);
-}
-
-// Function to update the pick list
-function updatePickList() {
-    const pickListTable = document.getElementById("pick-list-table").getElementsByTagName("tbody")[0];
-    pickListTable.innerHTML = "";
-
-    const partCounts = {};
-
-    // Count parts
-    rails.forEach(rail => {
-        Array.from(rail.children).forEach(part => {
-            const type = part.classList[1];
-            const subtype = part.querySelector(".type-dropdown").value;
-            const key = `${type}, ${subtype}`;
-            partCounts[key] = (partCounts[key] || 0) + 1;
-        });
-    });
-
-    // Add rails to the pick list
-    const railCount = parseInt(document.getElementById("railSelect").value);
-    const railKey = `${railCount} rail`;
-    partCounts[railKey] = 1;
-
-    // Populate the pick list table
-    for (const [key, count] of Object.entries(partCounts)) {
-        const partNumber = partNumberMap[key];
-        if (partNumber) {
-            const row = document.createElement("tr");
-            row.innerHTML = `<td>${partNumber}</td><td>${count}</td>`;
-            pickListTable.appendChild(row);
-        }
-    }
-}
-        // Function to show a delete confirmation popup
-        function showDeletePopup(part) {
-            const confirmDelete = confirm("Are you sure you want to delete this part?");
-            if (confirmDelete) {
-                part.remove(); // Remove the part from the rail
-                updatePickList();
-                updatePanelSizeSelection(); // Update panel size selection
-                generateLoadControllerTable(); // Update Load Controller chart
-            }
-        }
-
-        let draggedPart = null;
-
-        function handleDragStart(e) {
-            draggedPart = this;
-            e.dataTransfer.setData("text/plain", ""); // Required for Firefox
-            this.style.opacity = "0.4";
-        }
-
-        function handleDragEnd() {
-            this.style.opacity = "1";
-            draggedPart = null;
-        }
-
-        function handleDragOver(e) {
-            e.preventDefault(); // Allow dropping
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            if (draggedPart) {
-                const rail = this;
-                const dropX = e.clientX - rail.getBoundingClientRect().left;
-
-                // Snap the drop position to 50px intervals
-                let snappedX = Math.round(dropX / 50) * 50;
-
-                // Ensure the part doesn't overflow the rail
-                const partWidth = getPartWidth(draggedPart.classList[1]);
-                const railWidth = rail.offsetWidth;
-                const maxX = railWidth - partWidth;
-
-                if (snappedX < 0) {
-                    snappedX = 0; // Snap to the start of the rail
-                } else if (snappedX > maxX) {
-                    snappedX = maxX; // Snap to the end of the rail
-                }
-
-                // Remove the dragged part from its current rail (if any)
-                if (draggedPart.parentElement) {
-                    draggedPart.parentElement.removeChild(draggedPart);
-                }
-
-                // Position the dragged part at the snapped position
-                draggedPart.style.left = `${snappedX}px`;
-                rail.appendChild(draggedPart);
-
-                // Recalculate part positions to avoid overlaps
-                let currentWidth = 0;
-                Array.from(rail.children).forEach(part => {
-                    part.style.left = `${currentWidth}px`;
-                    currentWidth += getPartWidth(part.classList[1]);
-                });
-
-                updatePickList();
-                generateLoadControllerTable(); // Update Load Controller chart
-            }
-        }
-
-        // Add drag-and-drop event listeners to all rails
-        function addDragAndDropListeners() {
-            rails.forEach(rail => {
-                rail.addEventListener("dragover", handleDragOver);
-                rail.addEventListener("drop", handleDrop);
-            });
-        }
-
-        // Call this function after creating new rails
-        addDragAndDropListeners();
-
-        // Helper function to get the exact width of a part based on its type
-        function getPartWidth(type) {
-    switch (type) {
-        case "NET":
-            return 200; // NET parts are 200px wide
-        case "PSU":
-            return 200; // PSU parts are 200px wide
-        case "LINK":
-            return 150; // LINK parts are 150px wide
-        case "IO":
-            return 200; // IO parts are 200px wide
-        case "SWITCH":
-            return 500; // SWITCH parts are 500px wide
-        case "HUB4":
-            return 500; // HUB4 parts are 500px wide
-        default:
-            return 0;
-    }
-}
-
-        // Function to show a delete confirmation popup
-        function showDeletePopup(part) {
-            const confirmDelete = confirm("Are you sure you want to delete this part?");
-            if (confirmDelete) {
-                part.remove(); // Remove the part from the rail
-                updatePickList();
-                updatePanelSizeSelection(); // Update panel size selection
-            }
-        }
-
-        // Function to update the panel size selection dropdown
-        function updatePanelSizeSelection() {
-            const railCount = rails.length;
-            const railSelect = document.getElementById("railSelect");
-
-            if (railCount <= 2) {
-                railSelect.value = "2"; // 2 rails
-            } else if (railCount > 2 && railCount <= 3) {
-                railSelect.value = "3"; // 3-6 rails
-            } else if (railCount > 3 && railCount <= 6) {
-                railSelect.value = "6"; // 3-6 rails
-            } else if (railCount >= 7 && railCount <= 10) {
-                railSelect.value = "10"; // 7-10 rails
-            } else if (railCount > 10) {
-                alert("Error: Maximum number of rails (10) exceeded!");
-                railSelect.value = "10"; // Set to 10 rails
-            }
-
-            updatePickList(); // Update the pick list
-        }
-
-        // Helper function to get the exact width of a part based on its type
-        function getPartWidth(type) {
-            switch (type) {
-                case "NET":
-                    return 200; // NET parts are 200px wide
-                case "PSU":
-                    return 200; // PSU parts are 200px wide
-                case "LINK":
-                    return 150; // LINK parts are 150px wide
-                case "IO":
-                    return 200; // IO parts are 200px wide
-                default:
-                    return 0;
-            }
-        }
-
-       function getDropdownOptions(type) {
-    if (type === "NET") return "<option>LV</option><option>DLI</option>";
-    if (type === "LINK") return "<option>LV</option><option>DIMU</option><option>SW</option><option>PLUG</option>";
-    if (type === "IO") return "<option>IO</option>";
-    if (type === "SWITCH") return "<option>SWITCH</option>";
-    if (type === "HUB4") return "<option>HUB4</option>";
-    return "<option>PSU</option>";
-}
-       function getBottomDropdowns(type) {
-    let optionsN = generateDropdownOptions(1, 99, "N");
-    let optionsL = generateDropdownOptions(1, 99, "L");
-
-    if (type === "NET") {
-        return `
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-        `;
-    } else if (type === "PSU") {
-        return `
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-        `;
-    } else if (type === "LINK" || type === "IO") {
-        return `
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsL}</select>
-        `;
-    } else if (type === "SWITCH") {
-        return `
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-        `;
-    } else if (type === "HUB4") {
-        return `
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-            <select name="bottom-dropdown" onchange="updatePickList()">${optionsN}</select>
-        `;
-    } else {
-        return "";
-    }
-}
-
-        function generateDropdownOptions(start, end, prefix) {
-            return Array.from({ length: end - start + 1 }, (_, i) => `<option>${prefix}${i + start}</option>`).join("");
-        }
-
-        function updatePickList() {
-            const pickListTable = document.getElementById("pick-list-table").getElementsByTagName("tbody")[0];
-            pickListTable.innerHTML = "";
-
-            const partCounts = {};
-
-            // Count parts
-            rails.forEach(rail => {
-                Array.from(rail.children).forEach(part => {
-                    const type = part.classList[1];
-                    const subtype = part.querySelector(".type-dropdown").value;
-                    const key = `${type}, ${subtype}`;
-                    partCounts[key] = (partCounts[key] || 0) + 1;
-                });
-            });
-
-            // Add rails to the pick list
-            const railCount = parseInt(document.getElementById("railSelect").value);
-            const railKey = `${railCount} rail`;
-            partCounts[railKey] = 1;
-
-            // Populate the pick list table
-            for (const [key, count] of Object.entries(partCounts)) {
-                const partNumber = partNumberMap[key];
-                if (partNumber) {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `<td>${partNumber}</td><td>${count}</td>`;
-                    pickListTable.appendChild(row);
-                }
-            }
-        }
-   function exportToPDF() {
-    const railsElement = document.getElementById("panel");
-    const pickListElement = document.getElementById("pick-list");
-
-    // Clone elements to avoid modifying the original DOM
-    const railsClone = railsElement.cloneNode(true);
-    const pickListClone = pickListElement.cloneNode(true);
-
-    // Ensure the cloned elements are visible for export
-    railsClone.style.display = "block";
-    pickListClone.style.display = "block";
-
-    // Add a page break inside the cloned elements
-    const pageBreak = document.createElement("div");
-    pageBreak.style.pageBreakBefore = "always";
-    pageBreak.style.width = "100%";
-    pageBreak.style.height = "20px"; // Some height to ensure it's recognized
-    pageBreak.style.background = "white"; // Avoid any artifacts
-
-    railsClone.appendChild(pageBreak); // Insert page break inside the railsClone
-
-    // Create a container to hold the content
-    const pdfContainer = document.createElement("div");
-    pdfContainer.appendChild(railsClone);
-    pdfContainer.appendChild(pickListClone);
-
-    // Export to PDF
-    html2pdf(pdfContainer, {
-        margin: 10,
-        filename: "buildsheet.pdf",
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            width: 1100,
-            useCORS: true 
-        },
-        jsPDF: { 
-            unit: "mm", 
-            format: [279.4, 431.8], 
-            orientation: "portrait" 
-        },
-    });
-}
-        generateRails();
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    defs.appendChild(gradient);
+    wiringSvg.appendChild(defs);
+  </script>
 </body>
 </html>

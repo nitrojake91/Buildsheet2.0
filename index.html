@@ -1201,7 +1201,7 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the tab to render
 
     // Capture Panel Wiring (only the panel)
-    const wiringTabCanvas = await html2canvas(document.getElementById('wiring-panel'), {
+    const wiringTabCanvas = await html2canvas(document.getElementById('panel-container'), {
       scale: 2, // Increase scale for better quality
       useCORS: true,
     });

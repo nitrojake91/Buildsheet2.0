@@ -452,11 +452,36 @@
     <button data-type="DMX">DMX (Rainbow Dotted)</button>
   </div>
 
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-const { jsPDF } = window.jspdf;
+  <!-- Add the html2canvas and jsPDF libraries -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
 
+    // Print to PDF Functionality
+    document.getElementById('print-pdf-button').addEventListener('click', async () => {
+      const pdf = new jsPDF('p', 'pt', [1242, 792]); // 11x17 inches in points (1 inch = 72 points)
+      const tabs = ['main-tab', 'wiring-tab', 'space-tab', 'load-tab'];
+      const scale = 1.5; // Adjust the scale as needed
+
+      for (let i = 0; i < tabs.length; i++) {
+        const tab = document.getElementById(tabs[i]);
+        const canvas = await html2canvas(tab, { scale: scale });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      }
+
+      pdf.save('panel-configuration.pdf');
+    });
 // Main Page Logic
 const panelSelect = document.getElementById('panel-select');
 const panel = document.getElementById('panel');
@@ -1171,90 +1196,6 @@ function redo() {
     wiringSvg.appendChild(lastWire);
   }
 }
-document.getElementById('print-pdf-button').addEventListener('click', async () => {
-  const pdf = new jsPDF('p', 'mm', 'a4'); // Use A4 size for the PDF
-
-  try {
-    // Hide buttons before capturing
-    document.querySelectorAll('.tab-buttons button, .sidebar button').forEach((button) => {
-      button.style.display = 'none';
-    });
-
-    // Switch to the Main Page tab
-    document.getElementById('main-tab-button').click();
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the tab to render
-
-    // Capture Main Page (only the panel)
-    const mainTabCanvas = await html2canvas(document.getElementById('panel-container'), {
-      scale: 2, // Increase scale for better quality
-      useCORS: true,
-    });
-    const mainTabImgData = mainTabCanvas.toDataURL('image/png');
-    const imgWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (mainTabCanvas.height * imgWidth) / mainTabCanvas.width;
-
-    pdf.addImage(mainTabImgData, 'PNG', 0, 0, imgWidth, imgHeight);
-    pdf.addPage();
-
-    // Switch to the Panel Wiring tab
-    document.getElementById('wiring-tab-button').click();
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the tab to render
-
-    // Capture Panel Wiring (only the panel)
-    const wiringTabCanvas = await html2canvas(document.getElementById('panel-container'), {
-      scale: 2, // Increase scale for better quality
-      useCORS: true,
-    });
-    const wiringTabImgData = wiringTabCanvas.toDataURL('image/png');
-    const imgWidth2 = pdf.internal.pageSize.getWidth();
-    const imgHeight2 = (wiringTabCanvas.height * imgWidth2) / wiringTabCanvas.width;
-
-    pdf.addImage(wiringTabImgData, 'PNG', 0, 0, imgWidth2, imgHeight2);
-    pdf.addPage();
-
-    // Switch to the Space Layout tab
-    document.getElementById('space-tab-button').click();
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for the tab to render
-
-    // Capture Space Layout (table)
-    const spaceTabCanvas = await html2canvas(document.getElementById('space-tab'), {
-      scale: 2, // Increase scale for better quality
-      useCORS: true,
-    });
-    const spaceTabImgData = spaceTabCanvas.toDataURL('image/png');
-    const imgWidth3 = pdf.internal.pageSize.getWidth();
-    const imgHeight3 = (spaceTabCanvas.height * imgWidth3) / spaceTabCanvas.width;
-
-    pdf.addImage(spaceTabImgData, 'PNG', 0, 0, imgWidth3, imgHeight3);
-    pdf.addPage();
-
-    // Switch to the Load Schedule tab
-    document.getElementById('load-tab-button').click();
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for the tab to render
-
-    // Capture Load Schedule (table)
-    const loadTabCanvas = await html2canvas(document.getElementById('load-tab'), {
-      scale: 2, // Increase scale for better quality
-      useCORS: true,
-    });
-    const loadTabImgData = loadTabCanvas.toDataURL('image/png');
-    const imgWidth4 = pdf.internal.pageSize.getWidth();
-    const imgHeight4 = (loadTabCanvas.height * imgWidth4) / loadTabCanvas.width;
-
-    pdf.addImage(loadTabImgData, 'PNG', 0, 0, imgWidth4, imgHeight4);
-
-    // Save the PDF
-    pdf.save('panel-configuration.pdf');
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    alert('An error occurred while generating the PDF. Please try again.');
-  } finally {
-    // Show buttons again after capturing
-    document.querySelectorAll('.tab-buttons button, .sidebar button').forEach((button) => {
-      button.style.display = '';
-    });
-  }
-});
 </script>
 </body>
 </html>

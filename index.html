@@ -1170,10 +1170,8 @@ function redo() {
     wiringSvg.appendChild(lastWire);
   }
 }
-
-// Print to PDF functionality
 document.getElementById('print-pdf-button').addEventListener('click', async () => {
-  const pdf = new jsPDF();
+  const pdf = new jsPDF('p', 'mm', 'a4'); // Use A4 size for the PDF
 
   try {
     // Hide buttons before capturing
@@ -1187,11 +1185,14 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
     // Capture Main Page (only the panel)
     const mainTabCanvas = await html2canvas(document.getElementById('panel-container'), {
-      scale: 1,
+      scale: 2, // Increase scale for better quality
       useCORS: true,
     });
     const mainTabImgData = mainTabCanvas.toDataURL('image/png');
-    pdf.addImage(mainTabImgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), 0);
+    const imgWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = (mainTabCanvas.height * imgWidth) / mainTabCanvas.width;
+
+    pdf.addImage(mainTabImgData, 'PNG', 0, 0, imgWidth, imgHeight);
     pdf.addPage();
 
     // Switch to the Panel Wiring tab
@@ -1200,11 +1201,14 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
     // Capture Panel Wiring (only the panel)
     const wiringTabCanvas = await html2canvas(document.getElementById('wiring-panel'), {
-      scale: 1,
+      scale: 2, // Increase scale for better quality
       useCORS: true,
     });
     const wiringTabImgData = wiringTabCanvas.toDataURL('image/png');
-    pdf.addImage(wiringTabImgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), 0);
+    const imgWidth2 = pdf.internal.pageSize.getWidth();
+    const imgHeight2 = (wiringTabCanvas.height * imgWidth2) / wiringTabCanvas.width;
+
+    pdf.addImage(wiringTabImgData, 'PNG', 0, 0, imgWidth2, imgHeight2);
     pdf.addPage();
 
     // Switch to the Space Layout tab
@@ -1213,11 +1217,14 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
     // Capture Space Layout (table)
     const spaceTabCanvas = await html2canvas(document.getElementById('space-tab'), {
-      scale: 2,
+      scale: 2, // Increase scale for better quality
       useCORS: true,
     });
     const spaceTabImgData = spaceTabCanvas.toDataURL('image/png');
-    pdf.addImage(spaceTabImgData, 'PNG', 10, 10, 590, 0);
+    const imgWidth3 = pdf.internal.pageSize.getWidth();
+    const imgHeight3 = (spaceTabCanvas.height * imgWidth3) / spaceTabCanvas.width;
+
+    pdf.addImage(spaceTabImgData, 'PNG', 0, 0, imgWidth3, imgHeight3);
     pdf.addPage();
 
     // Switch to the Load Schedule tab
@@ -1226,11 +1233,14 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
     // Capture Load Schedule (table)
     const loadTabCanvas = await html2canvas(document.getElementById('load-tab'), {
-      scale: 2,
+      scale: 2, // Increase scale for better quality
       useCORS: true,
     });
     const loadTabImgData = loadTabCanvas.toDataURL('image/png');
-    pdf.addImage(loadTabImgData, 'PNG', 10, 10, 590, 0);
+    const imgWidth4 = pdf.internal.pageSize.getWidth();
+    const imgHeight4 = (loadTabCanvas.height * imgWidth4) / loadTabCanvas.width;
+
+    pdf.addImage(loadTabImgData, 'PNG', 0, 0, imgWidth4, imgHeight4);
 
     // Save the PDF
     pdf.save('panel-configuration.pdf');

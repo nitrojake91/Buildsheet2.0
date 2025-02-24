@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+9<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -451,10 +451,10 @@
   <script>
     const { jsPDF } = window.jspdf;
 
-  document.getElementById('print-pdf-button').addEventListener('click', async () => {
+document.getElementById('print-pdf-button').addEventListener('click', async () => {
   const pdf = new jsPDF('p', 'pt', [1242, 792]); // 11x17 inches in points (1 inch = 72 points)
   const tabs = ['main-tab', 'wiring-tab', 'space-tab', 'load-tab'];
-  const scale = 4; // Adjust the scale as needed
+  const scale = 1.5; // Adjust the scale as needed
 
   for (let i = 0; i < tabs.length; i++) {
     const tab = document.getElementById(tabs[i]);
@@ -466,10 +466,14 @@
         scale: scale,
         useCORS: true, // Enable cross-origin images
         logging: true, // Enable logging for debugging
+        scrollX: -window.scrollX, // Capture the entire width
+        scrollY: -window.scrollY, // Capture the entire height
+        windowWidth: tab.scrollWidth, // Use the full width of the tab
+        windowHeight: tab.scrollHeight, // Use the full height of the tab
       });
 
       // Convert the canvas to a data URL
-      const imgData = canvas.toDataURL('image/png', 2);
+      const imgData = canvas.toDataURL('image/png', 1);
 
       // Calculate dimensions for the PDF
       const imgProps = pdf.getImageProperties(imgData);
@@ -491,7 +495,6 @@
   // Save the PDF
   pdf.save('panel-configuration.pdf');
 });
-
 function calculateRailDistance() {
   if (railPositions.length < 2) {
     console.error('Not enough rails to calculate distance.');

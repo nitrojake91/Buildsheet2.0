@@ -117,7 +117,7 @@
 
     .panel-container {
   flex:2;
-  background-color: grey;
+  background-color: black;
   border-radius: 12px;
   box-shadow: var(--shadow);
   position: relative;
@@ -464,7 +464,23 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
       if (tabs[i] === 'space-tab' || tabs[i] === 'load-tab') {
         // Export Space Layout and Load Schedule as tables
         const table = tab.querySelector('table'); // Get the table element
+
         if (table) {
+          console.log(`Table found in ${tabs[i]}:`, table);
+
+          // Extract table headers
+          const headers = Array.from(table.querySelectorAll('thead th')).map(
+            (th) => th.textContent.trim()
+          );
+
+          // Extract table rows
+          const rows = Array.from(table.querySelectorAll('tbody tr')).map((tr) =>
+            Array.from(tr.querySelectorAll('td')).map((td) => td.textContent.trim())
+          );
+
+          console.log('Headers:', headers);
+          console.log('Rows:', rows);
+
           // Add a new page for each tab (except the first one)
           if (i > 0) {
             pdf.addPage();
@@ -472,13 +488,18 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
           // Add the table to the PDF using autoTable
           pdf.autoTable({
-            html: table,
+            head: [headers], // Pass headers as an array
+            body: rows, // Pass rows as an array of arrays
             theme: 'grid', // Add grid lines
             headStyles: { fillColor: [0, 51, 102] }, // Header background color
             bodyStyles: { lineColor: [0, 0, 0] }, // Black grid lines
             styles: { fontSize: 10, cellPadding: 5 }, // Adjust font size and padding
             margin: { top: 20 }, // Add margin at the top
           });
+
+          console.log(`Table exported for ${tabs[i]}`);
+        } else {
+          console.error(`No table found in ${tabs[i]}`);
         }
       } else {
         // Export other tabs as images

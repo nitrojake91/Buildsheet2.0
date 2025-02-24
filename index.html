@@ -1,4 +1,4 @@
-9<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -116,16 +116,15 @@
     }
 
     .panel-container {
-  flex:2;
-  background-color: black;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: 2000px;
-  height: 2000px;
-}
+      flex: 2;
+      background-color: black;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: 2000px;
+      height: 2000px;
+    }
 
-   
     .rail-graphic {
       position: absolute;
       background-color: var(--secondary-color);
@@ -331,12 +330,45 @@
 
     <!-- Main Page Tab -->
     <div id="main-tab" class="tab active">
-      <!-- Main Page Content remains unchanged -->
+      <div class="sidebar">
+        <label for="panel-select">Panel Selection:</label>
+        <select id="panel-select">
+          <option value="DIN-EN-2X18">DIN-EN-2X18</option>
+          <option value="DIN-EN-3X18">DIN-EN-3X18</option>
+          <option value="DIN-EN-6X18">DIN-EN-6X18</option>
+          <option value="DIN-EN-10X18">DIN-EN-10X18</option>
+        </select>
+        <button data-part="ZUMNET-DIN-DLI">Add ZUMNET-DIN-DLI</button>
+        <button data-part="ZUMNET-DIN-16A-LV">Add ZUMNET-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-PSU">Add ZUMLINK-DIN-PSU</button>
+        <button data-part="ZUMLINK-DIN-IO">Add ZUMLINK-DIN-IO</button>
+        <button data-part="ZUM-HUB4">Add ZUM-HUB4</button>
+        <button data-part="CEN-SWPOE-5AC">Add CEN-SWPOE-5AC</button>
+        <button data-part="ZUMLINK-DIN-16A-LV">Add ZUMLINK-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-20A-SW">Add ZUMLINK-DIN-20A-SW</button>
+        <button data-part="ZUMLINK-DIN-20A-PLUG">Add ZUMLINK-DIN-20A-PLUG</button>
+        <button data-part="ZUMLINK-DIN-DIMU">Add ZUMLINK-DIN-DIMU</button>
+        <button data-part="DIN-DMX">Add DIN-DMX</button>
+        <button data-part="DIN-AP4">Add DIN-AP4</button>
+        <button data-part="DIN-PWS60">Add DIN-PWS60</button>
+        <button data-part="DIN-DALI-2">Add DIN-DALI-2</button>
+      </div>
+      <div class="panel-container" id="panel-container">
+        <div class="panel" id="panel"></div>
+      </div>
     </div>
 
     <!-- Panel Wiring Tab -->
     <div id="wiring-tab" class="tab">
-      <!-- Panel Wiring Content remains unchanged -->
+      <div class="sidebar">
+        <button id="generate-panel">Generate Panel</button>
+        <button id="draw-wiring">Draw Wiring</button>
+        <button id="clear-wiring">Clear All Wiring</button>
+      </div>
+      <div class="panel-container">
+        <div id="wiring-panel" class="panel"></div>
+        <svg class="wiring-svg" id="wiring-svg"></svg>
+      </div>
     </div>
 
     <!-- Space Layout Tab -->
@@ -385,12 +417,31 @@
 
   <!-- Part Information Popup -->
   <div id="part-popup" class="wire-popup" style="display: none;">
-    <!-- Part Information Popup Content remains unchanged -->
+    <h3>Part Information</h3>
+    <form id="part-form">
+      <label for="space-name">Space Name*:</label>
+      <input type="text" id="space-name" required>
+      <label for="circuit-number">Circuit #:</label>
+      <input type="text" id="circuit-number">
+      <label for="zone">Zone:</label>
+      <input type="text" id="zone">
+      <label for="lighting-load">Lighting Load (watts):</label>
+      <input type="number" id="lighting-load">
+      <label for="device-ma">Device mA:</label>
+      <input type="number" id="device-ma">
+      <button type="submit">Save</button>
+    </form>
   </div>
 
   <!-- Wire Selection Popup -->
   <div id="wire-popup" class="wire-popup" style="display: none;">
-    <!-- Wire Selection Popup Content remains unchanged -->
+    <h3>Select Wire Type</h3>
+    <button data-type="CRESNET">CRESNET (Green)</button>
+    <button data-type="ETHERNET">ETHERNET (Blue)</button>
+    <button data-type="ZUMNET">ZUMNET (Purple)</button>
+    <button data-type="ZUMLINK">ZUMLINK (Orange)</button>
+    <button data-type="POWER">POWER (Black)</button>
+    <button data-type="DMX">DMX (Rainbow Dotted)</button>
   </div>
 
   <!-- Add the html2canvas and jsPDF libraries -->
@@ -453,7 +504,7 @@
           } else {
             // Export other tabs as images
             tab.style.display = 'flex'; // Ensure the tab is visible
-            await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for rendering
+            await new Promise((resolve) => setTimeout(resolve, 100)); // Wait
 
             // Capture the tab as an image
             const canvas = await html2canvas(tab, {

@@ -117,7 +117,7 @@
 
     .panel-container {
   flex:2;
-  background-color: brown;
+  background-color: black;
   border-radius: 12px;
   box-shadow: var(--shadow);
   position: relative;
@@ -475,18 +475,33 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
       // Convert the canvas to a data URL
       const imgData = canvas.toDataURL('image/png', 1);
 
-      // Calculate dimensions for the PDF
-      const imgProps = pdf.getImageProperties(imgData);
+      // Get the dimensions of the PDF page
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate the aspect ratio of the captured image
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgAspectRatio = imgProps.width / imgProps.height;
+
+      // Calculate the maximum dimensions to fit within the PDF page
+      let imgWidth = pdfWidth; // Default to full width
+      let imgHeight = pdfWidth / imgAspectRatio; // Adjust height based on aspect ratio
+
+      // If the calculated height exceeds the PDF page height, adjust dimensions
+      if (imgHeight > pdfHeight) {
+        imgHeight = pdfHeight;
+        imgWidth = pdfHeight * imgAspectRatio;
+      }
 
       // Add a new page for each tab (except the first one)
       if (i > 0) {
         pdf.addPage();
       }
 
-      // Add the image to the PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+      // Add the image to the PDF, centered on the page
+      const x = (pdfWidth - imgWidth) / 2; // Center horizontally
+      const y = (pdfHeight - imgHeight) / 2; // Center vertically
+      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
     } catch (error) {
       console.error('Error capturing tab:', tabs[i], error);
     }

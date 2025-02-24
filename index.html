@@ -117,7 +117,7 @@
 
     .panel-container {
   flex:2;
-  background-color: grey;
+  background-color: brown;
   border-radius: 12px;
   box-shadow: var(--shadow);
   position: relative;
@@ -454,7 +454,7 @@
   document.getElementById('print-pdf-button').addEventListener('click', async () => {
   const pdf = new jsPDF('p', 'pt', [1242, 792]); // 11x17 inches in points (1 inch = 72 points)
   const tabs = ['main-tab', 'wiring-tab', 'space-tab', 'load-tab'];
-  const scale = .5; // Adjust the scale as needed
+  const scale = 4; // Adjust the scale as needed
 
   for (let i = 0; i < tabs.length; i++) {
     const tab = document.getElementById(tabs[i]);
@@ -469,7 +469,7 @@
       });
 
       // Convert the canvas to a data URL
-      const imgData = canvas.toDataURL('image/png', .5);
+      const imgData = canvas.toDataURL('image/png', 2);
 
       // Calculate dimensions for the PDF
       const imgProps = pdf.getImageProperties(imgData);

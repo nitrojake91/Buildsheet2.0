@@ -36,12 +36,13 @@
     }
 
     .container {
-      width: 90%;
-      min-width: 1200px;
+      width: 100%;
+      min-width: 120px;
       background-color: white;
-      border-radius: 12px;
+      border-radius: 30px;
       box-shadow: var(--shadow);
-      overflow: hidden;
+      overflow: auto;
+      height: 6000px;
     }
 
     .tab-buttons {
@@ -115,28 +116,21 @@
     }
 
     .panel-container {
-      flex: 1;
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      position: relative;
-      overflow: auto;
-      height: 2000px;
-    }
+  flex:2;
+  background-color: black;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: 2000px;
+  height: 2000px;
+}
 
-    .panel {
-      position: relative;
-      background-color: grey;
-      min-height: 100%;
-      padding: 20px;
-      width: 324px;
-      height: 2000px;
-    }
-
+   
     .rail-graphic {
       position: absolute;
       background-color: var(--secondary-color);
       height: 18px;
+      padding: 20px;
       width: 324px;
       border-radius: 4px;
       z-index: 1;
@@ -450,7 +444,7 @@
     <button data-type="POWER">POWER (Black)</button>
     <button data-type="DMX">DMX (Rainbow Dotted)</button>
   </div>
-
+<div class="element"></div>
   <!-- Add the html2canvas and jsPDF libraries -->
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -497,8 +491,26 @@
   // Save the PDF
   pdf.save('panel-configuration.pdf');
 });
+
+function calculateRailDistance() {
+  if (railPositions.length < 2) {
+    console.error('Not enough rails to calculate distance.');
+    return 0;
+  }
+
+  const firstRailTop = railPositions[0]; // Top position of the first rail
+  const lastRailTop = railPositions[railPositions.length - 1]; // Top position of the last rail
+
+  const distance = lastRailTop - firstRailTop; // Calculate distance in pixels
+  console.log(`Distance between first and last rail: ${distance}px`);
+  return distance;
+}
     // Existing JavaScript code remains unchanged
 // Main Page Logic
+// JavaScript to update the CSS variable
+const element = document.querySelector('.element');
+const newHeight = '${height}px'; // New height value
+document.documentElement.style.setProperty('--dynamic-height', `${newHeight}px`);
 const panelSelect = document.getElementById('panel-select');
 const panel = document.getElementById('panel');
 const parts = {
@@ -544,14 +556,14 @@ function initializePanel() {
   for (let i = 1; i <= railCount; i++) {
     const rail = document.createElement('div');
     rail.className = 'rail-graphic';
-    rail.style.top = `${railSpacing * i - 9}px`;
-    rail.style.left = '0px'; // Align rails to the left
+    rail.style.top = `${railSpacing * i - 80}px`;
+    rail.style.left = '20px'; // Align rails to the left
     panel.appendChild(rail);
     rails.push({ element: rail, parts: [], widthUsed: 0 });
   }
 
   currentRailIndex = 0;
-  currentXPosition = 0; // Start from the left edge
+  currentXPosition = 25; // Start from the left edge
 }
 
 function addPart(partType, position = null) {
@@ -564,7 +576,7 @@ function addPart(partType, position = null) {
   // Check if the part will exceed the rail width
   if (rails[currentRailIndex].widthUsed + partData.width > 324) {
     currentRailIndex++; // Move to the next rail
-    currentXPosition = 0; // Reset X position
+    currentXPosition = 25; // Reset X position
     if (currentRailIndex >= rails.length) {
       alert('No more rails available in this panel!');
       return;

@@ -461,6 +461,10 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
     if (!tab) continue; // Skip if the tab doesn't exist
 
     try {
+      // Ensure the tab is visible before capturing
+      tab.style.display = 'flex'; // Or 'block', depending on your CSS
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for rendering
+
       // Capture the tab as an image
       const canvas = await html2canvas(tab, { 
         scale: scale,
@@ -502,6 +506,9 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
       const x = (pdfWidth - imgWidth) / 2; // Center horizontally
       const y = (pdfHeight - imgHeight) / 2; // Center vertically
       pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
+
+      // Hide the tab after capturing (optional)
+      tab.style.display = 'none';
     } catch (error) {
       console.error('Error capturing tab:', tabs[i], error);
     }
@@ -509,6 +516,12 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
 
   // Save the PDF
   pdf.save('panel-configuration.pdf');
+
+  // Restore the visibility of all tabs after PDF generation
+  tabs.forEach((tabId) => {
+    const tab = document.getElementById(tabId);
+    if (tab) tab.style.display = 'flex'; // Or 'block', depending on your CSS
+  });
 });
 function calculateRailDistance() {
   if (railPositions.length < 2) {

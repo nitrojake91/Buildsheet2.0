@@ -117,7 +117,7 @@
 
     .panel-container {
   flex:2;
-  background-color: black;
+  background-color: grey;
   border-radius: 12px;
   box-shadow: var(--shadow);
   position: relative;
@@ -461,54 +461,75 @@ document.getElementById('print-pdf-button').addEventListener('click', async () =
     if (!tab) continue; // Skip if the tab doesn't exist
 
     try {
-      // Ensure the tab is visible before capturing
-      tab.style.display = 'flex'; // Or 'block', depending on your CSS
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for rendering
+      if (tabs[i] === 'space-tab' || tabs[i] === 'load-tab') {
+        // Export Space Layout and Load Schedule as tables
+        const table = tab.querySelector('table'); // Get the table element
+        if (table) {
+          // Add a new page for each tab (except the first one)
+          if (i > 0) {
+            pdf.addPage();
+          }
 
-      // Capture the tab as an image
-      const canvas = await html2canvas(tab, { 
-        scale: scale,
-        useCORS: true, // Enable cross-origin images
-        logging: true, // Enable logging for debugging
-        scrollX: -window.scrollX, // Capture the entire width
-        scrollY: -window.scrollY, // Capture the entire height
-        windowWidth: tab.scrollWidth, // Use the full width of the tab
-        windowHeight: tab.scrollHeight, // Use the full height of the tab
-      });
+          // Add the table to the PDF using autoTable
+          pdf.autoTable({
+            html: table,
+            theme: 'grid', // Add grid lines
+            headStyles: { fillColor: [0, 51, 102] }, // Header background color
+            bodyStyles: { lineColor: [0, 0, 0] }, // Black grid lines
+            styles: { fontSize: 10, cellPadding: 5 }, // Adjust font size and padding
+            margin: { top: 20 }, // Add margin at the top
+          });
+        }
+      } else {
+        // Export other tabs as images
+        tab.style.display = 'flex'; // Ensure the tab is visible
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for rendering
 
-      // Convert the canvas to a data URL
-      const imgData = canvas.toDataURL('image/png', 1);
+        // Capture the tab as an image
+        const canvas = await html2canvas(tab, {
+          scale: scale,
+          useCORS: true,
+          logging: true,
+          scrollX: -window.scrollX,
+          scrollY: -window.scrollY,
+          windowWidth: tab.scrollWidth,
+          windowHeight: tab.scrollHeight,
+        });
 
-      // Get the dimensions of the PDF page
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+        // Convert the canvas to a data URL
+        const imgData = canvas.toDataURL('image/png', 1);
 
-      // Calculate the aspect ratio of the captured image
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgAspectRatio = imgProps.width / imgProps.height;
+        // Get the dimensions of the PDF page
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      // Calculate the maximum dimensions to fit within the PDF page
-      let imgWidth = pdfWidth; // Default to full width
-      let imgHeight = pdfWidth / imgAspectRatio; // Adjust height based on aspect ratio
+        // Calculate the aspect ratio of the captured image
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgAspectRatio = imgProps.width / imgProps.height;
 
-      // If the calculated height exceeds the PDF page height, adjust dimensions
-      if (imgHeight > pdfHeight) {
-        imgHeight = pdfHeight;
-        imgWidth = pdfHeight * imgAspectRatio;
+        // Calculate the maximum dimensions to fit within the PDF page
+        let imgWidth = pdfWidth;
+        let imgHeight = pdfWidth / imgAspectRatio;
+
+        // If the calculated height exceeds the PDF page height, adjust dimensions
+        if (imgHeight > pdfHeight) {
+          imgHeight = pdfHeight;
+          imgWidth = pdfHeight * imgAspectRatio;
+        }
+
+        // Add a new page for each tab (except the first one)
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        // Add the image to the PDF, centered on the page
+        const x = (pdfWidth - imgWidth) / 2;
+        const y = (pdfHeight - imgHeight) / 2;
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
+
+        // Hide the tab after capturing (optional)
+        tab.style.display = 'none';
       }
-
-      // Add a new page for each tab (except the first one)
-      if (i > 0) {
-        pdf.addPage();
-      }
-
-      // Add the image to the PDF, centered on the page
-      const x = (pdfWidth - imgWidth) / 2; // Center horizontally
-      const y = (pdfHeight - imgHeight) / 2; // Center vertically
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight, undefined, 'FAST');
-
-      // Hide the tab after capturing (optional)
-      tab.style.display = 'none';
     } catch (error) {
       console.error('Error capturing tab:', tabs[i], error);
     }

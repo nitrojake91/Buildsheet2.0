@@ -397,6 +397,7 @@
       <div class="sidebar">
         <button id="generate-panel">Generate Panel</button>
         <button id="auto-wiring-button">Auto Wiring</button>
+        <button id="auto-wire-zumnets-button">Auto Wire Zumnets</button>
         <button id="draw-wiring">Draw Wiring</button>
         <button id="clear-wiring">Clear All Wiring</button>
       </div>
@@ -486,61 +487,61 @@
  <script>
     const { jsPDF } = window.jspdf;
 
-    // Main Page Logic
-    const panelSelect = document.getElementById('panel-select');
-    const panel = document.getElementById('panel');
-    const parts = {
-      'ZUMNET-DIN-DLI': { width: 71, height: 94, color: 'purple', mA: 150, dots: ['purple', 'purple', 'orange', 'orange'] },
-      'ZUMNET-DIN-16A-LV': { width: 71, height: 71, color: 'purple', mA: 120, dots: ['purple', 'purple', 'orange', 'orange'] },
-      'ZUMLINK-DIN-PSU': { width: 71, height: 71, color: 'grey', mA: 0, dots: ['orange', 'orange', 'orange', 'orange'] }, // Excluded
-      'ZUMLINK-DIN-IO': { width: 71, height: 94, color: 'orange', mA: 145, dots: ['orange', 'orange'] },
-      'ZUM-HUB4': { width: 165, height: 439, dots: ['green', 'purple', 'purple'] },
-      'CEN-SWPOE-5AC': { width: 187, height: 120, dots: ['blue', 'blue', 'blue', 'blue', 'blue'] },
-      'ZUMLINK-DIN-16A-LV': { width: 53, height: 94, color: 'orange', mA: 100, dots: ['orange', 'orange'] },
-      'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
-      'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 71, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
-      'ZUMLINK-DIN-DIMU': { width: 53, height: 94, color: 'orange', mA: 100, dots: ['orange', 'orange'] },
-      'DIN-DMX': { width: 144, height: 90, dots: ['blue', 'black', 'grey', 'grey'] },
-      'DIN-AP4': { width: 161, height: 91, dots: ['green', 'green', 'blue'] },
-      'DIN-PWS60': { width: 108, height: 94, dots: ['green', 'green', 'green', 'black'] },
-      'DIN-DALI-2': { width: 159, height: 95, dots: ['blue', 'green'] },
-      'TERMINAL RAIL': { width: 80, height: 50, color: 'multi', dots: [] },
-    };
+// Main Page Logic
+const panelSelect = document.getElementById('panel-select');
+const panel = document.getElementById('panel');
+const parts = {
+  'ZUMNET-DIN-DLI': { width: 71, height: 94, color: 'purple', mA: 150, dots: ['purple', 'purple', 'orange', 'orange'] },
+  'ZUMNET-DIN-16A-LV': { width: 71, height: 71, color: 'purple', mA: 120, dots: ['purple', 'purple', 'orange', 'orange'] },
+  'ZUMLINK-DIN-PSU': { width: 71, height: 71, color: 'grey', mA: 0, dots: ['orange', 'orange', 'orange', 'orange'] }, // Excluded
+  'ZUMLINK-DIN-IO': { width: 71, height: 94, color: 'orange', mA: 145, dots: ['orange', 'orange'] },
+  'ZUM-HUB4': { width: 165, height: 439, dots: ['green', 'purple', 'purple'] },
+  'CEN-SWPOE-5AC': { width: 187, height: 120, dots: ['blue', 'blue', 'blue', 'blue', 'blue'] },
+  'ZUMLINK-DIN-16A-LV': { width: 53, height: 94, color: 'orange', mA: 100, dots: ['orange', 'orange'] },
+  'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
+  'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 71, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
+  'ZUMLINK-DIN-DIMU': { width: 53, height: 94, color: 'orange', mA: 100, dots: ['orange', 'orange'] },
+  'DIN-DMX': { width: 144, height: 90, dots: ['blue', 'black', 'grey', 'grey'] },
+  'DIN-AP4': { width: 161, height: 91, dots: ['green', 'green', 'blue'] },
+  'DIN-PWS60': { width: 108, height: 94, dots: ['green', 'green', 'green', 'black'] },
+  'DIN-DALI-2': { width: 159, height: 95, dots: ['blue', 'green'] },
+  'TERMINAL RAIL': { width: 80, height: 50, color: 'multi', dots: [] },
+};
 
-    const panelSizes = {
-      'DIN-EN-2X18': { width: 324, height: 323, rails: 2 }, // Fixed panel and rail width to 324mm
-      'DIN-EN-3X18': { width: 324, height: 597, rails: 3 },
-      'DIN-EN-6X18': { width: 324, height: 989, rails: 6 },
-      'DIN-EN-10X18': { width: 324, height: 1594, rails: 10 },
-    };
+const panelSizes = {
+  'DIN-EN-2X18': { width: 324, height: 323, rails: 2 }, // Fixed panel and rail width to 324mm
+  'DIN-EN-3X18': { width: 324, height: 597, rails: 3 },
+  'DIN-EN-6X18': { width: 324, height: 989, rails: 6 },
+  'DIN-EN-10X18': { width: 324, height: 1594, rails: 10 },
+};
 
-    let rails = [];
-    let currentRailIndex = 0;
-    let currentXPosition = 0;
-    let partsData = [];
-    let spaceCounter = 1;
+let rails = [];
+let currentRailIndex = 0;
+let currentXPosition = 0;
+let partsData = [];
+let spaceCounter = 1;
 
-    function initializePanel() {
-      const selectedPanel = panelSelect.value;
-      const { width, height, rails: railCount } = panelSizes[selectedPanel];
-      panel.style.width = `${width}px`; // Set panel width to 324mm
-      panel.style.height = `${height}px`;
-      panel.innerHTML = '';
+function initializePanel() {
+  const selectedPanel = panelSelect.value;
+  const { width, height, rails: railCount } = panelSizes[selectedPanel];
+  panel.style.width = `${width}px`; // Set panel width to 324mm
+  panel.style.height = `${height}px`;
+  panel.innerHTML = '';
 
-      rails = [];
-      const railSpacing = (height / (railCount + 1)) * 1.3; // Increase spacing by 30%
-      for (let i = 1; i <= railCount; i++) {
-        const rail = document.createElement('div');
-        rail.className = 'rail-graphic';
-        rail.style.top = `${railSpacing * i - 80}px`;
-        rail.style.left = '20px'; // Align rails to the left
-        panel.appendChild(rail);
-        rails.push({ element: rail, parts: [], widthUsed: 0 });
-      }
+  rails = [];
+  const railSpacing = (height / (railCount + 1)) * 1.3; // Increase spacing by 30%
+  for (let i = 1; i <= railCount; i++) {
+    const rail = document.createElement('div');
+    rail.className = 'rail-graphic';
+    rail.style.top = `${railSpacing * i - 80}px`;
+    rail.style.left = '20px'; // Align rails to the left
+    panel.appendChild(rail);
+    rails.push({ element: rail, parts: [], widthUsed: 0 });
+  }
 
-      currentRailIndex = 0;
-      currentXPosition = 25; // Start from the left edge
-    }
+  currentRailIndex = 0;
+  currentXPosition = 25; // Start from the left edge
+}
 
 function addPart(partType, position = null) {
   const partData = parts[partType];
@@ -676,158 +677,156 @@ function addPart(partType, position = null) {
     deviceMA: null,
   });
 
-
-
   // Increment space counter if the part is a ZUMNET device
   if (partType.startsWith('ZUMNET')) {
     spaceCounter++;
   }
 }
 
-    function adjustFontSize(spaceName, part) {
-      const partWidth = part.offsetWidth;
-      const spaceNameWidth = spaceName.offsetWidth;
-      let fontSize = 10;
+function adjustFontSize(spaceName, part) {
+  const partWidth = part.offsetWidth;
+  const spaceNameWidth = spaceName.offsetWidth;
+  let fontSize = 10;
 
-      while (spaceNameWidth > partWidth && fontSize > 6) {
-        fontSize--;
-        spaceName.style.fontSize = `${fontSize}px`;
-      }
+  while (spaceNameWidth > partWidth && fontSize > 6) {
+    fontSize--;
+    spaceName.style.fontSize = `${fontSize}px`;
+  }
+}
+
+function showPartPopup(partType, partElement) {
+  const partPopup = document.getElementById('part-popup');
+  const partForm = document.getElementById('part-form');
+
+  // Find the part data
+  const partData = partsData.find((p) => p.partElement === partElement);
+
+  // Populate the form with existing data
+  document.getElementById('space-name').value = partData.spaceName;
+  document.getElementById('circuit-number').value = partData.circuitNumber || '';
+  document.getElementById('zone').value = partData.zone || '';
+  document.getElementById('lighting-load').value = partData.lightingLoad || '';
+  document.getElementById('device-ma').value = partData.deviceMA || '';
+
+  // Show the popup
+  partPopup.style.display = 'block';
+
+  // Handle form submission
+  partForm.onsubmit = (e) => {
+    e.preventDefault();
+
+    // Update part data
+    partData.spaceName = document.getElementById('space-name').value;
+    partData.circuitNumber = document.getElementById('circuit-number').value;
+    partData.zone = document.getElementById('zone').value;
+    partData.lightingLoad = document.getElementById('lighting-load').value;
+    partData.deviceMA = document.getElementById('device-ma').value;
+
+    // Update the part's space name
+    const spaceNameElement = partElement.querySelector('.space-name');
+    spaceNameElement.textContent = partData.spaceName;
+    adjustFontSize(spaceNameElement, partElement);
+
+    // Update the data indicator (exclude deviceMA from the check)
+    const dataIndicator = partElement.querySelector('.data-indicator');
+    if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
+      dataIndicator.classList.add('green');
+      dataIndicator.classList.remove('red');
+    } else {
+      dataIndicator.classList.add('red');
+      dataIndicator.classList.remove('green');
     }
 
-    function showPartPopup(partType, partElement) {
-      const partPopup = document.getElementById('part-popup');
-      const partForm = document.getElementById('part-form');
+    // Hide the popup
+    partPopup.style.display = 'none';
 
-      // Find the part data
-      const partData = partsData.find((p) => p.partElement === partElement);
+    // Update tables
+    updateSpaceTable();
+    updateLoadSchedule();
+  };
+}
 
-      // Populate the form with existing data
-      document.getElementById('space-name').value = partData.spaceName;
-      document.getElementById('circuit-number').value = partData.circuitNumber || '';
-      document.getElementById('zone').value = partData.zone || '';
-      document.getElementById('lighting-load').value = partData.lightingLoad || '';
-      document.getElementById('device-ma').value = partData.deviceMA || '';
+function updateSpaceTable() {
+  const spaceTableBody = document.querySelector('#space-table tbody');
+  spaceTableBody.innerHTML = '';
 
-      // Show the popup
-      partPopup.style.display = 'block';
+  const spaceMap = {};
 
-      // Handle form submission
-      partForm.onsubmit = (e) => {
-        e.preventDefault();
+  partsData.forEach((part) => {
+    if (part.partType === 'ZUMLINK-DIN-PSU') return; // Exclude ZUMLINK-DIN-PSU
 
-        // Update part data
-        partData.spaceName = document.getElementById('space-name').value;
-        partData.circuitNumber = document.getElementById('circuit-number').value;
-        partData.zone = document.getElementById('zone').value;
-        partData.lightingLoad = document.getElementById('lighting-load').value;
-        partData.deviceMA = document.getElementById('device-ma').value;
-
-        // Update the part's space name
-        const spaceNameElement = partElement.querySelector('.space-name');
-        spaceNameElement.textContent = partData.spaceName;
-        adjustFontSize(spaceNameElement, partElement);
-
-        // Update the data indicator (exclude deviceMA from the check)
-        const dataIndicator = partElement.querySelector('.data-indicator');
-        if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
-          dataIndicator.classList.add('green');
-          dataIndicator.classList.remove('red');
-        } else {
-          dataIndicator.classList.add('red');
-          dataIndicator.classList.remove('green');
-        }
-
-        // Hide the popup
-        partPopup.style.display = 'none';
-
-        // Update tables
-        updateSpaceTable();
-        updateLoadSchedule();
+    if (!spaceMap[part.spaceName]) {
+      spaceMap[part.spaceName] = {
+        parts: [],
+        mA: 0,
+        deviceMA: 0,
       };
     }
 
-    function updateSpaceTable() {
-      const spaceTableBody = document.querySelector('#space-table tbody');
-      spaceTableBody.innerHTML = '';
+    // Add part and zone to the list
+    spaceMap[part.spaceName].parts.push({ partType: part.partType, zone: part.zone });
 
-      const spaceMap = {};
+    // Sum mA
+    spaceMap[part.spaceName].mA += parts[part.partType].mA || 0;
+    spaceMap[part.spaceName].deviceMA += part.deviceMA || 0;
+  });
 
-      partsData.forEach((part) => {
-        if (part.partType === 'ZUMLINK-DIN-PSU') return; // Exclude ZUMLINK-DIN-PSU
+  Object.keys(spaceMap).forEach((spaceName) => {
+    const row = document.createElement('tr');
 
-        if (!spaceMap[part.spaceName]) {
-          spaceMap[part.spaceName] = {
-            parts: [],
-            mA: 0,
-            deviceMA: 0,
-          };
-        }
+    // Create nested table for Load Controller column
+    const nestedTable = document.createElement('table');
+    nestedTable.className = 'nested-table';
+    spaceMap[spaceName].parts.forEach((part) => {
+      const nestedRow = document.createElement('tr');
+      nestedRow.innerHTML = `
+        <td>${part.partType}</td>
+        <td>${part.zone}</td>
+      `;
+      nestedTable.appendChild(nestedRow);
+    });
 
-        // Add part and zone to the list
-        spaceMap[part.spaceName].parts.push({ partType: part.partType, zone: part.zone });
+    row.innerHTML = `
+      <td><input type="text" value="${spaceName}" onchange="updateSpaceName('${spaceName}', this.value)"></td>
+      <td></td>
+      <td>${spaceMap[spaceName].mA} mA</td>
+      <td>${spaceMap[spaceName].deviceMA} mA</td>
+      <td>${spaceMap[spaceName].mA + spaceMap[spaceName].deviceMA} mA</td>
+    `;
+    row.querySelector('td:nth-child(2)').appendChild(nestedTable);
+    spaceTableBody.appendChild(row);
+  });
+}
 
-        // Sum mA
-        spaceMap[part.spaceName].mA += parts[part.partType].mA || 0;
-        spaceMap[part.spaceName].deviceMA += part.deviceMA || 0;
-      });
+function updateLoadSchedule() {
+  const loadTableBody = document.querySelector('#load-table tbody');
+  loadTableBody.innerHTML = '';
 
-      Object.keys(spaceMap).forEach((spaceName) => {
-        const row = document.createElement('tr');
+  partsData.forEach((part) => {
+    if (!part.circuitNumber) return;
 
-        // Create nested table for Load Controller column
-        const nestedTable = document.createElement('table');
-        nestedTable.className = 'nested-table';
-        spaceMap[spaceName].parts.forEach((part) => {
-          const nestedRow = document.createElement('tr');
-          nestedRow.innerHTML = `
-            <td>${part.partType}</td>
-            <td>${part.zone}</td>
-          `;
-          nestedTable.appendChild(nestedRow);
-        });
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${part.spaceName}</td>
+      <td>${part.circuitNumber}</td>
+      <td>${part.zone}</td>
+      <td>${part.partType}</td>
+      <td>${part.lightingLoad} W</td>
+      <td>${part.lightingLoad} W</td>
+    `;
+    loadTableBody.appendChild(row);
+  });
+}
 
-        row.innerHTML = `
-          <td><input type="text" value="${spaceName}" onchange="updateSpaceName('${spaceName}', this.value)"></td>
-          <td></td>
-          <td>${spaceMap[spaceName].mA} mA</td>
-          <td>${spaceMap[spaceName].deviceMA} mA</td>
-          <td>${spaceMap[spaceName].mA + spaceMap[spaceName].deviceMA} mA</td>
-        `;
-        row.querySelector('td:nth-child(2)').appendChild(nestedTable);
-        spaceTableBody.appendChild(row);
-      });
+function updateSpaceName(oldName, newName) {
+  partsData.forEach((part) => {
+    if (part.spaceName === oldName) {
+      part.spaceName = newName;
     }
-
-    function updateLoadSchedule() {
-      const loadTableBody = document.querySelector('#load-table tbody');
-      loadTableBody.innerHTML = '';
-
-      partsData.forEach((part) => {
-        if (!part.circuitNumber) return;
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${part.spaceName}</td>
-          <td>${part.circuitNumber}</td>
-          <td>${part.zone}</td>
-          <td>${part.partType}</td>
-          <td>${part.lightingLoad} W</td>
-          <td>${part.lightingLoad} W</td>
-        `;
-        loadTableBody.appendChild(row);
-      });
-    }
-
-    function updateSpaceName(oldName, newName) {
-      partsData.forEach((part) => {
-        if (part.spaceName === oldName) {
-          part.spaceName = newName;
-        }
-      });
-      updateSpaceTable();
-      updateLoadSchedule();
-    }
+  });
+  updateSpaceTable();
+  updateLoadSchedule();
+}
 
 document.getElementById('generate-panel').addEventListener('click', () => {
   const wiringPanel = document.getElementById('wiring-panel');
@@ -924,70 +923,71 @@ document.getElementById('generate-panel').addEventListener('click', () => {
   // Add a class to the wiring panel to disable further editing
   wiringPanel.classList.add('non-editable');
 });
-    panelSelect.addEventListener('change', initializePanel);
-    document.querySelectorAll('.sidebar button[data-part]').forEach((button) => {
-      button.addEventListener('click', () => {
-        addPart(button.getAttribute('data-part'));
-      });
-    });
 
-    initializePanel();
+panelSelect.addEventListener('change', initializePanel);
+document.querySelectorAll('.sidebar button[data-part]').forEach((button) => {
+  button.addEventListener('click', () => {
+    addPart(button.getAttribute('data-part'));
+  });
+});
 
-    // Tab Switching Logic
-    const mainTabButton = document.getElementById('main-tab-button');
-    const wiringTabButton = document.getElementById('wiring-tab-button');
-    const spaceTabButton = document.getElementById('space-tab-button');
-    const loadTabButton = document.getElementById('load-tab-button');
-    const mainTab = document.getElementById('main-tab');
-    const wiringTab = document.getElementById('wiring-tab');
-    const spaceTab = document.getElementById('space-tab');
-    const loadTab = document.getElementById('load-tab');
+initializePanel();
 
-    mainTabButton.addEventListener('click', () => {
-      mainTab.classList.add('active');
-      wiringTab.classList.remove('active');
-      spaceTab.classList.remove('active');
-      loadTab.classList.remove('active');
-      mainTabButton.classList.add('active');
-      wiringTabButton.classList.remove('active');
-      spaceTabButton.classList.remove('active');
-      loadTabButton.classList.remove('active');
-    });
+// Tab Switching Logic
+const mainTabButton = document.getElementById('main-tab-button');
+const wiringTabButton = document.getElementById('wiring-tab-button');
+const spaceTabButton = document.getElementById('space-tab-button');
+const loadTabButton = document.getElementById('load-tab-button');
+const mainTab = document.getElementById('main-tab');
+const wiringTab = document.getElementById('wiring-tab');
+const spaceTab = document.getElementById('space-tab');
+const loadTab = document.getElementById('load-tab');
 
-    wiringTabButton.addEventListener('click', () => {
-      wiringTab.classList.add('active');
-      mainTab.classList.remove('active');
-      spaceTab.classList.remove('active');
-      loadTab.classList.remove('active');
-      wiringTabButton.classList.add('active');
-      mainTabButton.classList.remove('active');
-      spaceTabButton.classList.remove('active');
-      loadTabButton.classList.remove('active');
-    });
+mainTabButton.addEventListener('click', () => {
+  mainTab.classList.add('active');
+  wiringTab.classList.remove('active');
+  spaceTab.classList.remove('active');
+  loadTab.classList.remove('active');
+  mainTabButton.classList.add('active');
+  wiringTabButton.classList.remove('active');
+  spaceTabButton.classList.remove('active');
+  loadTabButton.classList.remove('active');
+});
 
-    spaceTabButton.addEventListener('click', () => {
-      spaceTab.classList.add('active');
-      mainTab.classList.remove('active');
-      wiringTab.classList.remove('active');
-      loadTab.classList.remove('active');
-      spaceTabButton.classList.add('active');
-      mainTabButton.classList.remove('active');
-      wiringTabButton.classList.remove('active');
-      loadTabButton.classList.remove('active');
-    });
+wiringTabButton.addEventListener('click', () => {
+  wiringTab.classList.add('active');
+  mainTab.classList.remove('active');
+  spaceTab.classList.remove('active');
+  loadTab.classList.remove('active');
+  wiringTabButton.classList.add('active');
+  mainTabButton.classList.remove('active');
+  spaceTabButton.classList.remove('active');
+  loadTabButton.classList.remove('active');
+});
 
-    loadTabButton.addEventListener('click', () => {
-      loadTab.classList.add('active');
-      mainTab.classList.remove('active');
-      wiringTab.classList.remove('active');
-      spaceTab.classList.remove('active');
-      loadTabButton.classList.add('active');
-      mainTabButton.classList.remove('active');
-      wiringTabButton.classList.remove('active');
-      spaceTabButton.classList.remove('active');
-    });
+spaceTabButton.addEventListener('click', () => {
+  spaceTab.classList.add('active');
+  mainTab.classList.remove('active');
+  wiringTab.classList.remove('active');
+  loadTab.classList.remove('active');
+  spaceTabButton.classList.add('active');
+  mainTabButton.classList.remove('active');
+  wiringTabButton.classList.remove('active');
+  loadTabButton.classList.remove('active');
+});
 
-    document.getElementById('auto-wiring-button').addEventListener('click', autoWire);
+loadTabButton.addEventListener('click', () => {
+  loadTab.classList.add('active');
+  mainTab.classList.remove('active');
+  wiringTab.classList.remove('active');
+  spaceTab.classList.remove('active');
+  loadTabButton.classList.add('active');
+  mainTabButton.classList.remove('active');
+  wiringTabButton.classList.remove('active');
+  spaceTabButton.classList.remove('active');
+});
+
+document.getElementById('auto-wiring-button').addEventListener('click', autoWire);
 
 function autoWire() {
   const parts = document.querySelectorAll('.part'); // Get all parts
@@ -1116,285 +1116,332 @@ function drawWire(path, color) {
   const wiringSvg = document.getElementById('wiring-svg');
   wiringSvg.appendChild(polyline);
 }
-function drawWire(path, color) {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const polyline = document.createElementNS(svgNS, "polyline");
 
-  // Format the points string
-  const points = path.map((p) => `${p.x},${p.y}`).join(' ');
-  polyline.setAttribute('points', points);
-  polyline.setAttribute('stroke', color);
-  polyline.setAttribute('fill', 'none');
-  polyline.setAttribute('stroke-width', '2');
+// Auto Wire Zumnets Logic
+// Auto Wire Zumnets Logic
+let selectedZumnets = [];
 
-  // Append the polyline to the SVG container
-  const wiringSvg = document.getElementById('wiring-svg');
-  wiringSvg.appendChild(polyline);
+document.getElementById('auto-wire-zumnets-button').addEventListener('click', () => {
+  const parts = document.querySelectorAll('.part'); // Get all parts
+
+  if (selectedZumnets.length === 0) {
+    // First click: Select Zumnets
+    parts.forEach((part) => {
+      if (part.textContent.startsWith('ZUMNET')) {
+        part.style.border = '2px solid blue'; // Highlight selected Zumnets
+        selectedZumnets.push(part);
+
+        // Add double-click to unselect
+        part.addEventListener('dblclick', () => unselectZumnet(part));
+      }
+    });
+    alert('Zumnets selected. Click the button again to wire them. Double-click a Zumnet to unselect it.');
+  } else {
+    // Second click: Wire selected Zumnets
+    wireSelectedZumnets(selectedZumnets);
+    selectedZumnets.forEach((part) => {
+      part.style.border = ''; // Remove highlight
+      part.removeEventListener('dblclick', () => unselectZumnet(part)); // Remove the double-click listener
+    });
+    selectedZumnets = []; // Reset selection
+  }
+});
+
+// Function to unselect a Zumnet
+function unselectZumnet(part) {
+  part.style.border = ''; // Remove highlight
+  selectedZumnets = selectedZumnets.filter((selectedPart) => selectedPart !== part); // Remove from selectedZumnets
+  part.removeEventListener('dblclick', () => unselectZumnet(part)); // Remove the double-click listener
 }
-    // Wire Drawing Logic
-    const wiringSvg = document.getElementById('wiring-svg');
-    const wirePopup = document.getElementById('wire-popup');
-    const drawWiringButton = document.getElementById('draw-wiring');
-    const clearWiringButton = document.getElementById('clear-wiring');
-    let isDrawing = false;
-    let currentWireType = 'POWER'; // Default wire type
-    let wirePoints = []; // Stores the points of the current wire
-    let previewLine = null; // Preview line for the wire
-    let lastPoint = null; // Last point in the wire
 
-    // Show wire selection popup
-    drawWiringButton.addEventListener('click', () => {
-      if (!isDrawing) {
-        wirePopup.style.display = 'block';
-      }
-    });
+function wireSelectedZumnets(zumnets) {
+  const blackDots = [];
 
-    // Handle wire type selection
-    wirePopup.querySelectorAll('button').forEach((button) => {
-      button.addEventListener('click', () => {
-        currentWireType = button.getAttribute('data-type');
-        wirePopup.style.display = 'none';
-        startDrawing();
-      });
-    });
+  // Step 1: Identify all black dots in the selected Zumnets
+  zumnets.forEach((part) => {
+    const partRect = part.getBoundingClientRect();
+    const dots = part.querySelectorAll('.dot');
 
-    // Start drawing a wire
-    function startDrawing() {
-      isDrawing = true;
-      wirePoints = [];
-      lastPoint = null;
-      wiringSvg.style.pointerEvents = 'all';
-      wiringSvg.addEventListener('click', handleClick);
-      document.addEventListener('keydown', handleKeyDown);
-      wiringSvg.addEventListener('mousemove', handleMouseMove);
-    }
-
-    // Handle mouse clicks to add points
-    function handleClick(e) {
-      const rect = wiringSvg.getBoundingClientRect();
-      let x = e.clientX - rect.left;
-      let y = e.clientY - rect.top;
-
-      // Check if the click is near a dot
-      const nearestDot = findNearestDot(x, y);
-      if (nearestDot) {
-        x = nearestDot.x;
-        y = nearestDot.y;
-      }
-
-      if (!lastPoint) {
-        // First click: start the wire
-        wirePoints.push({ x, y });
-        lastPoint = { x, y };
-      } else {
-        // Subsequent clicks: add a new point in 90-degree direction
-        const dx = x - lastPoint.x;
-        const dy = y - lastPoint.y;
-
-        if (Math.abs(dx) > Math.abs(dy)) {
-          // Horizontal movement
-          wirePoints.push({ x, y: lastPoint.y });
-        } else {
-          // Vertical movement
-          wirePoints.push({ x: lastPoint.x, y });
-        }
-
-        lastPoint = wirePoints[wirePoints.length - 1];
-        drawWireSegment();
-      }
-    }
-
-    // Handle keydown events (Enter to end wire, Ctrl+Z to undo, Ctrl+Y to redo)
-    function handleKeyDown(e) {
-      if (e.key === 'Enter') {
-        if (wirePoints.length > 1) {
-          // Draw the final wire
-          drawWireSegment();
-          endDrawing();
-        }
-      } else if (e.ctrlKey && e.key === 'z') {
-        undo();
-      } else if (e.ctrlKey && e.key === 'y') {
-        redo();
-      }
-    }
-
-    // Handle mouse movement to show preview
-    function handleMouseMove(e) {
-      if (!isDrawing || wirePoints.length === 0) return;
-
-      const rect = wiringSvg.getBoundingClientRect();
-      let x = e.clientX - rect.left;
-      let y = e.clientY - rect.top;
-
-      // Check if the mouse is near a dot
-      const nearestDot = findNearestDot(x, y);
-      if (nearestDot) {
-        x = nearestDot.x;
-        y = nearestDot.y;
-      }
-
-      // Remove existing preview line
-      if (previewLine) {
-        previewLine.remove();
-      }
-
-      // Draw preview line in 90-degree direction
-      const lastPoint = wirePoints[wirePoints.length - 1];
-      const dx = x - lastPoint.x;
-      const dy = y - lastPoint.y;
-
-      if (Math.abs(dx) > Math.abs(dy)) {
-        // Horizontal preview
-        previewLine = drawLine(lastPoint.x, lastPoint.y, x, lastPoint.y, currentWireType, true);
-      } else {
-        // Vertical preview
-        previewLine = drawLine(lastPoint.x, lastPoint.y, lastPoint.x, y, currentWireType, true);
-      }
-    }
-
-    // Draw a wire segment between the last two points
-    function drawWireSegment() {
-      if (wirePoints.length < 2) return;
-
-      const start = wirePoints[wirePoints.length - 2];
-      const end = wirePoints[wirePoints.length - 1];
-      drawLine(start.x, start.y, end.x, end.y, currentWireType);
-    }
-
-    // Draw a line between two points
-    function drawLine(x1, y1, x2, y2, type, isPreview = false) {
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', x1);
-      line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2);
-      line.setAttribute('y2', y2);
-      line.setAttribute('stroke', getWireColor(type));
-      line.setAttribute('stroke-width', '6');
-
-      if (type === 'DMX') {
-        line.setAttribute('stroke-dasharray', '5,5');
-      }
-
-      if (isPreview) {
-        line.setAttribute('stroke-opacity', '0.5');
-      }
-
-      wiringSvg.appendChild(line);
-      return line;
-    }
-
-    // End drawing and reset state
-    function endDrawing() {
-      isDrawing = false;
-      wirePoints = [];
-      lastPoint = null;
-      wiringSvg.removeEventListener('click', handleClick);
-      document.removeEventListener('keydown', handleKeyDown);
-      wiringSvg.removeEventListener('mousemove', handleMouseMove);
-
-      // Remove preview line
-      if (previewLine) {
-        previewLine.remove();
-        previewLine = null;
-      }
-
-      // Wait 2 seconds before allowing the next wire run
-      setTimeout(() => {
-        wiringSvg.style.pointerEvents = 'none';
-      }, 2000);
-    }
-
-    // Get wire color based on type
-    function getWireColor(type) {
-      switch (type) {
-        case 'CRESNET': return 'green';
-        case 'ETHERNET': return 'blue';
-        case 'ZUMNET': return 'purple';
-        case 'ZUMLINK': return 'orange';
-        case 'POWER': return 'black';
-        case 'DMX': return 'url(#rainbow)';
-        default: return 'black';
-      }
-    }
-
-    // Clear all wires
-    clearWiringButton.addEventListener('click', () => {
-      wiringSvg.innerHTML = '';
-      // Re-add the gradient definition for DMX wires
-      wiringSvg.appendChild(defs);
-    });
-
-    // Add rainbow gradient for DMX wires
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    gradient.setAttribute('id', 'rainbow');
-    gradient.setAttribute('x1', '0%');
-    gradient.setAttribute('y1', '0%');
-    gradient.setAttribute('x2', '100%');
-    gradient.setAttribute('y2', '0%');
-    gradient.innerHTML = `
-      <stop offset="0%" style="stop-color:red;stop-opacity:1" />
-      <stop offset="16.67%" style="stop-color:orange;stop-opacity:1" />
-      <stop offset="33.33%" style="stop-color:yellow;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:green;stop-opacity:1" />
-      <stop offset="66.67%" style="stop-color:blue;stop-opacity:1" />
-      <stop offset="83.33%" style="stop-color:indigo;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:violet;stop-opacity:1" />
-    `;
-    defs.appendChild(gradient);
-    wiringSvg.appendChild(defs);
-
-    // Function to find the nearest dot
-    function findNearestDot(x, y) {
-      let nearestDot = null;
-      let minDistance = Infinity;
-      const threshold = 0; // Distance threshold for snapping (in pixels)
-
-      // Loop through all parts and their dots
-      document.querySelectorAll('.part').forEach((part) => {
-        const partRect = part.getBoundingClientRect();
-        const dots = part.querySelectorAll('.dot');
-
-        dots.forEach((dot) => {
-          const dotRect = dot.getBoundingClientRect();
-          const dotCenterX = dotRect.left + dotRect.width / 2 - partRect.left;
-          const dotCenterY = dotRect.top + dotRect.height / 2 - partRect.top;
-
-          // Calculate distance between wire endpoint and dot center
-          const distance = Math.sqrt((x - dotCenterX) ** 2 + (y - dotCenterY) ** 2);
-
-          // Check if this dot is the nearest
-          if (distance < threshold && distance < minDistance) {
-            minDistance = distance;
-            nearestDot = { x: dotCenterX, y: dotCenterY };
-          }
+    dots.forEach((dot) => {
+      if (dot.style.backgroundColor === 'black') {
+        const dotRect = dot.getBoundingClientRect();
+        blackDots.push({
+          part,
+          dot,
+          x: dotRect.left + dotRect.width / 2 - partRect.left + part.offsetLeft,
+          y: dotRect.top + dotRect.height / 2 - partRect.top + part.offsetTop,
         });
-      });
-
-      return nearestDot;
-    }
-
-    // Undo functionality
-    let undoStack = [];
-    let redoStack = [];
-
-    function undo() {
-      if (undoStack.length > 0) {
-        const lastWire = undoStack.pop();
-        redoStack.push(lastWire);
-        lastWire.remove();
       }
+    });
+  });
+
+  // Step 2: Wire black dots
+  wireDots(blackDots, 'black', false);
+}
+// Wire Drawing Logic
+const wiringSvg = document.getElementById('wiring-svg');
+const wirePopup = document.getElementById('wire-popup');
+const drawWiringButton = document.getElementById('draw-wiring');
+const clearWiringButton = document.getElementById('clear-wiring');
+let isDrawing = false;
+let currentWireType = 'POWER'; // Default wire type
+let wirePoints = []; // Stores the points of the current wire
+let previewLine = null; // Preview line for the wire
+let lastPoint = null; // Last point in the wire
+
+// Show wire selection popup
+drawWiringButton.addEventListener('click', () => {
+  if (!isDrawing) {
+    wirePopup.style.display = 'block';
+  }
+});
+
+// Handle wire type selection
+wirePopup.querySelectorAll('button').forEach((button) => {
+  button.addEventListener('click', () => {
+    currentWireType = button.getAttribute('data-type');
+    wirePopup.style.display = 'none';
+    startDrawing();
+  });
+});
+
+// Start drawing a wire
+function startDrawing() {
+  isDrawing = true;
+  wirePoints = [];
+  lastPoint = null;
+  wiringSvg.style.pointerEvents = 'all';
+  wiringSvg.addEventListener('click', handleClick);
+  document.addEventListener('keydown', handleKeyDown);
+  wiringSvg.addEventListener('mousemove', handleMouseMove);
+}
+
+// Handle mouse clicks to add points
+function handleClick(e) {
+  const rect = wiringSvg.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  let y = e.clientY - rect.top;
+
+  // Check if the click is near a dot
+  const nearestDot = findNearestDot(x, y);
+  if (nearestDot) {
+    x = nearestDot.x;
+    y = nearestDot.y;
+  }
+
+  if (!lastPoint) {
+    // First click: start the wire
+    wirePoints.push({ x, y });
+    lastPoint = { x, y };
+  } else {
+    // Subsequent clicks: add a new point in 90-degree direction
+    const dx = x - lastPoint.x;
+    const dy = y - lastPoint.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Horizontal movement
+      wirePoints.push({ x, y: lastPoint.y });
+    } else {
+      // Vertical movement
+      wirePoints.push({ x: lastPoint.x, y });
     }
 
-    // Redo functionality
-    function redo() {
-      if (redoStack.length > 0) {
-        const lastWire = redoStack.pop();
-        undoStack.push(lastWire);
-        wiringSvg.appendChild(lastWire);
-      }
+    lastPoint = wirePoints[wirePoints.length - 1];
+    drawWireSegment();
+  }
+}
+
+// Handle keydown events (Enter to end wire, Ctrl+Z to undo, Ctrl+Y to redo)
+function handleKeyDown(e) {
+  if (e.key === 'Enter') {
+    if (wirePoints.length > 1) {
+      // Draw the final wire
+      drawWireSegment();
+      endDrawing();
     }
+  } else if (e.ctrlKey && e.key === 'z') {
+    undo();
+  } else if (e.ctrlKey && e.key === 'y') {
+    redo();
+  }
+}
+
+// Handle mouse movement to show preview
+function handleMouseMove(e) {
+  if (!isDrawing || wirePoints.length === 0) return;
+
+  const rect = wiringSvg.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  let y = e.clientY - rect.top;
+
+  // Check if the mouse is near a dot
+  const nearestDot = findNearestDot(x, y);
+  if (nearestDot) {
+    x = nearestDot.x;
+    y = nearestDot.y;
+  }
+
+  // Remove existing preview line
+  if (previewLine) {
+    previewLine.remove();
+  }
+
+  // Draw preview line in 90-degree direction
+  const lastPoint = wirePoints[wirePoints.length - 1];
+  const dx = x - lastPoint.x;
+  const dy = y - lastPoint.y;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Horizontal preview
+    previewLine = drawLine(lastPoint.x, lastPoint.y, x, lastPoint.y, currentWireType, true);
+  } else {
+    // Vertical preview
+    previewLine = drawLine(lastPoint.x, lastPoint.y, lastPoint.x, y, currentWireType, true);
+  }
+}
+
+// Draw a wire segment between the last two points
+function drawWireSegment() {
+  if (wirePoints.length < 2) return;
+
+  const start = wirePoints[wirePoints.length - 2];
+  const end = wirePoints[wirePoints.length - 1];
+  drawLine(start.x, start.y, end.x, end.y, currentWireType);
+}
+
+// Draw a line between two points
+function drawLine(x1, y1, x2, y2, type, isPreview = false) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  line.setAttribute('stroke', getWireColor(type));
+  line.setAttribute('stroke-width', '6');
+
+  if (type === 'DMX') {
+    line.setAttribute('stroke-dasharray', '5,5');
+  }
+
+  if (isPreview) {
+    line.setAttribute('stroke-opacity', '0.5');
+  }
+
+  wiringSvg.appendChild(line);
+  return line;
+}
+
+// End drawing and reset state
+function endDrawing() {
+  isDrawing = false;
+  wirePoints = [];
+  lastPoint = null;
+  wiringSvg.removeEventListener('click', handleClick);
+  document.removeEventListener('keydown', handleKeyDown);
+  wiringSvg.removeEventListener('mousemove', handleMouseMove);
+
+  // Remove preview line
+  if (previewLine) {
+    previewLine.remove();
+    previewLine = null;
+  }
+
+  // Wait 2 seconds before allowing the next wire run
+  setTimeout(() => {
+    wiringSvg.style.pointerEvents = 'none';
+  }, 2000);
+}
+
+// Get wire color based on type
+function getWireColor(type) {
+  switch (type) {
+    case 'CRESNET': return 'green';
+    case 'ETHERNET': return 'blue';
+    case 'ZUMNET': return 'purple';
+    case 'ZUMLINK': return 'orange';
+    case 'POWER': return 'black';
+    case 'DMX': return 'url(#rainbow)';
+    default: return 'black';
+  }
+}
+
+// Clear all wires
+clearWiringButton.addEventListener('click', () => {
+  wiringSvg.innerHTML = '';
+  // Re-add the gradient definition for DMX wires
+  wiringSvg.appendChild(defs);
+});
+
+// Add rainbow gradient for DMX wires
+const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+gradient.setAttribute('id', 'rainbow');
+gradient.setAttribute('x1', '0%');
+gradient.setAttribute('y1', '0%');
+gradient.setAttribute('x2', '100%');
+gradient.setAttribute('y2', '0%');
+gradient.innerHTML = `
+  <stop offset="0%" style="stop-color:red;stop-opacity:1" />
+  <stop offset="16.67%" style="stop-color:orange;stop-opacity:1" />
+  <stop offset="33.33%" style="stop-color:yellow;stop-opacity:1" />
+  <stop offset="50%" style="stop-color:green;stop-opacity:1" />
+  <stop offset="66.67%" style="stop-color:blue;stop-opacity:1" />
+  <stop offset="83.33%" style="stop-color:indigo;stop-opacity:1" />
+  <stop offset="100%" style="stop-color:violet;stop-opacity:1" />
+`;
+defs.appendChild(gradient);
+wiringSvg.appendChild(defs);
+
+// Function to find the nearest dot
+function findNearestDot(x, y) {
+  let nearestDot = null;
+  let minDistance = Infinity;
+  const threshold = 0; // Distance threshold for snapping (in pixels)
+
+  // Loop through all parts and their dots
+  document.querySelectorAll('.part').forEach((part) => {
+    const partRect = part.getBoundingClientRect();
+    const dots = part.querySelectorAll('.dot');
+
+    dots.forEach((dot) => {
+      const dotRect = dot.getBoundingClientRect();
+      const dotCenterX = dotRect.left + dotRect.width / 2 - partRect.left;
+      const dotCenterY = dotRect.top + dotRect.height / 2 - partRect.top;
+
+      // Calculate distance between wire endpoint and dot center
+      const distance = Math.sqrt((x - dotCenterX) ** 2 + (y - dotCenterY) ** 2);
+
+      // Check if this dot is the nearest
+      if (distance < threshold && distance < minDistance) {
+        minDistance = distance;
+        nearestDot = { x: dotCenterX, y: dotCenterY };
+      }
+    });
+  });
+
+  return nearestDot;
+}
+
+// Undo functionality
+let undoStack = [];
+let redoStack = [];
+
+function undo() {
+  if (undoStack.length > 0) {
+    const lastWire = undoStack.pop();
+    redoStack.push(lastWire);
+    lastWire.remove();
+  }
+}
+
+// Redo functionality
+function redo() {
+  if (redoStack.length > 0) {
+    const lastWire = redoStack.pop();
+    undoStack.push(lastWire);
+    wiringSvg.appendChild(lastWire);
+  }
+}
   </script>
 </body>
 </html>

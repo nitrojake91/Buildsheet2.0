@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enhanced Panel and Parts Configuration</title>
   <style>
-    /* Full CSS (unchanged) */
+    /* Full CSS */
     :root {
       --primary-color: #003366;
       --secondary-color: #0099CC;
@@ -20,7 +18,8 @@
       --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.2);
       --glow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
-    /* Preloader Styles (unchanged) */
+
+    /* Preloader Styles */
     #preloader {
       position: fixed;
       top: 0;
@@ -79,7 +78,7 @@
       border-radius: 30px;
       box-shadow: var(--shadow);
       overflow: auto;
-      height: 6000px;
+      height: 3000px;
     }
 
     .tab-buttons {
@@ -114,8 +113,11 @@
     }
 
     .tab {
+      position: relative; /* Relative positioning for help button */
       display: none;
       padding: 20px;
+      height: 100%; /* Ensure the tab takes up full height */
+      overflow: auto; /* Add scroll if content overflows */
     }
 
     .tab.active {
@@ -320,126 +322,7 @@
       box-shadow: var(--shadow-hover);
       transform: translateY(-2px);
     }
-/* Add this to your existing CSS */
-.wire-popup {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  z-index: 1000;
-  width: 300px; /* Adjust width as needed */
-  margin-left: 20px; /* Add left margin */
-}
 
-.wire-popup h3 {
-  margin-bottom: 15px;
-}
-
-.form-row {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-
-.form-row label {
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-row input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
-}
-
-.form-row button {
-  padding: 10px;
-  background: var(--button-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow);
-  margin-top: 10px;
-}
-
-.form-row button:hover {
-  background: var(--button-hover-gradient);
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
-}
-
-#close-project-info-popup {
-  background: #ff4444; /* Red color for Cancel button */
-}
-
-#close-project-info-popup:hover {
-  background: #cc0000; /* Darker red on hover */
-}
-/* Add this to your existing CSS */
-.wire-popup {
-  background-color: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  z-index: 1000;
-  width: 300px; /* Adjust width as needed */
-  margin-left: 20px; /* Add left margin */
-}
-
-.wire-popup h3 {
-  margin-bottom: 15px;
-}
-
-.form-row {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
-}
-
-.form-row label {
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-row input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 100%;
-}
-
-.form-row button {
-  padding: 10px;
-  background: var(--button-gradient);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow);
-  margin-top: 10px;
-}
-
-.form-row button:hover {
-  background: var(--button-hover-gradient);
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
-}
-
-#close-part-popup {
-  background: #ff4444; /* Red color for Cancel button */
-}
-
-#close-part-popup:hover {
-  background: #cc0000; /* Darker red on hover */
-}
     .space-layout,
     .load-schedule {
       padding: 20px;
@@ -543,12 +426,113 @@
         opacity: 0.5;
       }
     }
+
+    /* Help Button */
+    .help-button {
+      position: absolute; /* Changed from fixed to absolute */
+      bottom: 2000px; /* Distance from the bottom */
+      left: 20px; /* Distance from the left */
+      width: 40px; /* Fixed width */
+      height: 40px; /* Fixed height */
+      border-radius: 50%; /* Makes it circular */
+      background-color: var(--primary-color); /* Background color */
+      color: white; /* Text color */
+      border: none; /* Remove border */
+      font-size: 20px; /* Font size */
+      cursor: pointer; /* Pointer cursor on hover */
+      box-shadow: var(--shadow); /* Add shadow */
+      transition: all 0.3s ease; /* Smooth hover effect */
+      z-index: 1000; /* Ensure it's above other content */
+    }
+
+    .help-button:hover {
+      background-color: var(--secondary-color); /* Change color on hover */
+      transform: scale(1.1); /* Slightly enlarge on hover */
+    }
+
+    /* Help Popup */
+    #help-popup {
+      width: 400px; /* Adjust width as needed */
+      padding: 20px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+    }
+
+    .help-tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .help-tab-buttons button {
+      padding: 10px 20px;
+      background: var(--button-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .help-tab-buttons button.active {
+      background: var(--accent-color);
+    }
+
+    .help-tab {
+      display: none;
+    }
+
+    .help-tab.active {
+      display: block;
+    }
+
+    #close-help-popup {
+      background: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #close-help-popup:hover {
+      background: #cc0000;
+    }
   </style>
 </head>
 <body>
-    <!-- Preloader -->
+  <!-- Preloader -->
   <div id="preloader">
     <div id="preloader-text"></div>
+  </div>
+
+  <!-- Help Popup -->
+  <div id="help-popup" class="wire-popup" style="display: none;">
+    <div class="help-tab-buttons">
+      <button id="page-info-tab-button" class="active">Page Info</button>
+      <button id="faq-tab-button">FAQ</button>
+    </div>
+    <div id="page-info-tab" class="help-tab active">
+      <p>This is the Page Info section. Add your page-specific information here.</p>
+    </div>
+    <div id="faq-tab" class="help-tab">
+      <p>This is the FAQ section. Add your frequently asked questions here.</p>
+    </div>
+    <button id="close-help-popup" style="position: absolute; top: 10px; right: 10px;">×</button>
   </div>
 
   <!-- Main Content -->
@@ -563,6 +547,129 @@
       <button id="save-button">Save</button>
       <button id="load-button">Load</button>
     </div>
+
+    <!-- Main Page Tab -->
+    <div id="main-tab" class="tab active">
+      <div class="sidebar">
+        <label for="panel-select">Panel Selection:</label>
+        <select id="panel-select">
+          <option value="DIN-EN-2X18">DIN-EN-2X18</option>
+          <option value="DIN-EN-3X18">DIN-EN-3X18</option>
+          <option value="DIN-EN-6X18">DIN-EN-6X18</option>
+          <option value="DIN-EN-10X18">DIN-EN-10X18</option>
+        </select>
+        <button data-part="ZUMNET-DIN-DLI">Add ZUMNET-DIN-DLI</button>
+        <button data-part="ZUMNET-DIN-16A-LV">Add ZUMNET-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-PSU">Add ZUMLINK-DIN-PSU</button>
+        <button data-part="ZUMLINK-DIN-16A-LV">Add ZUMLINK-DIN-16A-LV</button>
+        <button data-part="ZUMLINK-DIN-20A-SW">Add ZUMLINK-DIN-20A-SW</button>
+        <button data-part="ZUMLINK-DIN-20A-PLUG">Add ZUMLINK-DIN-20A-PLUG</button>
+        <button data-part="ZUMLINK-DIN-DIMU">Add ZUMLINK-DIN-DIMU</button>
+        <button data-part="ZUMLINK-DIN-IO">Add ZUMLINK-DIN-IO</button>
+        <button data-part="ZUM-HUB4">Add ZUM-HUB4</button>
+        <button data-part="CEN-SWPOE-5AC">Add CEN-SWPOE-5AC</button>
+        <button data-part="DIN-DMX">Add DIN-DMX</button>
+        <button data-part="DIN-AP4">Add DIN-AP4</button>
+        <button data-part="DIN-PWS60">Add DIN-PWS60</button>
+        <button data-part="DIN-DALI-2">Add DIN-DALI-2</button>
+      </div>
+      <div class="panel-container" id="panel-container">
+        <div class="panel" id="panel"></div>
+      </div>
+      <button class="help-button">?</button>
+    </div>
+
+    <!-- Panel Wiring Tab -->
+    <div id="wiring-tab" class="tab">
+      <div class="sidebar">
+        <button id="generate-panel">Generate Panel</button>
+        <button id="auto-wiring-button">Auto Wiring</button>
+        <button id="draw-wiring">Draw Wiring</button>
+        <button id="clear-wiring">Clear All Wiring</button>
+      </div>
+      <div class="panel-container">
+        <div id="wiring-panel" class="panel"></div>
+        <svg class="wiring-svg" id="wiring-svg"></svg>
+      </div>
+      <button class="help-button">?</button>
+    </div>
+
+    <!-- Space Layout Tab -->
+    <div id="space-tab" class="tab">
+      <div class="space-layout">
+        <h2>Space Layout</h2>
+        <table id="space-table">
+          <thead>
+            <tr>
+              <th>Space Name</th>
+              <th>Load Controller</th>
+              <th>mA Draw</th>
+              <th>Device mA</th>
+              <th>Total Power Draw</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+      <button class="help-button">?</button>
+    </div>
+
+    <!-- Load Schedule Tab -->
+    <div id="load-tab" class="tab">
+      <div class="load-schedule">
+        <h2>Load Schedule</h2>
+        <table id="load-table">
+          <thead>
+            <tr>
+              <th>Space Name</th>
+              <th>Circuit #</th>
+              <th>Zone</th>
+              <th>Load Controller</th>
+              <th>Lighting Load</th>
+              <th>Circuit Load Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+      <button class="help-button">?</button>
+    </div>
+  </div>
+
+<!-- Part Information Popup -->
+<div id="part-popup" class="wire-popup" style="display: none;">
+  <h3>Part Information</h3>
+  <form id="part-form">
+    <div class="form-row">
+      <label for="space-name">Space Name*:</label>
+      <input type="text" id="space-name" required>
+    </div>
+    <div class="form-row">
+      <label for="circuit-number">Circuit #:</label>
+      <input type="text" id="circuit-number">
+    </div>
+    <div class="form-row">
+      <label for="zone">Zone:</label>
+      <input type="text" id="zone">
+    </div>
+    <div class="form-row">
+      <label for="lighting-load">Lighting Load (watts):</label>
+      <input type="number" id="lighting-load">
+    </div>
+    <div class="form-row">
+      <label for="device-ma">Device mA:</label>
+      <input type="number" id="device-ma">
+    </div>
+    <div class="form-row">
+      <button type="submit">Save</button>
+      <button type="button" id="close-part-popup">Cancel</button>
+    </div>
+  </form>
+</div>
 <!-- Project Information Popup -->
 <div id="project-info-popup" class="wire-popup" style="display: none;">
   <h3>Project Information</h3>
@@ -597,126 +704,6 @@
     </div>
   </form>
 </div>
-    <!-- Main Page Tab -->
-    <div id="main-tab" class="tab active">
-      <div class="sidebar">
-        <label for="panel-select">Panel Selection:</label>
-        <select id="panel-select">
-          <option value="DIN-EN-2X18">DIN-EN-2X18</option>
-          <option value="DIN-EN-3X18">DIN-EN-3X18</option>
-          <option value="DIN-EN-6X18">DIN-EN-6X18</option>
-          <option value="DIN-EN-10X18">DIN-EN-10X18</option>
-        </select>
-        <button data-part="ZUMNET-DIN-DLI">Add ZUMNET-DIN-DLI</button>
-        <button data-part="ZUMNET-DIN-16A-LV">Add ZUMNET-DIN-16A-LV</button>
-        <button data-part="ZUMLINK-DIN-PSU">Add ZUMLINK-DIN-PSU</button>
-        <button data-part="ZUMLINK-DIN-16A-LV">Add ZUMLINK-DIN-16A-LV</button>
-        <button data-part="ZUMLINK-DIN-20A-SW">Add ZUMLINK-DIN-20A-SW</button>
-        <button data-part="ZUMLINK-DIN-20A-PLUG">Add ZUMLINK-DIN-20A-PLUG</button>
-        <button data-part="ZUMLINK-DIN-DIMU">Add ZUMLINK-DIN-DIMU</button>
-        <button data-part="ZUMLINK-DIN-IO">Add ZUMLINK-DIN-IO</button>
-          <button data-part="ZUM-HUB4">Add ZUM-HUB4</button>
-        <button data-part="CEN-SWPOE-5AC">Add CEN-SWPOE-5AC</button>
-        <button data-part="DIN-DMX">Add DIN-DMX</button>
-        <button data-part="DIN-AP4">Add DIN-AP4</button>
-        <button data-part="DIN-PWS60">Add DIN-PWS60</button>
-        <button data-part="DIN-DALI-2">Add DIN-DALI-2</button>
-      </div>
-      <div class="panel-container" id="panel-container">
-        <div class="panel" id="panel"></div>
-      </div>
-    </div>
-
-    <!-- Panel Wiring Tab -->
-    <div id="wiring-tab" class="tab">
-      <div class="sidebar">
-        <button id="generate-panel">Generate Panel</button>
-        <button id="auto-wiring-button">Auto Wiring</button>
-        <button id="draw-wiring">Draw Wiring</button>
-        <button id="clear-wiring">Clear All Wiring</button>
-      </div>
-      <div class="panel-container">
-        <div id="wiring-panel" class="panel"></div>
-        <svg class="wiring-svg" id="wiring-svg"></svg>
-      </div>
-    </div>
-
-    <!-- Space Layout Tab -->
-    <div id="space-tab" class="tab">
-      <div class="space-layout">
-        <h2>Space Layout</h2>
-        <table id="space-table">
-          <thead>
-            <tr>
-              <th>Space Name</th>
-              <th>Load Controller</th>
-              <th>mA Draw</th>
-              <th>Device mA</th>
-              <th>Total Power Draw</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Rows will be dynamically added here -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Load Schedule Tab -->
-    <div id="load-tab" class="tab">
-      <div class="load-schedule">
-        <h2>Load Schedule</h2>
-        <table id="load-table">
-          <thead>
-            <tr>
-              <th>Space Name</th>
-              <th>Circuit #</th>
-              <th>Zone</th>
-              <th>Load Controller</th>
-              <th>Lighting Load</th>
-              <th>Circuit Load Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Rows will be dynamically added here -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Part Information Popup -->
- <!-- Part Information Popup -->
-<div id="part-popup" class="wire-popup" style="display: none;">
-  <h3>Part Information</h3>
-  <form id="part-form">
-    <div class="form-row">
-      <label for="space-name">Space Name*:</label>
-      <input type="text" id="space-name" required>
-    </div>
-    <div class="form-row">
-      <label for="circuit-number">Circuit #:</label>
-      <input type="text" id="circuit-number">
-    </div>
-    <div class="form-row">
-      <label for="zone">Zone:</label>
-      <input type="text" id="zone">
-    </div>
-    <div class="form-row">
-      <label for="lighting-load">Lighting Load (watts):</label>
-      <input type="number" id="lighting-load">
-    </div>
-    <div class="form-row">
-      <label for="device-ma">Device mA:</label>
-      <input type="number" id="device-ma">
-    </div>
-    <div class="form-row">
-      <button type="submit">Save</button>
-      <button type="button" id="close-part-popup">Cancel</button>
-    </div>
-  </form>
-</div>
-
   <!-- Wire Selection Popup -->
   <div id="wire-popup" class="wire-popup" style="display: none;">
     <h3>Select Wire Type</h3>
@@ -777,7 +764,7 @@
       'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
       'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 94, color: 'orange', mA: 50, dots: ['orange', 'orange'] },
       'ZUMLINK-DIN-DIMU': { width: 53, height: 94, color: 'orange', mA: 100, dots: ['orange', 'orange'] },
-       'ZUMLINK-DIN-IO': { width: 71, height: 94, color: 'orange', mA: 145, dots: ['orange', 'orange'] },
+      'ZUMLINK-DIN-IO': { width: 71, height: 94, color: 'orange', mA: 145, dots: ['orange', 'orange'] },
       'DIN-DMX': { width: 144, height: 90, dots: ['blue', 'black', 'grey', 'grey'] },
       'ZUM-HUB4': { width: 165, height: 439, dots: ['green', 'purple', 'purple'] },
       'CEN-SWPOE-5AC': { width: 187, height: 120, dots: ['blue', 'blue', 'blue', 'blue', 'blue'] },
@@ -1030,63 +1017,63 @@
         spaceName.style.fontSize = `${fontSize}px`;
       }
     }
-// Show the part information popup when a part is double-clicked
-function showPartPopup(partType, partElement) {
-  const partPopup = document.getElementById('part-popup');
-  const partForm = document.getElementById('part-form');
 
-  // Find the part data
-  const partData = partsData.find((p) => p.partElement === partElement);
+    function showPartPopup(partType, partElement) {
+      const partPopup = document.getElementById('part-popup');
+      const partForm = document.getElementById('part-form');
 
-  // Populate the form with existing data
-  document.getElementById('space-name').value = partData.spaceName;
-  document.getElementById('circuit-number').value = partData.circuitNumber || '';
-  document.getElementById('zone').value = partData.zone || '';
-  document.getElementById('lighting-load').value = partData.lightingLoad || '';
-  document.getElementById('device-ma').value = partData.deviceMA || '';
+      // Find the part data
+      const partData = partsData.find((p) => p.partElement === partElement);
 
-  // Show the popup
-  partPopup.style.display = 'block';
+      // Populate the form with existing data
+      document.getElementById('space-name').value = partData.spaceName;
+      document.getElementById('circuit-number').value = partData.circuitNumber || '';
+      document.getElementById('zone').value = partData.zone || '';
+      document.getElementById('lighting-load').value = partData.lightingLoad || '';
+      document.getElementById('device-ma').value = partData.deviceMA || '';
 
-  // Handle form submission
-  partForm.onsubmit = (e) => {
-    e.preventDefault();
+      // Show the popup
+      partPopup.style.display = 'block';
 
-    // Update part data
-    partData.spaceName = document.getElementById('space-name').value;
-    partData.circuitNumber = document.getElementById('circuit-number').value;
-    partData.zone = document.getElementById('zone').value;
-    partData.lightingLoad = document.getElementById('lighting-load').value;
-    partData.deviceMA = document.getElementById('device-ma').value;
+      // Handle form submission
+      partForm.onsubmit = (e) => {
+        e.preventDefault();
 
-    // Update the part's space name
-    const spaceNameElement = partElement.querySelector('.space-name');
-    spaceNameElement.textContent = partData.spaceName;
-    adjustFontSize(spaceNameElement, partElement);
+        // Update part data
+        partData.spaceName = document.getElementById('space-name').value;
+        partData.circuitNumber = document.getElementById('circuit-number').value;
+        partData.zone = document.getElementById('zone').value;
+        partData.lightingLoad = document.getElementById('lighting-load').value;
+        partData.deviceMA = document.getElementById('device-ma').value;
 
-    // Update the data indicator (exclude deviceMA from the check)
-    const dataIndicator = partElement.querySelector('.data-indicator');
-    if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
-      dataIndicator.classList.add('green');
-      dataIndicator.classList.remove('red');
-    } else {
-      dataIndicator.classList.add('red');
-      dataIndicator.classList.remove('green');
+        // Update the part's space name
+        const spaceNameElement = partElement.querySelector('.space-name');
+        spaceNameElement.textContent = partData.spaceName;
+        adjustFontSize(spaceNameElement, partElement);
+
+        // Update the data indicator (exclude deviceMA from the check)
+        const dataIndicator = partElement.querySelector('.data-indicator');
+        if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
+          dataIndicator.classList.add('green');
+          dataIndicator.classList.remove('red');
+        } else {
+          dataIndicator.classList.add('red');
+          dataIndicator.classList.remove('green');
+        }
+
+        // Hide the popup
+        partPopup.style.display = 'none';
+
+        // Update tables
+        updateSpaceTable();
+        updateLoadSchedule();
+      };
     }
 
-    // Hide the popup
-    partPopup.style.display = 'none';
-
-    // Update tables
-    updateSpaceTable();
-    updateLoadSchedule();
-  };
-}
-
-// Close the part information popup when Cancel is clicked
-document.getElementById('close-part-popup').addEventListener('click', () => {
-  document.getElementById('part-popup').style.display = 'none';
-});
+    // Close the part information popup when Cancel is clicked
+    document.getElementById('close-part-popup').addEventListener('click', () => {
+      document.getElementById('part-popup').style.display = 'none';
+    });
 
     function updateSpaceTable() {
       const spaceTableBody = document.querySelector('#space-table tbody');
@@ -1159,7 +1146,80 @@ document.getElementById('close-part-popup').addEventListener('click', () => {
         loadTableBody.appendChild(row);
       });
     }
+// Add event listeners to all "?" buttons
+document.querySelectorAll('.help-button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const helpPopup = document.getElementById('help-popup');
 
+    // Check if the popup exists
+    if (!helpPopup) {
+      console.error('Help popup not found in the DOM.');
+      return;
+    }
+
+    // Determine the active tab and update popup content
+    const activeTab = document.querySelector('.tab.active').id;
+
+    let pageInfoContent = '';
+    let faqContent = '';
+
+    switch (activeTab) {
+      case 'main-tab':
+        pageInfoContent = 'This is the Page Info for the Main Page.';
+        faqContent = 'This is the FAQ for the Main Page.';
+        break;
+      case 'wiring-tab':
+        pageInfoContent = 'This is the Page Info for the Panel Wiring Page.';
+        faqContent = 'This is the FAQ for the Panel Wiring Page.';
+        break;
+      case 'space-tab':
+        pageInfoContent = 'This is the Page Info for the Space Layout Page.';
+        faqContent = 'This is the FAQ for the Space Layout Page.';
+        break;
+      case 'load-tab':
+        pageInfoContent = 'This is the Page Info for the Load Schedule Page.';
+        faqContent = 'This is the FAQ for the Load Schedule Page.';
+        break;
+    }
+
+    // Update the popup content
+    document.getElementById('page-info-tab').innerHTML = `<p>${pageInfoContent}</p>`;
+    document.getElementById('faq-tab').innerHTML = `<p>${faqContent}</p>`;
+
+    // Show the popup
+    helpPopup.style.display = 'block';
+  });
+});
+
+// Close the help popup when the close button is clicked
+document.getElementById('close-help-popup').addEventListener('click', () => {
+  const helpPopup = document.getElementById('help-popup');
+  if (helpPopup) {
+    helpPopup.style.display = 'none';
+  }
+});
+
+// Tab switching logic for the help popup
+const pageInfoTabButton = document.getElementById('page-info-tab-button');
+const faqTabButton = document.getElementById('faq-tab-button');
+const pageInfoTab = document.getElementById('page-info-tab');
+const faqTab = document.getElementById('faq-tab');
+
+if (pageInfoTabButton && faqTabButton && pageInfoTab && faqTab) {
+  pageInfoTabButton.addEventListener('click', () => {
+    pageInfoTab.classList.add('active');
+    faqTab.classList.remove('active');
+    pageInfoTabButton.classList.add('active');
+    faqTabButton.classList.remove('active');
+  });
+
+  faqTabButton.addEventListener('click', () => {
+    faqTab.classList.add('active');
+    pageInfoTab.classList.remove('active');
+    faqTabButton.classList.add('active');
+    pageInfoTabButton.classList.remove('active');
+  });
+}
     function updateSpaceName(oldName, newName) {
       partsData.forEach((part) => {
         if (part.spaceName === oldName) {
@@ -1730,135 +1790,137 @@ document.getElementById('close-part-popup').addEventListener('click', () => {
         wiringSvg.appendChild(lastWire);
       }
     }
-// Show the project information popup when Save is clicked
-document.getElementById('save-button').addEventListener('click', () => {
-  const projectInfoPopup = document.getElementById('project-info-popup');
-  projectInfoPopup.style.display = 'block';
-});
 
-// Handle form submission
-document.getElementById('project-info-form').onsubmit = (e) => {
-  e.preventDefault();
+    // Show the project information popup when Save is clicked
+    document.getElementById('save-button').addEventListener('click', () => {
+      const projectInfoPopup = document.getElementById('project-info-popup');
+      projectInfoPopup.style.display = 'block';
+    });
 
-  // Collect project information
-  const projectName = document.getElementById('project-name').value;
-  const soNumber = document.getElementById('so-number').value;
-  const quoteNumber = document.getElementById('quote-number').value;
-  const panelId = document.getElementById('panel-id').value;
-  const creator = document.getElementById('creator').value;
-  const revision = document.getElementById('revision').value;
+    // Handle form submission
+    document.getElementById('project-info-form').onsubmit = (e) => {
+      e.preventDefault();
 
-  // Validate required fields
-  if (!projectName || !quoteNumber) {
-    alert('Project Name and Quote # are required!');
-    return;
-  }
+      // Collect project information
+      const projectName = document.getElementById('project-name').value;
+      const soNumber = document.getElementById('so-number').value;
+      const quoteNumber = document.getElementById('quote-number').value;
+      const panelId = document.getElementById('panel-id').value;
+      const creator = document.getElementById('creator').value;
+      const revision = document.getElementById('revision').value;
 
-  // Generate the file name
-  const fileName = `${quoteNumber}_${projectName}_${panelId}.json`;
-
-  // Prepare the data to save
-  const data = {
-    projectName,
-    soNumber,
-    quoteNumber,
-    panelId,
-    creator,
-    revision,
-    panelType: panelSelect.value,
-    parts: partsData.map(part => ({
-      partType: part.partType,
-      spaceName: part.spaceName,
-      circuitNumber: part.circuitNumber,
-      zone: part.zone,
-      lightingLoad: part.lightingLoad,
-      deviceMA: part.deviceMA,
-      railNumber: part.railNumber,
-      position: {
-        left: part.partElement.style.left,
-        top: part.partElement.style.top
+      // Validate required fields
+      if (!projectName || !quoteNumber) {
+        alert('Project Name and Quote # are required!');
+        return;
       }
-    })),
-    manualWires: Array.from(wiringSvg.querySelectorAll('line')).map(line => ({
-      x1: line.getAttribute('x1'),
-      y1: line.getAttribute('y1'),
-      x2: line.getAttribute('x2'),
-      y2: line.getAttribute('y2'),
-      stroke: line.getAttribute('stroke'),
-      strokeWidth: line.getAttribute('stroke-width'),
-      strokeDasharray: line.getAttribute('stroke-dasharray')
-    }))
-  };
 
-  // Save the file
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
+      // Generate the file name
+      const fileName = `${quoteNumber}_${projectName}_${panelId}.json`;
 
-  // Hide the popup
-  document.getElementById('project-info-popup').style.display = 'none';
-};
-
-// Close the popup when Cancel is clicked
-document.getElementById('close-project-info-popup').addEventListener('click', () => {
-  document.getElementById('project-info-popup').style.display = 'none';
-});
-  // Load Functionality
-  document.getElementById('load-button').addEventListener('click', () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const data = JSON.parse(event.target.result);
-        panelSelect.value = data.panelType;
-        initializePanel();
-        partsData = [];
-        data.parts.forEach(partData => {
-          addPart(partData.partType, partData.position);
-          const part = partsData[partsData.length - 1];
-          part.spaceName = partData.spaceName;
-          part.circuitNumber = partData.circuitNumber;
-          part.zone = partData.zone;
-          part.lightingLoad = partData.lightingLoad;
-          part.deviceMA = partData.deviceMA;
-          part.railNumber = partData.railNumber;
-        });
-
-        // Clear existing wires
-        wiringSvg.innerHTML = '';
-        wiringSvg.appendChild(defs);
-
-        // Load manual wires
-        if (data.manualWires) {
-          data.manualWires.forEach(wire => {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', wire.x1);
-            line.setAttribute('y1', wire.y1);
-            line.setAttribute('x2', wire.x2);
-            line.setAttribute('y2', wire.y2);
-            line.setAttribute('stroke', wire.stroke);
-            line.setAttribute('stroke-width', wire.strokeWidth);
-            if (wire.strokeDasharray) {
-              line.setAttribute('stroke-dasharray', wire.strokeDasharray);
-            }
-            wiringSvg.appendChild(line);
-          });
-        }
-
-        updateSpaceTable();
-        updateLoadSchedule();
+      // Prepare the data to save
+      const data = {
+        projectName,
+        soNumber,
+        quoteNumber,
+        panelId,
+        creator,
+        revision,
+        panelType: panelSelect.value,
+        parts: partsData.map(part => ({
+          partType: part.partType,
+          spaceName: part.spaceName,
+          circuitNumber: part.circuitNumber,
+          zone: part.zone,
+          lightingLoad: part.lightingLoad,
+          deviceMA: part.deviceMA,
+          railNumber: part.railNumber,
+          position: {
+            left: part.partElement.style.left,
+            top: part.partElement.style.top
+          }
+        })),
+        manualWires: Array.from(wiringSvg.querySelectorAll('line')).map(line => ({
+          x1: line.getAttribute('x1'),
+          y1: line.getAttribute('y1'),
+          x2: line.getAttribute('x2'),
+          y2: line.getAttribute('y2'),
+          stroke: line.getAttribute('stroke'),
+          strokeWidth: line.getAttribute('stroke-width'),
+          strokeDasharray: line.getAttribute('stroke-dasharray')
+        }))
       };
-      reader.readAsText(file);
+
+      // Save the file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Hide the popup
+      document.getElementById('project-info-popup').style.display = 'none';
     };
-    input.click();
-  });
+
+    // Close the popup when Cancel is clicked
+    document.getElementById('close-project-info-popup').addEventListener('click', () => {
+      document.getElementById('project-info-popup').style.display = 'none';
+    });
+
+    // Load Functionality
+    document.getElementById('load-button').addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const data = JSON.parse(event.target.result);
+          panelSelect.value = data.panelType;
+          initializePanel();
+          partsData = [];
+          data.parts.forEach(partData => {
+            addPart(partData.partType, partData.position);
+            const part = partsData[partsData.length - 1];
+            part.spaceName = partData.spaceName;
+            part.circuitNumber = partData.circuitNumber;
+            part.zone = partData.zone;
+            part.lightingLoad = partData.lightingLoad;
+            part.deviceMA = partData.deviceMA;
+            part.railNumber = partData.railNumber;
+          });
+
+          // Clear existing wires
+          wiringSvg.innerHTML = '';
+          wiringSvg.appendChild(defs);
+
+          // Load manual wires
+          if (data.manualWires) {
+            data.manualWires.forEach(wire => {
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', wire.x1);
+              line.setAttribute('y1', wire.y1);
+              line.setAttribute('x2', wire.x2);
+              line.setAttribute('y2', wire.y2);
+              line.setAttribute('stroke', wire.stroke);
+              line.setAttribute('stroke-width', wire.strokeWidth);
+              if (wire.strokeDasharray) {
+                line.setAttribute('stroke-dasharray', wire.strokeDasharray);
+              }
+              wiringSvg.appendChild(line);
+            });
+          }
+
+          updateSpaceTable();
+          updateLoadSchedule();
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    });
   </script>
 </body>
 </html>

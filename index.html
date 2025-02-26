@@ -426,7 +426,64 @@
         opacity: 0.5;
       }
     }
+/* Part Data Popup Styles */
+#part-popup {
+  width: 300px; /* Adjust width as needed */
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  display: none;
+}
 
+#part-popup h3 {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+#part-popup .form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+#part-popup .form-row label {
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+#part-popup .form-row input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#part-popup .form-row button {
+  padding: 10px;
+  margin: 5px 0;
+  background: var(--button-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+}
+
+#part-popup .form-row button:hover {
+  background: var(--button-hover-gradient);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
     /* Help Button */
     .help-button {
       position: fixed; /* Changed from fixed to absolute */

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,6 +16,7 @@
       --button-hover-gradient: linear-gradient(135deg, #0077B3, #002244);
       --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.2);
+      --glow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
     * {
@@ -25,13 +24,7 @@
       padding: 0;
       box-sizing: border-box;
     }
-.red-dot {
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  position: absolute;
-}
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--background-color);
@@ -351,6 +344,50 @@
       pointer-events: none; /* Disable pointer events */
       cursor: default; /* Set cursor to default */
     }
+
+    /* New UI Enhancements */
+    .part:hover {
+      box-shadow: var(--glow);
+      transform: scale(1.05);
+    }
+
+    .tab-buttons button:hover {
+      box-shadow: var(--glow);
+    }
+
+    .sidebar button:hover {
+      box-shadow: var(--glow);
+    }
+
+    .rail-graphic:hover {
+      box-shadow: var(--glow);
+    }
+
+    .part .data-indicator {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    .part .dot {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
   </style>
 </head>
 <body>
@@ -485,7 +522,7 @@
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.24/jspdf.plugin.autotable.min.js"></script>
- <script>
+  <script>
     const { jsPDF } = window.jspdf;
 
     // Main Page Logic
@@ -544,214 +581,205 @@
       currentXPosition = 25; // Start from the left edge
     }
 
-function addPart(partType, position = null) {
-  const partData = parts[partType];
-  
-  // Exempt ZUM-HUB4 and CEN-SWPOE-5AC from rail numbering and width limitations
-  if (partType === 'ZUM-HUB4' || partType === 'CEN-SWPOE-5AC') {
-    const part = createPartElement(partType, partData);
-    if (position) {
-      part.style.left = `${position.left}px`;
-      part.style.top = `${position.top}px`;
-    } else {
-      part.style.left = '50px'; // Default position
-      part.style.top = '50px';  // Default position
-    }
-    panel.appendChild(part);
-    makeDraggable(part); // Enable drag-and-drop for these parts
-    return;
-  }
-
-  // Existing logic for other parts
-  if (currentRailIndex >= rails.length) {
-    alert('No more rails available in this panel!');
-    return;
-  }
-
-  // Check if the part will exceed the rail width
-  if (rails[currentRailIndex].widthUsed + partData.width > 324) {
-    currentRailIndex++; // Move to the next rail
-    currentXPosition = 25; // Reset X position
-    if (currentRailIndex >= rails.length) {
-      alert('No more rails available in this panel!');
-      return;
-    }
-  }
-
-  const part = createPartElement(partType, partData);
-  const rail = rails[currentRailIndex];
-
-  // Position the part
-  part.style.left = `${currentXPosition}px`;
-  part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
-  rail.parts.push(part);
-  rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
-  currentXPosition += partData.width; // Move currentXPosition by the part's width
-
-  panel.appendChild(part);
-
-  // Determine the default space name
-  let spaceName = `Space ${spaceCounter}`;
-
-  // Logic for ZUMNET parts
-  if (partType.startsWith('ZUMNET')) {
-    // Find the last ZUMNET part added
-    const lastZUMNET = partsData
-      .filter((p) => p.partType.startsWith('ZUMNET'))
-      .pop();
-
-    if (lastZUMNET) {
-      // Extract the space number from the last ZUMNET's space name
-      const lastSpaceNumber = parseInt(lastZUMNET.spaceName.split(' ')[1]);
-      spaceName = `Space ${lastSpaceNumber + 1}`;
-    } else {
-      // If no ZUMNET parts have been added yet, default to Space 1
-      spaceName = `Space 1`;
-    }
-  }
-
-  // Logic for ZUMLINK parts (excluding ZUMLINK-DIN-IO)
-  if (partType.startsWith('ZUMLINK') && partType !== 'ZUMLINK-DIN-IO') {
-    const rail = rails[currentRailIndex];
-    const currentIndex = rail.parts.length - 1; // Index of the current part
-
-    if (currentIndex > 0) {
-      // If there's a part to the left, mimic its space name
-      const leftPart = rail.parts[currentIndex - 1];
-      const leftPartData = partsData.find((p) => p.partElement === leftPart);
-      if (leftPartData) {
-        spaceName = leftPartData.spaceName;
+    function addPart(partType, position = null) {
+      const partData = parts[partType];
+      
+      // Exempt ZUM-HUB4 and CEN-SWPOE-5AC from rail numbering and width limitations
+      if (partType === 'ZUM-HUB4' || partType === 'CEN-SWPOE-5AC') {
+        const part = createPartElement(partType, partData);
+        if (position) {
+          part.style.left = `${position.left}px`;
+          part.style.top = `${position.top}px`;
+        } else {
+          part.style.left = '50px'; // Default position
+          part.style.top = '50px';  // Default position
+        }
+        panel.appendChild(part);
+        makeDraggable(part); // Enable drag-and-drop for these parts
+        return;
       }
-    } else if (currentRailIndex > 0) {
-      // If this is the first part on a new row, look to the last part on the row above
-      const railAbove = rails[currentRailIndex - 1];
-      if (railAbove.parts.length > 0) {
-        const lastPartAbove = railAbove.parts[railAbove.parts.length - 1];
-        const lastPartAboveData = partsData.find((p) => p.partElement === lastPartAbove);
-        if (lastPartAboveData) {
-          spaceName = lastPartAboveData.spaceName;
+
+      // Existing logic for other parts
+      if (currentRailIndex >= rails.length) {
+        alert('No more rails available in this panel!');
+        return;
+      }
+
+      // Check if the part will exceed the rail width
+      if (rails[currentRailIndex].widthUsed + partData.width > 324) {
+        currentRailIndex++; // Move to the next rail
+        currentXPosition = 25; // Reset X position
+        if (currentRailIndex >= rails.length) {
+          alert('No more rails available in this panel!');
+          return;
         }
       }
+
+      const part = createPartElement(partType, partData);
+      const rail = rails[currentRailIndex];
+
+      // Position the part
+      part.style.left = `${currentXPosition}px`;
+      part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
+      rail.parts.push(part);
+      rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
+      currentXPosition += partData.width; // Move currentXPosition by the part's width
+
+      panel.appendChild(part);
+
+      // Determine the default space name
+      let spaceName = `Space ${spaceCounter}`;
+
+      // Logic for ZUMNET parts
+      if (partType.startsWith('ZUMNET')) {
+        // Find the last ZUMNET part added
+        const lastZUMNET = partsData
+          .filter((p) => p.partType.startsWith('ZUMNET'))
+          .pop();
+
+        if (lastZUMNET) {
+          // Extract the space number from the last ZUMNET's space name
+          const lastSpaceNumber = parseInt(lastZUMNET.spaceName.split(' ')[1]);
+          spaceName = `Space ${lastSpaceNumber + 1}`;
+        } else {
+          // If no ZUMNET parts have been added yet, default to Space 1
+          spaceName = `Space 1`;
+        }
+      }
+
+      // Logic for ZUMLINK parts (excluding ZUMLINK-DIN-IO)
+      if (partType.startsWith('ZUMLINK') && partType !== 'ZUMLINK-DIN-IO') {
+        const rail = rails[currentRailIndex];
+        const currentIndex = rail.parts.length - 1; // Index of the current part
+
+        if (currentIndex > 0) {
+          // If there's a part to the left, mimic its space name
+          const leftPart = rail.parts[currentIndex - 1];
+          const leftPartData = partsData.find((p) => p.partElement === leftPart);
+          if (leftPartData) {
+            spaceName = leftPartData.spaceName;
+          }
+        } else if (currentRailIndex > 0) {
+          // If this is the first part on a new row, look to the last part on the row above
+          const railAbove = rails[currentRailIndex - 1];
+          if (railAbove.parts.length > 0) {
+            const lastPartAbove = railAbove.parts[railAbove.parts.length - 1];
+            const lastPartAboveData = partsData.find((p) => p.partElement === lastPartAbove);
+            if (lastPartAboveData) {
+              spaceName = lastPartAboveData.spaceName;
+            }
+          }
+        }
+      }
+
+      // Add space name to the part
+      const spaceNameElement = document.createElement('div');
+      spaceNameElement.className = 'space-name';
+      spaceNameElement.textContent = spaceName;
+      part.appendChild(spaceNameElement);
+
+      // Add rail number to the part
+      const railNumber = currentRailIndex + 1; // Rail numbers start from 1
+      part.setAttribute('data-rail-number', railNumber);
+
+      // Add part data to partsData array
+      partsData.push({
+        partElement: part,
+        partType: partType,
+        spaceName: spaceName,
+        circuitNumber: null,
+        zone: null,
+        lightingLoad: null,
+        deviceMA: null,
+        railNumber: railNumber, // Add rail number
+      });
+
+      // Increment space counter if the part is a ZUMNET device
+      if (partType.startsWith('ZUMNET')) {
+        spaceCounter++;
+      }
     }
-  }
 
-  // Add space name to the part
-  const spaceNameElement = document.createElement('div');
-  spaceNameElement.className = 'space-name';
-  spaceNameElement.textContent = spaceName;
-  part.appendChild(spaceNameElement);
+    function createPartElement(partType, partData) {
+      const part = document.createElement('div');
+      part.className = 'part draggable';
+      part.style.width = `${partData.width}px`;
+      part.style.height = `${partData.height}px`;
+      part.textContent = partType;
+      part.style.backgroundColor = partData.color || '#4CAF50';
 
-  // Add rail number to the part
-  const railNumber = currentRailIndex + 1; // Rail numbers start from 1
-  part.setAttribute('data-rail-number', railNumber);
+      // Add data indicator (red/green dot)
+      const dataIndicator = document.createElement('div');
+      dataIndicator.className = 'data-indicator';
+      part.appendChild(dataIndicator);
 
-  // Add part data to partsData array
-  partsData.push({
-    partElement: part,
-    partType: partType,
-    spaceName: spaceName,
-    circuitNumber: null,
-    zone: null,
-    lightingLoad: null,
-    deviceMA: null,
-    railNumber: railNumber, // Add rail number
-  });
+      // Add double-click to edit
+      part.addEventListener('dblclick', () => showPartPopup(partType, part));
 
-  // Increment space counter if the part is a ZUMNET device
-  if (partType.startsWith('ZUMNET')) {
-    spaceCounter++;
-  }
-}
+      // Add right-click to delete with confirmation popup
+      part.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const confirmDelete = confirm('Are you sure you want to delete this part?');
+        if (confirmDelete) {
+          part.remove();
+          partsData = partsData.filter((p) => p.partElement !== part);
+          updateSpaceTable();
+          updateLoadSchedule();
+        }
+      });
 
-function createPartElement(partType, partData) {
-  const part = document.createElement('div');
-  part.className = 'part draggable';
-  part.style.width = `${partData.width}px`;
-  part.style.height = `${partData.height}px`;
-  part.textContent = partType;
-  part.style.backgroundColor = partData.color || '#4CAF50';
-
-  // Add color dots
-  const dotsContainer = document.createElement('div');
-  dotsContainer.className = 'dots';
-  partData.dots.forEach((dotColor) => {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    dot.style.backgroundColor = dotColor;
-    dotsContainer.appendChild(dot);
-  });
-  part.appendChild(dotsContainer);
-
-  // Add data indicator (red/green dot)
-  const dataIndicator = document.createElement('div');
-  dataIndicator.className = 'data-indicator';
-  part.appendChild(dataIndicator);
-
-  // Add double-click to edit
-  part.addEventListener('dblclick', () => showPartPopup(partType, part));
-
-  // Add right-click to delete with confirmation popup
-  part.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    const confirmDelete = confirm('Are you sure you want to delete this part?');
-    if (confirmDelete) {
-      part.remove();
-      partsData = partsData.filter((p) => p.partElement !== part);
-      updateSpaceTable();
-      updateLoadSchedule();
+      return part;
     }
-  });
 
-  return part;
-}
+    function makeDraggable(element) {
+      let isDragging = false;
+      let offsetX, offsetY;
 
-function makeDraggable(element) {
-  let isDragging = false;
-  let offsetX, offsetY;
+      // Mouse event handlers
+      element.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - element.getBoundingClientRect().left;
+        offsetY = e.clientY - element.getBoundingClientRect().top;
+        element.style.cursor = 'grabbing';
+      });
 
-  // Mouse event handlers
-  element.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - element.getBoundingClientRect().left;
-    offsetY = e.clientY - element.getBoundingClientRect().top;
-    element.style.cursor = 'grabbing';
-  });
+      document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          element.style.left = `${e.clientX - offsetX}px`;
+          element.style.top = `${e.clientY - offsetY}px`;
+        }
+      });
 
-  document.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      element.style.left = `${e.clientX - offsetX}px`;
-      element.style.top = `${e.clientY - offsetY}px`;
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+        element.style.cursor = 'grab';
+      });
+
+      // Touch event handlers
+      element.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent default touch behavior
+        isDragging = true;
+        const touch = e.touches[0]; // Get the first touch point
+        offsetX = touch.clientX - element.getBoundingClientRect().left;
+        offsetY = touch.clientY - element.getBoundingClientRect().top;
+        element.style.cursor = 'grabbing';
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+          const touch = e.touches[0]; // Get the first touch point
+          element.style.left = `${touch.clientX - offsetX}px`;
+          element.style.top = `${touch.clientY - offsetY}px`;
+        }
+      });
+
+      document.addEventListener('touchend', () => {
+        isDragging = false;
+        element.style.cursor = 'grab';
+      });
     }
-  });
 
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    element.style.cursor = 'grab';
-  });
-
-  // Touch event handlers
-  element.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // Prevent default touch behavior
-    isDragging = true;
-    const touch = e.touches[0]; // Get the first touch point
-    offsetX = touch.clientX - element.getBoundingClientRect().left;
-    offsetY = touch.clientY - element.getBoundingClientRect().top;
-    element.style.cursor = 'grabbing';
-  });
-
-  document.addEventListener('touchmove', (e) => {
-    if (isDragging) {
-      const touch = e.touches[0]; // Get the first touch point
-      element.style.left = `${touch.clientX - offsetX}px`;
-      element.style.top = `${touch.clientY - offsetY}px`;
-    }
-  });
-
-  document.addEventListener('touchend', () => {
-    isDragging = false;
-    element.style.cursor = 'grab';
-  });
-}   function adjustFontSize(spaceName, part) {
+    function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;
       const spaceNameWidth = spaceName.offsetWidth;
       let fontSize = 10;
@@ -896,101 +924,101 @@ function makeDraggable(element) {
       updateLoadSchedule();
     }
 
-document.getElementById('generate-panel').addEventListener('click', () => {
-  const wiringPanel = document.getElementById('wiring-panel');
-  wiringPanel.innerHTML = ''; // Clear the wiring panel
+    document.getElementById('generate-panel').addEventListener('click', () => {
+      const wiringPanel = document.getElementById('wiring-panel');
+      wiringPanel.innerHTML = ''; // Clear the wiring panel
 
-  // Get all parts from the main panel
-  const parts = document.querySelectorAll('#panel .part');
+      // Get all parts from the main panel
+      const parts = document.querySelectorAll('#panel .part');
 
-  // Group parts by their rail number
-  const railGroups = {};
-  parts.forEach((part) => {
-    const railNumber = part.getAttribute('data-rail-number');
-    if (!railGroups[railNumber]) {
-      railGroups[railNumber] = [];
-    }
-    railGroups[railNumber].push(part);
-  });
-
-  let topOffset = 100; // Initialize the top offset for positioning rows
-
-  // Iterate through each rail group and position the parts
-  Object.keys(railGroups).sort().forEach((railNumber) => {
-    const railParts = railGroups[railNumber];
-    let leftOffset = 100; // Initialize the left offset for positioning parts within a row (100px from the left)
-
-    railParts.forEach((part) => {
-      const clonedPart = part.cloneNode(true); // Clone the part
-      clonedPart.style.position = 'absolute'; // Ensure the part is positioned absolutely
-
-      // Set the horizontal position with 80px spacing between parts
-      clonedPart.style.left = `${leftOffset}px`;
-
-      // Set the vertical position with 200px spacing between rows
-      clonedPart.style.top = `${topOffset}px`;
-
-      // Disable animations and make the part non-editable
-      clonedPart.style.animation = 'none';
-      clonedPart.classList.add('non-editable');
-
-      // Add dots for wire connection points at the bottom of the part
-      const dotsContainer = document.createElement('div');
-      dotsContainer.className = 'dots-container';
-      dotsContainer.style.position = 'absolute';
-      dotsContainer.style.bottom = '0';
-      dotsContainer.style.left = '50%';
-      dotsContainer.style.transform = 'translateX(-50%)';
-      dotsContainer.style.display = 'flex';
-      dotsContainer.style.gap = '10px';
-
-      // Determine the number and color of dots based on the part type or color
-      const partType = part.getAttribute('data-part'); // Use the data-part attribute to identify the part
-      const partColor = clonedPart.style.backgroundColor; // Get the background color of the part
-
-      let dotColors = [];
-
-      if (partColor === 'grey' || partColor === 'gray') {
-        // Grey parts get 4 brown dots
-        dotColors = ['brown', 'brown', 'brown', 'brown'];
-      } else if (partColor === 'purple') {
-        // Purple parts get 2 black and 2 red dots
-        dotColors = ['black', 'black', 'red', 'red'];
-      } else if (partColor === 'orange') {
-        // Orange parts get 2 red dots
-        dotColors = ['red', 'red'];
-      }
-
-      // Create and append the dots
-      dotColors.forEach((color) => {
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        dot.style.width = '10px';
-        dot.style.height = '10px';
-        dot.style.backgroundColor = color;
-        dot.style.borderRadius = '50%';
-        dotsContainer.appendChild(dot);
+      // Group parts by their rail number
+      const railGroups = {};
+      parts.forEach((part) => {
+        const railNumber = part.getAttribute('data-rail-number');
+        if (!railGroups[railNumber]) {
+          railGroups[railNumber] = [];
+        }
+        railGroups[railNumber].push(part);
       });
 
-      clonedPart.appendChild(dotsContainer);
+      let topOffset = 100; // Initialize the top offset for positioning rows
 
-      // Append the cloned part to the wiring panel
-      wiringPanel.appendChild(clonedPart);
+      // Iterate through each rail group and position the parts
+      Object.keys(railGroups).sort().forEach((railNumber) => {
+        const railParts = railGroups[railNumber];
+        let leftOffset = 100; // Initialize the left offset for positioning parts within a row (100px from the left)
 
-      // Update the left offset for the next part in the row
-      leftOffset += clonedPart.offsetWidth + 80; // Add 80px horizontal spacing
+        railParts.forEach((part) => {
+          const clonedPart = part.cloneNode(true); // Clone the part
+          clonedPart.style.position = 'absolute'; // Ensure the part is positioned absolutely
+
+          // Set the horizontal position with 80px spacing between parts
+          clonedPart.style.left = `${leftOffset}px`;
+
+          // Set the vertical position with 200px spacing between rows
+          clonedPart.style.top = `${topOffset}px`;
+
+          // Disable animations and make the part non-editable
+          clonedPart.style.animation = 'none';
+          clonedPart.classList.add('non-editable');
+
+          // Add dots for wire connection points at the bottom of the part
+          const dotsContainer = document.createElement('div');
+          dotsContainer.className = 'dots-container';
+          dotsContainer.style.position = 'absolute';
+          dotsContainer.style.bottom = '0';
+          dotsContainer.style.left = '50%';
+          dotsContainer.style.transform = 'translateX(-50%)';
+          dotsContainer.style.display = 'flex';
+          dotsContainer.style.gap = '10px';
+
+          // Determine the number and color of dots based on the part type or color
+          const partType = part.getAttribute('data-part'); // Use the data-part attribute to identify the part
+          const partColor = clonedPart.style.backgroundColor; // Get the background color of the part
+
+          let dotColors = [];
+
+          if (partColor === 'grey' || partColor === 'gray') {
+            // Grey parts get 4 brown dots
+            dotColors = ['brown', 'brown', 'brown', 'brown'];
+          } else if (partColor === 'purple') {
+            // Purple parts get 2 black and 2 red dots
+            dotColors = ['black', 'black', 'red', 'red'];
+          } else if (partColor === 'orange') {
+            // Orange parts get 2 red dots
+            dotColors = ['red', 'red'];
+          }
+
+          // Create and append the dots
+          dotColors.forEach((color) => {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.style.width = '10px';
+            dot.style.height = '10px';
+            dot.style.backgroundColor = color;
+            dot.style.borderRadius = '50%';
+            dotsContainer.appendChild(dot);
+          });
+
+          clonedPart.appendChild(dotsContainer);
+
+          // Append the cloned part to the wiring panel
+          wiringPanel.appendChild(clonedPart);
+
+          // Update the left offset for the next part in the row
+          leftOffset += clonedPart.offsetWidth + 80; // Add 80px horizontal spacing
+        });
+
+        // Update the top offset for the next row
+        const maxHeightInRow = Math.max(...railParts.map((part) => part.offsetHeight)); // Find the tallest part in the row
+        topOffset += maxHeightInRow + 200; // Add 200px vertical spacing between rows
+      });
+
+      // Add a class to the wiring panel to disable further editing
+      wiringPanel.classList.add('non-editable');
     });
 
-    // Update the top offset for the next row
-    const maxHeightInRow = Math.max(...railParts.map((part) => part.offsetHeight)); // Find the tallest part in the row
-    topOffset += maxHeightInRow + 200; // Add 200px vertical spacing between rows
-  });
-
-  // Add a class to the wiring panel to disable further editing
-  wiringPanel.classList.add('non-editable');
-});
-
-  panelSelect.addEventListener('change', initializePanel);
+    panelSelect.addEventListener('change', initializePanel);
     document.querySelectorAll('.sidebar button[data-part]').forEach((button) => {
       button.addEventListener('click', () => {
         addPart(button.getAttribute('data-part'));
@@ -1055,156 +1083,143 @@ document.getElementById('generate-panel').addEventListener('click', () => {
 
     document.getElementById('auto-wiring-button').addEventListener('click', autoWire);
 
-function autoWire() {
-  const parts = document.querySelectorAll('.part'); // Get all parts
-  const redDots = [];
-  const blackDots = [];
+    function autoWire() {
+      const parts = document.querySelectorAll('.part'); // Get all parts
+      const redDots = [];
+      const blackDots = [];
 
-  // Step 1: Identify all red and black dots, their positions, and their space names
-  parts.forEach((part) => {
-    const partRect = part.getBoundingClientRect();
-    const dots = part.querySelectorAll('.dot');
-    const spaceName = part.querySelector('.space-name')?.textContent || 'Unnamed'; // Get the space name
+      // Step 1: Identify all red and black dots, their positions, and their space names
+      parts.forEach((part) => {
+        const partRect = part.getBoundingClientRect();
+        const dots = part.querySelectorAll('.dot');
+        const spaceName = part.querySelector('.space-name')?.textContent || 'Unnamed'; // Get the space name
 
-    dots.forEach((dot) => {
-      const dotRect = dot.getBoundingClientRect();
-      const dotData = {
-        part,
-        dot,
-        x: dotRect.left + dotRect.width / 2 - partRect.left + part.offsetLeft,
-        y: dotRect.top + dotRect.height / 2 - partRect.top + part.offsetTop,
-        spaceName, // Add the space name to the dot
-      };
+        dots.forEach((dot) => {
+          const dotRect = dot.getBoundingClientRect();
+          const dotData = {
+            part,
+            dot,
+            x: dotRect.left + dotRect.width / 2 - partRect.left + part.offsetLeft,
+            y: dotRect.top + dotRect.height / 2 - partRect.top + part.offsetTop,
+            spaceName, // Add the space name to the dot
+          };
 
-      if (dot.style.backgroundColor === 'red') {
-        redDots.push(dotData); // Add to red dots
-      } else if (dot.style.backgroundColor === 'black') {
-        blackDots.push(dotData); // Add to black dots
-      }
-    });
-  });
+          if (dot.style.backgroundColor === 'red') {
+            redDots.push(dotData); // Add to red dots
+          } else if (dot.style.backgroundColor === 'black') {
+            blackDots.push(dotData); // Add to black dots
+          }
+        });
+      });
 
-  // Step 2: Wire red dots (with space name restrictions)
-  wireDots(redDots, 'red', true);
+      // Step 2: Wire red dots (with space name restrictions)
+      wireDots(redDots, 'red', true);
 
-  // Step 3: Wire black dots (without space name restrictions)
-  wireDots(blackDots, 'black', false);
-}
-
-function wireDots(dots, color, useSpaceNameRestriction) {
-  // Step 1: Group dots by their space name (if using space name restriction)
-  const spaceGroups = {};
-  dots.forEach((dot) => {
-    const groupKey = useSpaceNameRestriction ? dot.spaceName : 'all'; // Use space name or group all together
-    if (!spaceGroups[groupKey]) {
-      spaceGroups[groupKey] = [];
+      // Step 3: Wire black dots (without space name restrictions)
+      wireDots(blackDots, 'black', false);
     }
-    spaceGroups[groupKey].push(dot);
-  });
 
-  // Step 2: For each group, group dots by their Y-axis (rows)
-  Object.values(spaceGroups).forEach((groupDots) => {
-    const rows = {};
-    groupDots.forEach((dot) => {
-      if (!rows[dot.y]) {
-        rows[dot.y] = [];
-      }
-      rows[dot.y].push(dot);
-    });
-
-    // Step 3: Sort rows by Y-axis (top to bottom)
-    const sortedRows = Object.keys(rows).sort((a, b) => a - b);
-
-    // Step 4: Connect dots in each row
-    for (let i = 0; i < sortedRows.length; i++) {
-      const rowY = sortedRows[i];
-      const rowDots = rows[rowY].sort((a, b) => a.x - b.x); // Sort dots in the row from left to right
-
-      // Skip the first dot in the row
-      for (let j = 1; j < rowDots.length - 1; j += 2) {
-        const startDot = rowDots[j];
-        const endDot = rowDots[j + 1];
-
-        // Ensure black dots only connect to different space names
-        if (color === 'black' && startDot.spaceName === endDot.spaceName) {
-          continue; // Skip if space names are the same
+    function wireDots(dots, color, useSpaceNameRestriction) {
+      // Step 1: Group dots by their space name (if using space name restriction)
+      const spaceGroups = {};
+      dots.forEach((dot) => {
+        const groupKey = useSpaceNameRestriction ? dot.spaceName : 'all'; // Use space name or group all together
+        if (!spaceGroups[groupKey]) {
+          spaceGroups[groupKey] = [];
         }
+        spaceGroups[groupKey].push(dot);
+      });
 
-        // Draw wire from startDot to endDot
-        const verticalOffset = color === 'black' ? 25 : 20; // Black wires come down 5px more
-        drawWire([
-          { x: startDot.x, y: startDot.y }, // Start at the start dot
-          { x: startDot.x, y: startDot.y + verticalOffset }, // Go down (20px for red, 25px for black)
-          { x: endDot.x, y: startDot.y + verticalOffset }, // Go over to the end dot
-          { x: endDot.x, y: endDot.y }, // Go up to the end dot
-        ], color);
-      }
+      // Step 2: For each group, group dots by their Y-axis (rows)
+      Object.values(spaceGroups).forEach((groupDots) => {
+        const rows = {};
+        groupDots.forEach((dot) => {
+          if (!rows[dot.y]) {
+            rows[dot.y] = [];
+          }
+          rows[dot.y].push(dot);
+        });
 
-      // Handle the last dot in the row
-      if (rowDots.length > 1 && rowDots.length % 2 === 0) {
-        const lastDot = rowDots[rowDots.length - 1];
+        // Step 3: Sort rows by Y-axis (top to bottom)
+        const sortedRows = Object.keys(rows).sort((a, b) => a - b);
 
-        // Check if there is a row below
-        if (i < sortedRows.length - 1) {
-          const nextRowY = sortedRows[i + 1];
-          const nextRowDots = rows[nextRowY].sort((a, b) => a.x - b.x);
+        // Step 4: Connect dots in each row
+        for (let i = 0; i < sortedRows.length; i++) {
+          const rowY = sortedRows[i];
+          const rowDots = rows[rowY].sort((a, b) => a.x - b.x); // Sort dots in the row from left to right
 
-          if (nextRowDots.length > 0) {
-            const firstDotNextRow = nextRowDots[0]; // Leftmost dot on the next row
+          // Skip the first dot in the row
+          for (let j = 1; j < rowDots.length - 1; j += 2) {
+            const startDot = rowDots[j];
+            const endDot = rowDots[j + 1];
 
             // Ensure black dots only connect to different space names
-            if (color === 'black' && lastDot.spaceName === firstDotNextRow.spaceName) {
+            if (color === 'black' && startDot.spaceName === endDot.spaceName) {
               continue; // Skip if space names are the same
             }
 
-            // Draw wire from lastDot to firstDotNextRow with the specified path
+            // Draw wire from startDot to endDot
             const verticalOffset = color === 'black' ? 25 : 20; // Black wires come down 5px more
-            const horizontalOffset = 30; // Horizontal offset for direction changes
             drawWire([
-              { x: lastDot.x, y: lastDot.y }, // Start at the last dot
-              { x: lastDot.x, y: lastDot.y + verticalOffset + 20 }, // Go down (20px for red, 25px for black) + 20px more
-              { x: firstDotNextRow.x - horizontalOffset, y: lastDot.y + verticalOffset + 20 }, // Go over 30px past the leftmost dot below
-              { x: firstDotNextRow.x - horizontalOffset, y: firstDotNextRow.y + verticalOffset }, // Go down to the level of the next dot
-              { x: firstDotNextRow.x, y: firstDotNextRow.y + verticalOffset }, // Go over to the first dot on the next row
-              { x: firstDotNextRow.x, y: firstDotNextRow.y }, // Go up to the first dot on the next row
+              { x: startDot.x, y: startDot.y }, // Start at the start dot
+              { x: startDot.x, y: startDot.y + verticalOffset }, // Go down (20px for red, 25px for black)
+              { x: endDot.x, y: startDot.y + verticalOffset }, // Go over to the end dot
+              { x: endDot.x, y: endDot.y }, // Go up to the end dot
             ], color);
           }
+
+          // Handle the last dot in the row
+          if (rowDots.length > 1 && rowDots.length % 2 === 0) {
+            const lastDot = rowDots[rowDots.length - 1];
+
+            // Check if there is a row below
+            if (i < sortedRows.length - 1) {
+              const nextRowY = sortedRows[i + 1];
+              const nextRowDots = rows[nextRowY].sort((a, b) => a.x - b.x);
+
+              if (nextRowDots.length > 0) {
+                const firstDotNextRow = nextRowDots[0]; // Leftmost dot on the next row
+
+                // Ensure black dots only connect to different space names
+                if (color === 'black' && lastDot.spaceName === firstDotNextRow.spaceName) {
+                  continue; // Skip if space names are the same
+                }
+
+                // Draw wire from lastDot to firstDotNextRow with the specified path
+                const verticalOffset = color === 'black' ? 25 : 20; // Black wires come down 5px more
+                const horizontalOffset = 30; // Horizontal offset for direction changes
+                drawWire([
+                  { x: lastDot.x, y: lastDot.y }, // Start at the last dot
+                  { x: lastDot.x, y: lastDot.y + verticalOffset + 20 }, // Go down (20px for red, 25px for black) + 20px more
+                  { x: firstDotNextRow.x - horizontalOffset, y: lastDot.y + verticalOffset + 20 }, // Go over 30px past the leftmost dot below
+                  { x: firstDotNextRow.x - horizontalOffset, y: firstDotNextRow.y + verticalOffset }, // Go down to the level of the next dot
+                  { x: firstDotNextRow.x, y: firstDotNextRow.y + verticalOffset }, // Go over to the first dot on the next row
+                  { x: firstDotNextRow.x, y: firstDotNextRow.y }, // Go up to the first dot on the next row
+                ], color);
+              }
+            }
+          }
         }
-      }
+      });
     }
-  });
-}
-// Function to draw a wire
-function drawWire(path, color) {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const polyline = document.createElementNS(svgNS, "polyline");
 
-  // Format the points string
-  const points = path.map((p) => `${p.x},${p.y}`).join(' ');
-  polyline.setAttribute('points', points);
-  polyline.setAttribute('stroke', color);
-  polyline.setAttribute('fill', 'none');
-  polyline.setAttribute('stroke-width', '2');
+    // Function to draw a wire
+    function drawWire(path, color) {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const polyline = document.createElementNS(svgNS, "polyline");
 
-  // Append the polyline to the SVG container
-  const wiringSvg = document.getElementById('wiring-svg');
-  wiringSvg.appendChild(polyline);
-}
-function drawWire(path, color) {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const polyline = document.createElementNS(svgNS, "polyline");
+      // Format the points string
+      const points = path.map((p) => `${p.x},${p.y}`).join(' ');
+      polyline.setAttribute('points', points);
+      polyline.setAttribute('stroke', color);
+      polyline.setAttribute('fill', 'none');
+      polyline.setAttribute('stroke-width', '2');
 
-  // Format the points string
-  const points = path.map((p) => `${p.x},${p.y}`).join(' ');
-  polyline.setAttribute('points', points);
-  polyline.setAttribute('stroke', color);
-  polyline.setAttribute('fill', 'none');
-  polyline.setAttribute('stroke-width', '2');
+      // Append the polyline to the SVG container
+      const wiringSvg = document.getElementById('wiring-svg');
+      wiringSvg.appendChild(polyline);
+    }
 
-  // Append the polyline to the SVG container
-  const wiringSvg = document.getElementById('wiring-svg');
-  wiringSvg.appendChild(polyline);
-}
     // Wire Drawing Logic
     const wiringSvg = document.getElementById('wiring-svg');
     const wirePopup = document.getElementById('wire-popup');
@@ -1471,5 +1486,4 @@ function drawWire(path, color) {
     }
   </script>
 </body>
-</html></body>
 </html>

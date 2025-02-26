@@ -546,6 +546,23 @@
 
 function addPart(partType, position = null) {
   const partData = parts[partType];
+  
+  // Exempt ZUM-HUB4 and CEN-SWPOE-5AC from rail numbering and width limitations
+  if (partType === 'ZUM-HUB4' || partType === 'CEN-SWPOE-5AC') {
+    const part = createPartElement(partType, partData);
+    if (position) {
+      part.style.left = `${position.left}px`;
+      part.style.top = `${position.top}px`;
+    } else {
+      part.style.left = '50px'; // Default position
+      part.style.top = '50px';  // Default position
+    }
+    panel.appendChild(part);
+    makeDraggable(part); // Enable drag-and-drop for these parts
+    return;
+  }
+
+  // Existing logic for other parts
   if (currentRailIndex >= rails.length) {
     alert('No more rails available in this panel!');
     return;
@@ -561,58 +578,15 @@ function addPart(partType, position = null) {
     }
   }
 
-  const part = document.createElement('div');
-  part.className = 'part draggable';
-  part.style.width = `${partData.width}px`;
-  part.style.height = `${partData.height}px`;
-  part.textContent = partType;
-  part.style.backgroundColor = partData.color || '#4CAF50';
+  const part = createPartElement(partType, partData);
+  const rail = rails[currentRailIndex];
 
-  // Add color dots
-  const dotsContainer = document.createElement('div');
-  dotsContainer.className = 'dots';
-  partData.dots.forEach((dotColor) => {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    dot.style.backgroundColor = dotColor;
-    dotsContainer.appendChild(dot);
-  });
-  part.appendChild(dotsContainer);
-
-  // Add data indicator (red/green dot)
-  const dataIndicator = document.createElement('div');
-  dataIndicator.className = 'data-indicator';
-  part.appendChild(dataIndicator);
-
-  // Add double-click to edit
-  part.addEventListener('dblclick', () => showPartPopup(partType, part));
-
-  // Add right-click to delete with confirmation popup
-  part.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    const confirmDelete = confirm('Are you sure you want to delete this part?');
-    if (confirmDelete) {
-      part.remove();
-      partsData = partsData.filter((p) => p.partElement !== part);
-      updateSpaceTable();
-      updateLoadSchedule();
-    }
-  });
-
-  if (position) {
-    // Place the part at the specified position
-    part.style.left = `${position.left}px`;
-    part.style.top = `${position.top}px`;
-  } else {
-    const rail = rails[currentRailIndex];
-
-    // Position the part
-    part.style.left = `${currentXPosition}px`;
-    part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
-    rail.parts.push(part);
-    rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
-    currentXPosition += partData.width; // Move currentXPosition by the part's width
-  }
+  // Position the part
+  part.style.left = `${currentXPosition}px`;
+  part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
+  rail.parts.push(part);
+  rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
+  currentXPosition += partData.width; // Move currentXPosition by the part's width
 
   panel.appendChild(part);
 
@@ -687,6 +661,72 @@ function addPart(partType, position = null) {
   if (partType.startsWith('ZUMNET')) {
     spaceCounter++;
   }
+}
+
+function createPartElement(partType, partData) {
+  const part = document.createElement('div');
+  part.className = 'part draggable';
+  part.style.width = `${partData.width}px`;
+  part.style.height = `${partData.height}px`;
+  part.textContent = partType;
+  part.style.backgroundColor = partData.color || '#4CAF50';
+
+  // Add color dots
+  const dotsContainer = document.createElement('div');
+  dotsContainer.className = 'dots';
+  partData.dots.forEach((dotColor) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.style.backgroundColor = dotColor;
+    dotsContainer.appendChild(dot);
+  });
+  part.appendChild(dotsContainer);
+
+  // Add data indicator (red/green dot)
+  const dataIndicator = document.createElement('div');
+  dataIndicator.className = 'data-indicator';
+  part.appendChild(dataIndicator);
+
+  // Add double-click to edit
+  part.addEventListener('dblclick', () => showPartPopup(partType, part));
+
+  // Add right-click to delete with confirmation popup
+  part.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const confirmDelete = confirm('Are you sure you want to delete this part?');
+    if (confirmDelete) {
+      part.remove();
+      partsData = partsData.filter((p) => p.partElement !== part);
+      updateSpaceTable();
+      updateLoadSchedule();
+    }
+  });
+
+  return part;
+}
+
+function makeDraggable(element) {
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  element.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - element.getBoundingClientRect().left;
+    offsetY = e.clientY - element.getBoundingClientRect().top;
+    element.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      element.style.left = `${e.clientX - offsetX}px`;
+      element.style.top = `${e.clientY - offsetY}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    element.style.cursor = 'grab';
+  });
 }
     function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;

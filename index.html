@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enhanced Panel and Parts Configuration</title>
   <style>
-    /* Full CSS */
+    /* Full CSS (unchanged) */
     :root {
       --primary-color: #003366;
       --secondary-color: #0099CC;
@@ -18,7 +20,7 @@
       --shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.2);
       --glow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
-    /* Preloader Styles */
+    /* Preloader Styles (unchanged) */
     #preloader {
       position: fixed;
       top: 0;
@@ -46,9 +48,6 @@
       overflow: hidden;
       color: green;
       border-right: 2px solid black;
-      
-
-    
     }
 
     @keyframes blink-caret {
@@ -321,7 +320,126 @@
       box-shadow: var(--shadow-hover);
       transform: translateY(-2px);
     }
+/* Add this to your existing CSS */
+.wire-popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  width: 300px; /* Adjust width as needed */
+  margin-left: 20px; /* Add left margin */
+}
 
+.wire-popup h3 {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.form-row label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-row input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.form-row button {
+  padding: 10px;
+  background: var(--button-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  margin-top: 10px;
+}
+
+.form-row button:hover {
+  background: var(--button-hover-gradient);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+#close-project-info-popup {
+  background: #ff4444; /* Red color for Cancel button */
+}
+
+#close-project-info-popup:hover {
+  background: #cc0000; /* Darker red on hover */
+}
+/* Add this to your existing CSS */
+.wire-popup {
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  width: 300px; /* Adjust width as needed */
+  margin-left: 20px; /* Add left margin */
+}
+
+.wire-popup h3 {
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.form-row label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-row input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.form-row button {
+  padding: 10px;
+  background: var(--button-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  margin-top: 10px;
+}
+
+.form-row button:hover {
+  background: var(--button-hover-gradient);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+#close-part-popup {
+  background: #ff4444; /* Red color for Cancel button */
+}
+
+#close-part-popup:hover {
+  background: #cc0000; /* Darker red on hover */
+}
     .space-layout,
     .load-schedule {
       padding: 20px;
@@ -442,8 +560,43 @@
       <button id="space-tab-button">Space Layout</button>
       <button id="load-tab-button">Load Schedule</button>
       <button id="print-pdf-button">Print to PDF</button>
+      <button id="save-button">Save</button>
+      <button id="load-button">Load</button>
     </div>
-
+<!-- Project Information Popup -->
+<div id="project-info-popup" class="wire-popup" style="display: none;">
+  <h3>Project Information</h3>
+  <form id="project-info-form">
+    <div class="form-row">
+      <label for="project-name">Project Name:</label>
+      <input type="text" id="project-name" required>
+    </div>
+    <div class="form-row">
+      <label for="so-number">SO#:</label>
+      <input type="text" id="so-number">
+    </div>
+    <div class="form-row">
+      <label for="quote-number">Quote #:</label>
+      <input type="text" id="quote-number" required>
+    </div>
+    <div class="form-row">
+      <label for="panel-id">Panel ID:</label>
+      <input type="text" id="panel-id">
+    </div>
+    <div class="form-row">
+      <label for="creator">Creator:</label>
+      <input type="text" id="creator">
+    </div>
+    <div class="form-row">
+      <label for="revision">Revision:</label>
+      <input type="text" id="revision">
+    </div>
+    <div class="form-row">
+      <button type="submit">Save</button>
+      <button type="button" id="close-project-info-popup">Cancel</button>
+    </div>
+  </form>
+</div>
     <!-- Main Page Tab -->
     <div id="main-tab" class="tab active">
       <div class="sidebar">
@@ -533,22 +686,36 @@
   </div>
 
   <!-- Part Information Popup -->
-  <div id="part-popup" class="wire-popup" style="display: none;">
-    <h3>Part Information</h3>
-    <form id="part-form">
+ <!-- Part Information Popup -->
+<div id="part-popup" class="wire-popup" style="display: none;">
+  <h3>Part Information</h3>
+  <form id="part-form">
+    <div class="form-row">
       <label for="space-name">Space Name*:</label>
       <input type="text" id="space-name" required>
+    </div>
+    <div class="form-row">
       <label for="circuit-number">Circuit #:</label>
       <input type="text" id="circuit-number">
+    </div>
+    <div class="form-row">
       <label for="zone">Zone:</label>
       <input type="text" id="zone">
+    </div>
+    <div class="form-row">
       <label for="lighting-load">Lighting Load (watts):</label>
       <input type="number" id="lighting-load">
+    </div>
+    <div class="form-row">
       <label for="device-ma">Device mA:</label>
       <input type="number" id="device-ma">
+    </div>
+    <div class="form-row">
       <button type="submit">Save</button>
-    </form>
-  </div>
+      <button type="button" id="close-part-popup">Cancel</button>
+    </div>
+  </form>
+</div>
 
   <!-- Wire Selection Popup -->
   <div id="wire-popup" class="wire-popup" style="display: none;">
@@ -863,58 +1030,63 @@
         spaceName.style.fontSize = `${fontSize}px`;
       }
     }
+// Show the part information popup when a part is double-clicked
+function showPartPopup(partType, partElement) {
+  const partPopup = document.getElementById('part-popup');
+  const partForm = document.getElementById('part-form');
 
-    function showPartPopup(partType, partElement) {
-      const partPopup = document.getElementById('part-popup');
-      const partForm = document.getElementById('part-form');
+  // Find the part data
+  const partData = partsData.find((p) => p.partElement === partElement);
 
-      // Find the part data
-      const partData = partsData.find((p) => p.partElement === partElement);
+  // Populate the form with existing data
+  document.getElementById('space-name').value = partData.spaceName;
+  document.getElementById('circuit-number').value = partData.circuitNumber || '';
+  document.getElementById('zone').value = partData.zone || '';
+  document.getElementById('lighting-load').value = partData.lightingLoad || '';
+  document.getElementById('device-ma').value = partData.deviceMA || '';
 
-      // Populate the form with existing data
-      document.getElementById('space-name').value = partData.spaceName;
-      document.getElementById('circuit-number').value = partData.circuitNumber || '';
-      document.getElementById('zone').value = partData.zone || '';
-      document.getElementById('lighting-load').value = partData.lightingLoad || '';
-      document.getElementById('device-ma').value = partData.deviceMA || '';
+  // Show the popup
+  partPopup.style.display = 'block';
 
-      // Show the popup
-      partPopup.style.display = 'block';
+  // Handle form submission
+  partForm.onsubmit = (e) => {
+    e.preventDefault();
 
-      // Handle form submission
-      partForm.onsubmit = (e) => {
-        e.preventDefault();
+    // Update part data
+    partData.spaceName = document.getElementById('space-name').value;
+    partData.circuitNumber = document.getElementById('circuit-number').value;
+    partData.zone = document.getElementById('zone').value;
+    partData.lightingLoad = document.getElementById('lighting-load').value;
+    partData.deviceMA = document.getElementById('device-ma').value;
 
-        // Update part data
-        partData.spaceName = document.getElementById('space-name').value;
-        partData.circuitNumber = document.getElementById('circuit-number').value;
-        partData.zone = document.getElementById('zone').value;
-        partData.lightingLoad = document.getElementById('lighting-load').value;
-        partData.deviceMA = document.getElementById('device-ma').value;
+    // Update the part's space name
+    const spaceNameElement = partElement.querySelector('.space-name');
+    spaceNameElement.textContent = partData.spaceName;
+    adjustFontSize(spaceNameElement, partElement);
 
-        // Update the part's space name
-        const spaceNameElement = partElement.querySelector('.space-name');
-        spaceNameElement.textContent = partData.spaceName;
-        adjustFontSize(spaceNameElement, partElement);
-
-        // Update the data indicator (exclude deviceMA from the check)
-        const dataIndicator = partElement.querySelector('.data-indicator');
-        if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
-          dataIndicator.classList.add('green');
-          dataIndicator.classList.remove('red');
-        } else {
-          dataIndicator.classList.add('red');
-          dataIndicator.classList.remove('green');
-        }
-
-        // Hide the popup
-        partPopup.style.display = 'none';
-
-        // Update tables
-        updateSpaceTable();
-        updateLoadSchedule();
-      };
+    // Update the data indicator (exclude deviceMA from the check)
+    const dataIndicator = partElement.querySelector('.data-indicator');
+    if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
+      dataIndicator.classList.add('green');
+      dataIndicator.classList.remove('red');
+    } else {
+      dataIndicator.classList.add('red');
+      dataIndicator.classList.remove('green');
     }
+
+    // Hide the popup
+    partPopup.style.display = 'none';
+
+    // Update tables
+    updateSpaceTable();
+    updateLoadSchedule();
+  };
+}
+
+// Close the part information popup when Cancel is clicked
+document.getElementById('close-part-popup').addEventListener('click', () => {
+  document.getElementById('part-popup').style.display = 'none';
+});
 
     function updateSpaceTable() {
       const spaceTableBody = document.querySelector('#space-table tbody');
@@ -1558,6 +1730,135 @@
         wiringSvg.appendChild(lastWire);
       }
     }
+// Show the project information popup when Save is clicked
+document.getElementById('save-button').addEventListener('click', () => {
+  const projectInfoPopup = document.getElementById('project-info-popup');
+  projectInfoPopup.style.display = 'block';
+});
+
+// Handle form submission
+document.getElementById('project-info-form').onsubmit = (e) => {
+  e.preventDefault();
+
+  // Collect project information
+  const projectName = document.getElementById('project-name').value;
+  const soNumber = document.getElementById('so-number').value;
+  const quoteNumber = document.getElementById('quote-number').value;
+  const panelId = document.getElementById('panel-id').value;
+  const creator = document.getElementById('creator').value;
+  const revision = document.getElementById('revision').value;
+
+  // Validate required fields
+  if (!projectName || !quoteNumber) {
+    alert('Project Name and Quote # are required!');
+    return;
+  }
+
+  // Generate the file name
+  const fileName = `${quoteNumber}_${projectName}_${panelId}.json`;
+
+  // Prepare the data to save
+  const data = {
+    projectName,
+    soNumber,
+    quoteNumber,
+    panelId,
+    creator,
+    revision,
+    panelType: panelSelect.value,
+    parts: partsData.map(part => ({
+      partType: part.partType,
+      spaceName: part.spaceName,
+      circuitNumber: part.circuitNumber,
+      zone: part.zone,
+      lightingLoad: part.lightingLoad,
+      deviceMA: part.deviceMA,
+      railNumber: part.railNumber,
+      position: {
+        left: part.partElement.style.left,
+        top: part.partElement.style.top
+      }
+    })),
+    manualWires: Array.from(wiringSvg.querySelectorAll('line')).map(line => ({
+      x1: line.getAttribute('x1'),
+      y1: line.getAttribute('y1'),
+      x2: line.getAttribute('x2'),
+      y2: line.getAttribute('y2'),
+      stroke: line.getAttribute('stroke'),
+      strokeWidth: line.getAttribute('stroke-width'),
+      strokeDasharray: line.getAttribute('stroke-dasharray')
+    }))
+  };
+
+  // Save the file
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Hide the popup
+  document.getElementById('project-info-popup').style.display = 'none';
+};
+
+// Close the popup when Cancel is clicked
+document.getElementById('close-project-info-popup').addEventListener('click', () => {
+  document.getElementById('project-info-popup').style.display = 'none';
+});
+  // Load Functionality
+  document.getElementById('load-button').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = JSON.parse(event.target.result);
+        panelSelect.value = data.panelType;
+        initializePanel();
+        partsData = [];
+        data.parts.forEach(partData => {
+          addPart(partData.partType, partData.position);
+          const part = partsData[partsData.length - 1];
+          part.spaceName = partData.spaceName;
+          part.circuitNumber = partData.circuitNumber;
+          part.zone = partData.zone;
+          part.lightingLoad = partData.lightingLoad;
+          part.deviceMA = partData.deviceMA;
+          part.railNumber = partData.railNumber;
+        });
+
+        // Clear existing wires
+        wiringSvg.innerHTML = '';
+        wiringSvg.appendChild(defs);
+
+        // Load manual wires
+        if (data.manualWires) {
+          data.manualWires.forEach(wire => {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', wire.x1);
+            line.setAttribute('y1', wire.y1);
+            line.setAttribute('x2', wire.x2);
+            line.setAttribute('y2', wire.y2);
+            line.setAttribute('stroke', wire.stroke);
+            line.setAttribute('stroke-width', wire.strokeWidth);
+            if (wire.strokeDasharray) {
+              line.setAttribute('stroke-dasharray', wire.strokeDasharray);
+            }
+            wiringSvg.appendChild(line);
+          });
+        }
+
+        updateSpaceTable();
+        updateLoadSchedule();
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  });
   </script>
 </body>
 </html>

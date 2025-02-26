@@ -736,16 +736,16 @@
           clearInterval(interval);
           if (callback) callback();
         }
-      }, 300);
+      }, 100);
     }
 
     function runPreloader() {
-      typeText("Hello, World", 1000, () => {
+      typeText("Hello, World", 100, () => {
         setTimeout(() => {
-          typeText("......", 2000, () => {
+          typeText("......", 00, () => {
             setTimeout(() => {
               preloader.classList.add('hidden'); // Fade out the preloader
-            }, 2000); // Wait 1 second before fading out
+            }, 500); // Wait 1 second before fading out
           });
         }, 1000); // Wait 0.5 seconds before typing "......"
       });

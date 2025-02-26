@@ -709,6 +709,7 @@ function makeDraggable(element) {
   let isDragging = false;
   let offsetX, offsetY;
 
+  // Mouse event handlers
   element.addEventListener('mousedown', (e) => {
     isDragging = true;
     offsetX = e.clientX - element.getBoundingClientRect().left;
@@ -727,8 +728,30 @@ function makeDraggable(element) {
     isDragging = false;
     element.style.cursor = 'grab';
   });
-}
-    function adjustFontSize(spaceName, part) {
+
+  // Touch event handlers
+  element.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Prevent default touch behavior
+    isDragging = true;
+    const touch = e.touches[0]; // Get the first touch point
+    offsetX = touch.clientX - element.getBoundingClientRect().left;
+    offsetY = touch.clientY - element.getBoundingClientRect().top;
+    element.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging) {
+      const touch = e.touches[0]; // Get the first touch point
+      element.style.left = `${touch.clientX - offsetX}px`;
+      element.style.top = `${touch.clientY - offsetY}px`;
+    }
+  });
+
+  document.addEventListener('touchend', () => {
+    isDragging = false;
+    element.style.cursor = 'grab';
+  });
+}   function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;
       const spaceNameWidth = spaceName.offsetWidth;
       let fontSize = 10;
@@ -1448,4 +1471,5 @@ function drawWire(path, color) {
     }
   </script>
 </body>
+</html></body>
 </html>

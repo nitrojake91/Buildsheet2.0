@@ -667,6 +667,10 @@ function addPart(partType, position = null) {
   spaceNameElement.textContent = spaceName;
   part.appendChild(spaceNameElement);
 
+  // Add rail number to the part
+  const railNumber = currentRailIndex + 1; // Rail numbers start from 1
+  part.setAttribute('data-rail-number', railNumber);
+
   // Add part data to partsData array
   partsData.push({
     partElement: part,
@@ -676,16 +680,14 @@ function addPart(partType, position = null) {
     zone: null,
     lightingLoad: null,
     deviceMA: null,
+    railNumber: railNumber, // Add rail number
   });
-
-
 
   // Increment space counter if the part is a ZUMNET device
   if (partType.startsWith('ZUMNET')) {
     spaceCounter++;
   }
 }
-
     function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;
       const spaceNameWidth = spaceName.offsetWidth;
@@ -838,33 +840,31 @@ document.getElementById('generate-panel').addEventListener('click', () => {
   // Get all parts from the main panel
   const parts = document.querySelectorAll('#panel .part');
 
-  // Group parts by their vertical position (rows)
-  const rows = {};
+  // Group parts by their rail number
+  const railGroups = {};
   parts.forEach((part) => {
-    const top = part.style.top; // Get the top position of the part
-    if (!rows[top]) {
-      rows[top] = []; // Initialize a new row if it doesn't exist
+    const railNumber = part.getAttribute('data-rail-number');
+    if (!railGroups[railNumber]) {
+      railGroups[railNumber] = [];
     }
-    rows[top].push(part); // Add the part to its respective row
+    railGroups[railNumber].push(part);
   });
 
   let topOffset = 100; // Initialize the top offset for positioning rows
 
-  // Iterate through each row and position the parts
-  Object.values(rows).forEach((rowParts) => {
-    let leftOffset = 100; // Initialize the left offset for positioning parts within a row
+  // Iterate through each rail group and position the parts
+  Object.keys(railGroups).sort().forEach((railNumber) => {
+    const railParts = railGroups[railNumber];
+    let leftOffset = 100; // Initialize the left offset for positioning parts within a row (100px from the left)
 
-    // Sort parts in the row by their horizontal position (left)
-    rowParts.sort((a, b) => parseInt(a.style.left) - parseInt(b.style.left));
-
-    rowParts.forEach((part) => {
+    railParts.forEach((part) => {
       const clonedPart = part.cloneNode(true); // Clone the part
       clonedPart.style.position = 'absolute'; // Ensure the part is positioned absolutely
 
-      // Set the horizontal position with 50px spacing between parts
+      // Set the horizontal position with 80px spacing between parts
       clonedPart.style.left = `${leftOffset}px`;
 
-      // Set the vertical position with 100px spacing between rows
+      // Set the vertical position with 200px spacing between rows
       clonedPart.style.top = `${topOffset}px`;
 
       // Disable animations and make the part non-editable
@@ -915,18 +915,19 @@ document.getElementById('generate-panel').addEventListener('click', () => {
       wiringPanel.appendChild(clonedPart);
 
       // Update the left offset for the next part in the row
-      leftOffset += clonedPart.offsetWidth + 50; // Add 50px horizontal spacing
+      leftOffset += clonedPart.offsetWidth + 80; // Add 80px horizontal spacing
     });
 
     // Update the top offset for the next row
-    const maxHeightInRow = Math.max(...rowParts.map((part) => part.offsetHeight)); // Find the tallest part in the row
-    topOffset += maxHeightInRow + 200; // Add 100px vertical spacing between rows
+    const maxHeightInRow = Math.max(...railParts.map((part) => part.offsetHeight)); // Find the tallest part in the row
+    topOffset += maxHeightInRow + 200; // Add 200px vertical spacing between rows
   });
 
   // Add a class to the wiring panel to disable further editing
   wiringPanel.classList.add('non-editable');
 });
-    panelSelect.addEventListener('change', initializePanel);
+
+  panelSelect.addEventListener('change', initializePanel);
     document.querySelectorAll('.sidebar button[data-part]').forEach((button) => {
       button.addEventListener('click', () => {
         addPart(button.getAttribute('data-part'));
@@ -1027,7 +1028,6 @@ function autoWire() {
   wireDots(blackDots, 'black', false);
 }
 
-// Helper function to wire dots (red or black)
 function wireDots(dots, color, useSpaceNameRestriction) {
   // Step 1: Group dots by their space name (if using space name restriction)
   const spaceGroups = {};
@@ -1062,6 +1062,11 @@ function wireDots(dots, color, useSpaceNameRestriction) {
         const startDot = rowDots[j];
         const endDot = rowDots[j + 1];
 
+        // Ensure black dots only connect to different space names
+        if (color === 'black' && startDot.spaceName === endDot.spaceName) {
+          continue; // Skip if space names are the same
+        }
+
         // Draw wire from startDot to endDot
         const verticalOffset = color === 'black' ? 25 : 20; // Black wires come down 5px more
         drawWire([
@@ -1084,6 +1089,11 @@ function wireDots(dots, color, useSpaceNameRestriction) {
           if (nextRowDots.length > 0) {
             const firstDotNextRow = nextRowDots[0]; // Leftmost dot on the next row
 
+            // Ensure black dots only connect to different space names
+            if (color === 'black' && lastDot.spaceName === firstDotNextRow.spaceName) {
+              continue; // Skip if space names are the same
+            }
+
             // Draw wire from lastDot to firstDotNextRow with the specified path
             const verticalOffset = color === 'black' ? 25 : 20; // Black wires come down 5px more
             const horizontalOffset = 30; // Horizontal offset for direction changes
@@ -1101,7 +1111,6 @@ function wireDots(dots, color, useSpaceNameRestriction) {
     }
   });
 }
-
 // Function to draw a wire
 function drawWire(path, color) {
   const svgNS = "http://www.w3.org/2000/svg";

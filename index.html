@@ -674,32 +674,48 @@
       <button class="help-button">?</button>
     </div>
 
-    <!-- Load Schedule Tab -->
-     <div id="load-tab" class="tab">
-      <div class="load-schedule">
-        <h2>Load Schedule</h2>
-     <table id="load-table">
-  <thead>
-    <tr>
-      <th>Space Name</th>
-      <th>Circuit #</th>
-      <th>Zone</th>
-      <th>Load Controller</th>
-      <th>Voltage VAC</th>
-      <th>Lighting Load</th>
-      <th>Circuit Max (Watts)</th>
-      <th>Total Lighting Load</th>
-    </tr>
-  </thead>
-  <tbody>
-            <!-- Rows will be dynamically added here -->
-          </tbody>
-        </table>
-      </div>
-      <button class="help-button">?</button>
-    </div>
+<div id="load-tab" class="tab">
+  <div class="load-schedule">
+    <h2>Load Schedule</h2>
+    <h3>120V Circuits</h3>
+    <table id="load-table-120v">
+      <thead>
+        <tr>
+          <th>Space Name</th>
+          <th>Circuit #</th>
+          <th>Zone</th>
+          <th>Load Controller</th>
+          <th>Voltage</th>
+             <th>Lighting Load</th>
+          <th>Circuit Max (Watts)</th>
+          <th>Total Lighting Load</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be dynamically added here -->
+      </tbody>
+    </table>
+    <h3>277V Circuits</h3>
+    <table id="load-table-277v">
+      <thead>
+        <tr>
+          <th>Space Name</th>
+          <th>Circuit #</th>
+          <th>Zone</th>
+          <th>Load Controller</th>        
+          <th>Voltage</th>
+            <th>Lighting Load</th>
+          <th>Circuit Max (Watts)</th>
+          <th>Total Lighting Load</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be dynamically added here -->
+      </tbody>
+    </table>
   </div>
-
+  <button class="help-button">?</button>
+</div>
 <!-- Part Information Popup -->
 <!-- Part Information Popup -->
 <div id="part-popup" class="wire-popup" style="display: none;">
@@ -709,6 +725,14 @@
       <label for="space-name">Space Name*:</label>
       <input type="text" id="space-name" required>
     </div>
+    
+    <div class="form-row">
+  <label for="voltage">Voltage VAC:</label>
+  <select id="voltage" required>
+    <option value="120">120</option>
+    <option value="277">277</option>
+  </select>
+</div>
     <div class="form-row">
       <label for="circuit-number">Circuit #:</label>
       <input type="text" id="circuit-number">
@@ -1178,24 +1202,12 @@ function makeDraggable(element) {
       }
     }
 
-  function showPartPopup(partType, partElement) {
-  console.log('Double-click detected. Opening popup...'); // Debugging
-
+function showPartPopup(partType, partElement) {
   const partPopup = document.getElementById('part-popup');
   const partForm = document.getElementById('part-form');
 
-  if (!partPopup || !partForm) {
-    console.error('Popup or form not found in the DOM.'); // Debugging
-    return;
-  }
-
   // Find the part data
   const partData = partsData.find((p) => p.partElement === partElement);
-
-  if (!partData) {
-    console.error('Part data not found.'); // Debugging
-    return;
-  }
 
   // Populate the form with existing data
   document.getElementById('space-name').value = partData.spaceName;
@@ -1203,10 +1215,10 @@ function makeDraggable(element) {
   document.getElementById('zone').value = partData.zone || '';
   document.getElementById('lighting-load').value = partData.lightingLoad || '';
   document.getElementById('device-ma').value = partData.deviceMA || '';
+  document.getElementById('voltage').value = partData.voltage || '120'; // Default to 120V
 
   // Show the popup
   partPopup.style.display = 'block';
-  console.log('Popup displayed.'); // Debugging
 
   // Handle form submission
   partForm.onsubmit = (e) => {
@@ -1218,6 +1230,7 @@ function makeDraggable(element) {
     partData.zone = document.getElementById('zone').value;
     partData.lightingLoad = document.getElementById('lighting-load').value;
     partData.deviceMA = document.getElementById('device-ma').value;
+    partData.voltage = document.getElementById('voltage').value; // Update voltage
 
     // Update the part's space name
     const spaceNameElement = partElement.querySelector('.space-name');
@@ -1240,14 +1253,12 @@ function makeDraggable(element) {
 
     // Hide the popup
     partPopup.style.display = 'none';
-    console.log('Popup hidden.'); // Debugging
 
     // Update tables
     updateSpaceTable();
     updateLoadSchedule();
   };
-}
-    // Close the part information popup when Cancel is clicked
+}    // Close the part information popup when Cancel is clicked
     document.getElementById('close-part-popup').addEventListener('click', () => {
       document.getElementById('part-popup').style.display = 'none';
     });
@@ -1311,21 +1322,26 @@ function makeDraggable(element) {
   });
 }
 
-  function updateLoadSchedule() {
-  const loadTableBody = document.querySelector('#load-table tbody');
-  loadTableBody.innerHTML = '';
+function updateLoadSchedule() {
+  const loadTable120VBody = document.querySelector('#load-table-120v tbody');
+  const loadTable277VBody = document.querySelector('#load-table-277v tbody');
+  loadTable120VBody.innerHTML = '';
+  loadTable277VBody.innerHTML = '';
 
-  const circuitMap = {}; // Group parts by circuit number
+  const circuitMap120V = {}; // Group 120V parts by circuit number
+  const circuitMap277V = {}; // Group 277V parts by circuit number
 
-  // Group parts by circuit number
+  // Group parts by circuit number and voltage
   partsData.forEach((part) => {
     if (!part.circuitNumber) return;
+
+    const circuitMap = part.voltage === '277' ? circuitMap277V : circuitMap120V;
 
     if (!circuitMap[part.circuitNumber]) {
       circuitMap[part.circuitNumber] = {
         parts: [],
         totalLightingLoad: 0,
-        voltage: 120, // Default voltage
+        voltage: part.voltage,
       };
     }
 
@@ -1333,82 +1349,79 @@ function makeDraggable(element) {
     circuitMap[part.circuitNumber].totalLightingLoad += Number(part.lightingLoad) || 0;
   });
 
-  // Populate the table
-  Object.keys(circuitMap).forEach((circuitNumber) => {
-    const circuitData = circuitMap[circuitNumber];
-    const circuitMaxWatts = circuitData.voltage * 16; // Calculate Circuit Max (Watts)
-    const rowCount = circuitData.parts.length; // Number of rows for this circuit
+  // Function to populate the table for a specific voltage
+  const populateTable = (circuitMap, tableBody) => {
+    Object.keys(circuitMap).forEach((circuitNumber) => {
+      const circuitData = circuitMap[circuitNumber];
+      const circuitMaxWatts = circuitData.voltage * 16; // Calculate Circuit Max (Watts)
+      const rowCount = circuitData.parts.length; // Number of rows for this circuit
 
-    // Create rows for each part in the circuit
-    circuitData.parts.forEach((part, index) => {
-      const row = document.createElement('tr');
+      // Create rows for each part in the circuit
+      circuitData.parts.forEach((part, index) => {
+        const row = document.createElement('tr');
 
-      // Space Name
-      const spaceNameCell = document.createElement('td');
-      spaceNameCell.textContent = part.spaceName;
-      row.appendChild(spaceNameCell);
+        // Space Name
+        const spaceNameCell = document.createElement('td');
+        spaceNameCell.textContent = part.spaceName;
+        row.appendChild(spaceNameCell);
 
-      // Circuit #
-      const circuitCell = document.createElement('td');
-      circuitCell.textContent = part.circuitNumber;
-      row.appendChild(circuitCell);
+        // Circuit #
+        const circuitCell = document.createElement('td');
+        circuitCell.textContent = part.circuitNumber;
+        row.appendChild(circuitCell);
 
-      // Zone
-      const zoneCell = document.createElement('td');
-      zoneCell.textContent = part.zone;
-      row.appendChild(zoneCell);
+        // Zone
+        const zoneCell = document.createElement('td');
+        zoneCell.textContent = part.zone;
+        row.appendChild(zoneCell);
 
-      // Load Controller
-      const loadControllerCell = document.createElement('td');
-      loadControllerCell.textContent = part.partType;
-      row.appendChild(loadControllerCell);
+        // Load Controller
+        const loadControllerCell = document.createElement('td');
+        loadControllerCell.textContent = part.partType;
+        row.appendChild(loadControllerCell);
 
-      // Voltage VAC (Dropdown)
       const voltageCell = document.createElement('td');
-      const voltageSelect = document.createElement('select');
-      voltageSelect.innerHTML = `
-        <option value="120" ${circuitData.voltage === 120 ? 'selected' : ''}>120</option>
-        <option value="277" ${circuitData.voltage === 277 ? 'selected' : ''}>277</option>
-      `;
-      voltageSelect.addEventListener('change', (e) => {
-        circuitData.voltage = Number(e.target.value);
-        updateLoadSchedule(); // Recalculate and update the table
-      });
-      voltageCell.appendChild(voltageSelect);
-      row.appendChild(voltageCell);
+        voltageCell.textContent = part.voltage;
+        row.appendChild(voltageCell);
+        
 
-      // Lighting Load
-      const lightingLoadCell = document.createElement('td');
-      lightingLoadCell.textContent = `${part.lightingLoad} W`;
-      row.appendChild(lightingLoadCell);
+        // Lighting Load
+        const lightingLoadCell = document.createElement('td');
+        lightingLoadCell.textContent = `${part.lightingLoad} W`;
+        row.appendChild(lightingLoadCell);
 
-      // Circuit Max (Watts) - Merged Cell
-      if (index === 0) {
-        const circuitMaxCell = document.createElement('td');
-        circuitMaxCell.textContent = `${circuitMaxWatts} W`;
-        circuitMaxCell.setAttribute('rowspan', rowCount); // Merge rows
-        row.appendChild(circuitMaxCell);
-      }
-
-      // Total Lighting Load - Merged Cell
-      if (index === 0) {
-        const totalLightingLoadCell = document.createElement('td');
-        totalLightingLoadCell.textContent = `${circuitData.totalLightingLoad} W`;
-        totalLightingLoadCell.setAttribute('rowspan', rowCount); // Merge rows
-
-        // Highlight if total exceeds circuit max
-        if (circuitData.totalLightingLoad > circuitMaxWatts) {
-          totalLightingLoadCell.style.fontWeight = 'bold';
-          totalLightingLoadCell.style.color = 'red';
+        // Circuit Max (Watts) - Merged Cell
+        if (index === 0) {
+          const circuitMaxCell = document.createElement('td');
+          circuitMaxCell.textContent = `${circuitMaxWatts} W`;
+          circuitMaxCell.setAttribute('rowspan', rowCount); // Merge rows
+          row.appendChild(circuitMaxCell);
         }
 
-        row.appendChild(totalLightingLoadCell);
-      }
+        // Total Lighting Load - Merged Cell
+        if (index === 0) {
+          const totalLightingLoadCell = document.createElement('td');
+          totalLightingLoadCell.textContent = `${circuitData.totalLightingLoad} W`;
+          totalLightingLoadCell.setAttribute('rowspan', rowCount); // Merge rows
 
-      // Add the row to the table
-      loadTableBody.appendChild(row);
+          // Highlight if total exceeds circuit max
+          if (circuitData.totalLightingLoad > circuitMaxWatts) {
+            totalLightingLoadCell.style.fontWeight = 'bold';
+            totalLightingLoadCell.style.color = 'red';
+          }
+
+          row.appendChild(totalLightingLoadCell);
+        }
+
+        // Add the row to the table
+        tableBody.appendChild(row);
+      });
     });
-  });
+  };
+
+  // Populate the table for 120V and 277V parts
+  populateTable(circuitMap120V, loadTable120VBody);
+  populateTable(circuitMap277V, loadTable277VBody);
 }
 // Add event listeners to all "?" buttons
 document.querySelectorAll('.help-button').forEach((button) => {

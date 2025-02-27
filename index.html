@@ -2084,6 +2084,7 @@ if (pageInfoTabButton && faqTabButton && pageInfoTab && faqTab) {
           partType: part.partType,
           spaceName: part.spaceName,
           circuitNumber: part.circuitNumber,
+voltage: part.voltage,
           zone: part.zone,
           lightingLoad: part.lightingLoad,
           deviceMA: part.deviceMA,
@@ -2139,6 +2140,7 @@ if (pageInfoTabButton && faqTabButton && pageInfoTab && faqTab) {
             addPart(partData.partType, partData.position);
             const part = partsData[partsData.length - 1];
             part.spaceName = partData.spaceName;
+part.voltage = partData.voltage;
             part.circuitNumber = partData.circuitNumber;
             part.zone = partData.zone;
             part.lightingLoad = partData.lightingLoad;

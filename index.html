@@ -1020,17 +1020,21 @@ function addPart(partType, position = null) {
 function makeDraggable(element) {
     let isDragging = false;
     let offsetX, offsetY;
+    let dragTimeout;
 
     // Mouse event handlers
     element.addEventListener('mousedown', (e) => {
-        isDragging = true;
+        // Start a timeout to initiate dragging after 1 second
+        dragTimeout = setTimeout(() => {
+            isDragging = true;
 
-        // Calculate the offset relative to the mouse cursor
-        const rect = element.getBoundingClientRect();
-        offsetX = e.clientX - rect.left; // Offset X relative to the part's left edge
-        offsetY = e.clientY - rect.top;  // Offset Y relative to the part's top edge
+            // Calculate the offset relative to the mouse cursor
+            const rect = element.getBoundingClientRect();
+            offsetX = e.clientX - rect.left; // Offset X relative to the part's left edge
+            offsetY = e.clientY - rect.top;  // Offset Y relative to the part's top edge
 
-        element.style.cursor = 'grabbing';
+            element.style.cursor = 'grabbing';
+        }, 1000); // 1 second delay
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -1068,6 +1072,7 @@ function makeDraggable(element) {
     });
 
     document.addEventListener('mouseup', () => {
+        clearTimeout(dragTimeout); // Clear the timeout if the mouse is released before 1 second
         isDragging = false;
         element.style.cursor = 'grab';
 
@@ -1084,15 +1089,17 @@ function makeDraggable(element) {
     // Touch event handlers
     element.addEventListener('touchstart', (e) => {
         e.preventDefault(); // Prevent default touch behavior
-        isDragging = true;
-        const touch = e.touches[0]; // Get the first touch point
+        dragTimeout = setTimeout(() => {
+            isDragging = true;
+            const touch = e.touches[0]; // Get the first touch point
 
-        // Calculate the offset relative to the touch point
-        const rect = element.getBoundingClientRect();
-        offsetX = touch.clientX - rect.left; // Offset X relative to the part's left edge
-        offsetY = touch.clientY - rect.top;  // Offset Y relative to the part's top edge
+            // Calculate the offset relative to the touch point
+            const rect = element.getBoundingClientRect();
+            offsetX = touch.clientX - rect.left; // Offset X relative to the part's left edge
+            offsetY = touch.clientY - rect.top;  // Offset Y relative to the part's top edge
 
-        element.style.cursor = 'grabbing';
+            element.style.cursor = 'grabbing';
+        }, 1000); // 1 second delay
     });
 
     document.addEventListener('touchmove', (e) => {
@@ -1132,6 +1139,7 @@ function makeDraggable(element) {
     });
 
     document.addEventListener('touchend', () => {
+        clearTimeout(dragTimeout); // Clear the timeout if the touch ends before 1 second
         isDragging = false;
         element.style.cursor = 'grab';
 
@@ -1145,7 +1153,6 @@ function makeDraggable(element) {
         }
     });
 }
-
     function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;
       const spaceNameWidth = spaceName.offsetWidth;
@@ -1214,57 +1221,64 @@ function makeDraggable(element) {
       document.getElementById('part-popup').style.display = 'none';
     });
 
-    function updateSpaceTable() {
-      const spaceTableBody = document.querySelector('#space-table tbody');
-      spaceTableBody.innerHTML = '';
+  function updateSpaceTable() {
+  const spaceTableBody = document.querySelector('#space-table tbody');
+  spaceTableBody.innerHTML = '';
 
-      const spaceMap = {};
+  const spaceMap = {};
 
-      partsData.forEach((part) => {
-        if (part.partType === 'ZUMLINK-DIN-PSU') return; // Exclude ZUMLINK-DIN-PSU
+  partsData.forEach((part) => {
+    if (part.partType === 'ZUMLINK-DIN-PSU') return; // Exclude ZUMLINK-DIN-PSU
 
-        if (!spaceMap[part.spaceName]) {
-          spaceMap[part.spaceName] = {
-            parts: [],
-            mA: 0,
-            deviceMA: 0,
-          };
-        }
-
-        // Add part and zone to the list
-        spaceMap[part.spaceName].parts.push({ partType: part.partType, zone: part.zone });
-
-        // Sum mA
-        spaceMap[part.spaceName].mA += parts[part.partType].mA || 0;
-        spaceMap[part.spaceName].deviceMA += part.deviceMA || 0;
-      });
-
-      Object.keys(spaceMap).forEach((spaceName) => {
-        const row = document.createElement('tr');
-
-        // Create nested table for Load Controller column
-        const nestedTable = document.createElement('table');
-        nestedTable.className = 'nested-table';
-        spaceMap[spaceName].parts.forEach((part) => {
-          const nestedRow = document.createElement('tr');
-          nestedRow.innerHTML = `
-            <td>${part.partType}</td>
-            <td>${part.zone}</td>
-          `;
-          nestedTable.appendChild(nestedRow);
-        });
-
-        row.innerHTML = `
-          <td><input type="text" value="${spaceName}" onchange="updateSpaceName('${spaceName}', this.value)"></td>
-          <td></td>
-          <td>${spaceMap[spaceName].mA} mA</td>
-          <td>${spaceMap[spaceName].deviceMA} mA</td>
-          <td>${spaceMap[spaceName].mA + spaceMap[spaceName].deviceMA} mA</td>
-        `;
-        row.querySelector('td:nth-child(2)').appendChild(nestedTable);
-        spaceTableBody.appendChild(row);
-      });
+    if (!spaceMap[part.spaceName]) {
+      spaceMap[part.spaceName] = {
+        parts: [],
+        mA: 0,
+        deviceMA: 0,
+      };
     }
+
+    // Add part and zone to the list
+    spaceMap[part.spaceName].parts.push({ partType: part.partType, zone: part.zone });
+
+    // Sum mA Draw (only for parts starting with "ZUM")
+    if (part.partType.startsWith("ZUM")) {
+      spaceMap[part.spaceName].mA += Number(parts[part.partType].mA) || 0;
+    }
+
+    // Sum Device mA
+    spaceMap[part.spaceName].deviceMA += Number(part.deviceMA) || 0;
+  });
+
+  Object.keys(spaceMap).forEach((spaceName) => {
+    const row = document.createElement('tr');
+
+    // Create nested table for Load Controller column
+    const nestedTable = document.createElement('table');
+    nestedTable.className = 'nested-table';
+    spaceMap[spaceName].parts.forEach((part) => {
+      const nestedRow = document.createElement('tr');
+      nestedRow.innerHTML = `
+        <td>${part.partType}</td>
+        <td>${part.zone}</td>
+      `;
+      nestedTable.appendChild(nestedRow);
+    });
+
+    // Calculate Total Power Draw
+    const totalPowerDraw = Number(spaceMap[spaceName].mA) + Number(spaceMap[spaceName].deviceMA);
+
+    row.innerHTML = `
+      <td><input type="text" value="${spaceName}" onchange="updateSpaceName('${spaceName}', this.value)"></td>
+      <td></td>
+      <td>${spaceMap[spaceName].mA} mA</td>
+      <td>${spaceMap[spaceName].deviceMA} mA</td>
+      <td>${totalPowerDraw} mA</td>
+    `;
+    row.querySelector('td:nth-child(2)').appendChild(nestedTable);
+    spaceTableBody.appendChild(row);
+  });
+}
 
     function updateLoadSchedule() {
       const loadTableBody = document.querySelector('#load-table tbody');

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -674,21 +675,23 @@
     </div>
 
     <!-- Load Schedule Tab -->
-    <div id="load-tab" class="tab">
+     <div id="load-tab" class="tab">
       <div class="load-schedule">
         <h2>Load Schedule</h2>
-        <table id="load-table">
-          <thead>
-            <tr>
-              <th>Space Name</th>
-              <th>Circuit #</th>
-              <th>Zone</th>
-              <th>Load Controller</th>
-              <th>Lighting Load</th>
-              <th>Circuit Load Total</th>
-            </tr>
-          </thead>
-          <tbody>
+     <table id="load-table">
+  <thead>
+    <tr>
+      <th>Space Name</th>
+      <th>Circuit #</th>
+      <th>Zone</th>
+      <th>Load Controller</th>
+      <th>Voltage VAC</th>
+      <th>Lighting Load</th>
+      <th>Circuit Max (Watts)</th>
+      <th>Total Lighting Load</th>
+    </tr>
+  </thead>
+  <tbody>
             <!-- Rows will be dynamically added here -->
           </tbody>
         </table>
@@ -697,6 +700,7 @@
     </div>
   </div>
 
+<!-- Part Information Popup -->
 <!-- Part Information Popup -->
 <div id="part-popup" class="wire-popup" style="display: none;">
   <h3>Part Information</h3>
@@ -971,51 +975,47 @@ function addPart(partType, position = null) {
 
     // Add part data to partsData array
     partsData.push({
-        partElement: part,
-        partType: partType,
-        spaceName: spaceName,
-        circuitNumber: null,
-        zone: null,
-        lightingLoad: null,
-        deviceMA: null,
-        railNumber: railNumber, // Add rail number
-    });
+    partElement: part,
+    partType: partType,
+    spaceName: spaceName,
+    circuitNumber: null,
+    zone: null,
+    lightingLoad: null,
+    deviceMA: null,
+    railNumber: railNumber,
+    voltage: 120, // Default voltage
+  });
 
-    // Increment space counter if the part is a ZUMNET device
-    if (partType.startsWith('ZUMNET')) {
-        spaceCounter++;
-    }
+  // Increment space counter if the part is a ZUMNET device
+  if (partType.startsWith('ZUMNET')) {
+    spaceCounter++;
+  }
 }
-    function createPartElement(partType, partData) {
-      const part = document.createElement('div');
-      part.className = 'part draggable';
-      part.style.width = `${partData.width}px`;
-      part.style.height = `${partData.height}px`;
-      part.textContent = partType;
-      part.style.backgroundColor = partData.color || '#4CAF50';
+function createPartElement(partType, partData) {
+  const part = document.createElement('div');
+  part.className = 'part draggable';
+  part.style.width = `${partData.width}px`;
+  part.style.height = `${partData.height}px`;
+  part.textContent = partType;
+  part.style.backgroundColor = partData.color || '#4CAF50';
 
-      // Add data indicator (red/green dot)
-      const dataIndicator = document.createElement('div');
-      dataIndicator.className = 'data-indicator';
-      part.appendChild(dataIndicator);
+  // Add double-click to edit
+  part.addEventListener('dblclick', () => showPartPopup(partType, part));
 
-      // Add double-click to edit
-      part.addEventListener('dblclick', () => showPartPopup(partType, part));
-
-      // Add right-click to delete with confirmation popup
-      part.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        const confirmDelete = confirm('Are you sure you want to delete this part?');
-        if (confirmDelete) {
-          part.remove();
-          partsData = partsData.filter((p) => p.partElement !== part);
-          updateSpaceTable();
-          updateLoadSchedule();
-        }
-      });
-
-      return part;
+  // Add right-click to delete with confirmation popup
+  part.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const confirmDelete = confirm('Are you sure you want to delete this part?');
+    if (confirmDelete) {
+      part.remove();
+      partsData = partsData.filter((p) => p.partElement !== part);
+      updateSpaceTable();
+      updateLoadSchedule();
     }
+  });
+
+  return part;
+}
 
 function makeDraggable(element) {
     let isDragging = false;
@@ -1164,58 +1164,75 @@ function makeDraggable(element) {
       }
     }
 
-    function showPartPopup(partType, partElement) {
-      const partPopup = document.getElementById('part-popup');
-      const partForm = document.getElementById('part-form');
+  function showPartPopup(partType, partElement) {
+  console.log('Double-click detected. Opening popup...'); // Debugging
 
-      // Find the part data
-      const partData = partsData.find((p) => p.partElement === partElement);
+  const partPopup = document.getElementById('part-popup');
+  const partForm = document.getElementById('part-form');
 
-      // Populate the form with existing data
-      document.getElementById('space-name').value = partData.spaceName;
-      document.getElementById('circuit-number').value = partData.circuitNumber || '';
-      document.getElementById('zone').value = partData.zone || '';
-      document.getElementById('lighting-load').value = partData.lightingLoad || '';
-      document.getElementById('device-ma').value = partData.deviceMA || '';
+  if (!partPopup || !partForm) {
+    console.error('Popup or form not found in the DOM.'); // Debugging
+    return;
+  }
 
-      // Show the popup
-      partPopup.style.display = 'block';
+  // Find the part data
+  const partData = partsData.find((p) => p.partElement === partElement);
 
-      // Handle form submission
-      partForm.onsubmit = (e) => {
-        e.preventDefault();
+  if (!partData) {
+    console.error('Part data not found.'); // Debugging
+    return;
+  }
 
-        // Update part data
-        partData.spaceName = document.getElementById('space-name').value;
-        partData.circuitNumber = document.getElementById('circuit-number').value;
-        partData.zone = document.getElementById('zone').value;
-        partData.lightingLoad = document.getElementById('lighting-load').value;
-        partData.deviceMA = document.getElementById('device-ma').value;
+  // Populate the form with existing data
+  document.getElementById('space-name').value = partData.spaceName;
+  document.getElementById('circuit-number').value = partData.circuitNumber || '';
+  document.getElementById('zone').value = partData.zone || '';
+  document.getElementById('lighting-load').value = partData.lightingLoad || '';
+  document.getElementById('device-ma').value = partData.deviceMA || '';
 
-        // Update the part's space name
-        const spaceNameElement = partElement.querySelector('.space-name');
-        spaceNameElement.textContent = partData.spaceName;
-        adjustFontSize(spaceNameElement, partElement);
+  // Show the popup
+  partPopup.style.display = 'block';
+  console.log('Popup displayed.'); // Debugging
 
-        // Update the data indicator (exclude deviceMA from the check)
-        const dataIndicator = partElement.querySelector('.data-indicator');
-        if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
-          dataIndicator.classList.add('green');
-          dataIndicator.classList.remove('red');
-        } else {
-          dataIndicator.classList.add('red');
-          dataIndicator.classList.remove('green');
-        }
+  // Handle form submission
+  partForm.onsubmit = (e) => {
+    e.preventDefault();
 
-        // Hide the popup
-        partPopup.style.display = 'none';
+    // Update part data
+    partData.spaceName = document.getElementById('space-name').value;
+    partData.circuitNumber = document.getElementById('circuit-number').value;
+    partData.zone = document.getElementById('zone').value;
+    partData.lightingLoad = document.getElementById('lighting-load').value;
+    partData.deviceMA = document.getElementById('device-ma').value;
 
-        // Update tables
-        updateSpaceTable();
-        updateLoadSchedule();
-      };
+    // Update the part's space name
+    const spaceNameElement = partElement.querySelector('.space-name');
+    if (spaceNameElement) {
+      spaceNameElement.textContent = partData.spaceName;
+      adjustFontSize(spaceNameElement, partElement);
     }
 
+    // Update the data indicator (exclude deviceMA from the check)
+    const dataIndicator = partElement.querySelector('.data-indicator');
+    if (dataIndicator) {
+      if (partData.circuitNumber && partData.zone && partData.lightingLoad) {
+        dataIndicator.classList.add('green');
+        dataIndicator.classList.remove('red');
+      } else {
+        dataIndicator.classList.add('red');
+        dataIndicator.classList.remove('green');
+      }
+    }
+
+    // Hide the popup
+    partPopup.style.display = 'none';
+    console.log('Popup hidden.'); // Debugging
+
+    // Update tables
+    updateSpaceTable();
+    updateLoadSchedule();
+  };
+}
     // Close the part information popup when Cancel is clicked
     document.getElementById('close-part-popup').addEventListener('click', () => {
       document.getElementById('part-popup').style.display = 'none';
@@ -1280,25 +1297,96 @@ function makeDraggable(element) {
   });
 }
 
-    function updateLoadSchedule() {
-      const loadTableBody = document.querySelector('#load-table tbody');
-      loadTableBody.innerHTML = '';
+  function updateLoadSchedule() {
+  const loadTableBody = document.querySelector('#load-table tbody');
+  loadTableBody.innerHTML = '';
 
-      partsData.forEach((part) => {
-        if (!part.circuitNumber) return;
+  const circuitMap = {}; // Group parts by circuit number
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${part.spaceName}</td>
-          <td>${part.circuitNumber}</td>
-          <td>${part.zone}</td>
-          <td>${part.partType}</td>
-          <td>${part.lightingLoad} W</td>
-          <td>${part.lightingLoad} W</td>
-        `;
-        loadTableBody.appendChild(row);
-      });
+  // Group parts by circuit number
+  partsData.forEach((part) => {
+    if (!part.circuitNumber) return;
+
+    if (!circuitMap[part.circuitNumber]) {
+      circuitMap[part.circuitNumber] = {
+        parts: [],
+        totalLightingLoad: 0,
+        voltage: 120, // Default voltage
+      };
     }
+
+    circuitMap[part.circuitNumber].parts.push(part);
+    circuitMap[part.circuitNumber].totalLightingLoad += Number(part.lightingLoad) || 0;
+  });
+
+  // Populate the table
+  Object.keys(circuitMap).forEach((circuitNumber) => {
+    const circuitData = circuitMap[circuitNumber];
+    const circuitMaxWatts = circuitData.voltage * 16; // Calculate Circuit Max (Watts)
+
+    circuitData.parts.forEach((part, index) => {
+      const row = document.createElement('tr');
+
+      // Space Name
+      const spaceNameCell = document.createElement('td');
+      spaceNameCell.textContent = part.spaceName;
+      row.appendChild(spaceNameCell);
+
+      // Circuit #
+      const circuitCell = document.createElement('td');
+      circuitCell.textContent = part.circuitNumber;
+      row.appendChild(circuitCell);
+
+      // Zone
+      const zoneCell = document.createElement('td');
+      zoneCell.textContent = part.zone;
+      row.appendChild(zoneCell);
+
+      // Load Controller
+      const loadControllerCell = document.createElement('td');
+      loadControllerCell.textContent = part.partType;
+      row.appendChild(loadControllerCell);
+
+      // Voltage VAC (Dropdown)
+      const voltageCell = document.createElement('td');
+      const voltageSelect = document.createElement('select');
+      voltageSelect.innerHTML = `
+        <option value="120" ${circuitData.voltage === 120 ? 'selected' : ''}>120</option>
+        <option value="277" ${circuitData.voltage === 277 ? 'selected' : ''}>277</option>
+      `;
+      voltageSelect.addEventListener('change', (e) => {
+        circuitData.voltage = Number(e.target.value);
+        updateLoadSchedule(); // Recalculate and update the table
+      });
+      voltageCell.appendChild(voltageSelect);
+      row.appendChild(voltageCell);
+
+      // Lighting Load
+      const lightingLoadCell = document.createElement('td');
+      lightingLoadCell.textContent = `${part.lightingLoad} W`;
+      row.appendChild(lightingLoadCell);
+
+      // Circuit Max (Watts)
+      const circuitMaxCell = document.createElement('td');
+      circuitMaxCell.textContent = `${circuitMaxWatts} W`;
+      row.appendChild(circuitMaxCell);
+
+      // Total Lighting Load
+      const totalLightingLoadCell = document.createElement('td');
+      totalLightingLoadCell.textContent = `${circuitData.totalLightingLoad} W`;
+      row.appendChild(totalLightingLoadCell);
+
+      // Highlight the Total Lighting Load if it exceeds Circuit Max
+      if (circuitData.totalLightingLoad > circuitMaxWatts) {
+        totalLightingLoadCell.style.fontWeight = 'bold';
+        totalLightingLoadCell.style.color = 'red';
+      }
+
+      // Add the row to the table
+      loadTableBody.appendChild(row);
+    });
+  });
+}
 // Add event listeners to all "?" buttons
 document.querySelectorAll('.help-button').forEach((button) => {
   button.addEventListener('click', () => {

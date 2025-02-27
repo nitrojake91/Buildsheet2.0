@@ -1021,6 +1021,7 @@ function makeDraggable(element) {
     let isDragging = false;
     let offsetX, offsetY;
     let dragTimeout;
+    let lastTap = 0; // Variable to track the time of the last tap
 
     // Mouse event handlers
     element.addEventListener('mousedown', (e) => {
@@ -1086,7 +1087,20 @@ function makeDraggable(element) {
         }
     });
 
-    // Touch event handlers
+    // Touch event handlers for double-tap
+    element.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+
+        if (tapLength < 300 && tapLength > 0) {
+            // Double-tap detected
+            showPartPopup(element.getAttribute('data-part'), element);
+        }
+
+        lastTap = currentTime;
+    });
+
+    // Touch event handlers for dragging
     element.addEventListener('touchstart', (e) => {
         e.preventDefault(); // Prevent default touch behavior
         dragTimeout = setTimeout(() => {
@@ -1153,7 +1167,7 @@ function makeDraggable(element) {
         }
     });
 }
-    function adjustFontSize(spaceName, part) {
+      function adjustFontSize(spaceName, part) {
       const partWidth = part.offsetWidth;
       const spaceNameWidth = spaceName.offsetWidth;
       let fontSize = 10;
@@ -1323,7 +1337,9 @@ function makeDraggable(element) {
   Object.keys(circuitMap).forEach((circuitNumber) => {
     const circuitData = circuitMap[circuitNumber];
     const circuitMaxWatts = circuitData.voltage * 16; // Calculate Circuit Max (Watts)
+    const rowCount = circuitData.parts.length; // Number of rows for this circuit
 
+    // Create rows for each part in the circuit
     circuitData.parts.forEach((part, index) => {
       const row = document.createElement('tr');
 
@@ -1366,20 +1382,27 @@ function makeDraggable(element) {
       lightingLoadCell.textContent = `${part.lightingLoad} W`;
       row.appendChild(lightingLoadCell);
 
-      // Circuit Max (Watts)
-      const circuitMaxCell = document.createElement('td');
-      circuitMaxCell.textContent = `${circuitMaxWatts} W`;
-      row.appendChild(circuitMaxCell);
+      // Circuit Max (Watts) - Merged Cell
+      if (index === 0) {
+        const circuitMaxCell = document.createElement('td');
+        circuitMaxCell.textContent = `${circuitMaxWatts} W`;
+        circuitMaxCell.setAttribute('rowspan', rowCount); // Merge rows
+        row.appendChild(circuitMaxCell);
+      }
 
-      // Total Lighting Load
-      const totalLightingLoadCell = document.createElement('td');
-      totalLightingLoadCell.textContent = `${circuitData.totalLightingLoad} W`;
-      row.appendChild(totalLightingLoadCell);
+      // Total Lighting Load - Merged Cell
+      if (index === 0) {
+        const totalLightingLoadCell = document.createElement('td');
+        totalLightingLoadCell.textContent = `${circuitData.totalLightingLoad} W`;
+        totalLightingLoadCell.setAttribute('rowspan', rowCount); // Merge rows
 
-      // Highlight the Total Lighting Load if it exceeds Circuit Max
-      if (circuitData.totalLightingLoad > circuitMaxWatts) {
-        totalLightingLoadCell.style.fontWeight = 'bold';
-        totalLightingLoadCell.style.color = 'red';
+        // Highlight if total exceeds circuit max
+        if (circuitData.totalLightingLoad > circuitMaxWatts) {
+          totalLightingLoadCell.style.fontWeight = 'bold';
+          totalLightingLoadCell.style.color = 'red';
+        }
+
+        row.appendChild(totalLightingLoadCell);
       }
 
       // Add the row to the table

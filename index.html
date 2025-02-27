@@ -1025,16 +1025,17 @@ function makeDraggable(element) {
     element.addEventListener('mousedown', (e) => {
         isDragging = true;
 
-        // Calculate the offset relative to the part's position
+        // Calculate the offset relative to the mouse cursor
         const rect = element.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+        offsetX = e.clientX - rect.left; // Offset X relative to the part's left edge
+        offsetY = e.clientY - rect.top;  // Offset Y relative to the part's top edge
 
         element.style.cursor = 'grabbing';
     });
 
     document.addEventListener('mousemove', (e) => {
         if (isDragging) {
+            // Calculate the new position of the part
             let newX = e.clientX - offsetX;
             let newY = e.clientY - offsetY;
 
@@ -1069,6 +1070,15 @@ function makeDraggable(element) {
     document.addEventListener('mouseup', () => {
         isDragging = false;
         element.style.cursor = 'grab';
+
+        // Update the part's position in the partsData array
+        const partData = partsData.find(p => p.partElement === element);
+        if (partData) {
+            partData.position = {
+                left: element.style.left,
+                top: element.style.top
+            };
+        }
     });
 
     // Touch event handlers
@@ -1077,10 +1087,10 @@ function makeDraggable(element) {
         isDragging = true;
         const touch = e.touches[0]; // Get the first touch point
 
-        // Calculate the offset relative to the part's position
+        // Calculate the offset relative to the touch point
         const rect = element.getBoundingClientRect();
-        offsetX = touch.clientX - rect.left;
-        offsetY = touch.clientY - rect.top;
+        offsetX = touch.clientX - rect.left; // Offset X relative to the part's left edge
+        offsetY = touch.clientY - rect.top;  // Offset Y relative to the part's top edge
 
         element.style.cursor = 'grabbing';
     });
@@ -1088,6 +1098,8 @@ function makeDraggable(element) {
     document.addEventListener('touchmove', (e) => {
         if (isDragging) {
             const touch = e.touches[0]; // Get the first touch point
+
+            // Calculate the new position of the part
             let newX = touch.clientX - offsetX;
             let newY = touch.clientY - offsetY;
 
@@ -1122,6 +1134,15 @@ function makeDraggable(element) {
     document.addEventListener('touchend', () => {
         isDragging = false;
         element.style.cursor = 'grab';
+
+        // Update the part's position in the partsData array
+        const partData = partsData.find(p => p.partElement === element);
+        if (partData) {
+            partData.position = {
+                left: element.style.left,
+                top: element.style.top
+            };
+        }
     });
 }
 
@@ -1355,89 +1376,65 @@ if (pageInfoTabButton && faqTabButton && pageInfoTab && faqTab) {
   // Get all parts from the main panel
   const parts = document.querySelectorAll('#panel .part');
 
-  // Group parts by their rail number
-  const railGroups = {};
+  // Iterate through each part and clone it with its current position
   parts.forEach((part) => {
-    const railNumber = part.getAttribute('data-rail-number');
-    if (!railGroups[railNumber]) {
-      railGroups[railNumber] = [];
+    const clonedPart = part.cloneNode(true); // Clone the part
+    clonedPart.style.position = 'absolute'; // Ensure the part is positioned absolutely
+
+    // Use the current position of the part in the main panel
+    const currentLeft = parseFloat(part.style.left); // Get the current left position
+    const currentTop = parseFloat(part.style.top); // Get the current top position
+
+    // Set the position of the cloned part based on the current position
+    clonedPart.style.left = `${currentLeft}px`;
+    clonedPart.style.top = `${currentTop}px`;
+
+    // Disable animations and make the part non-editable
+    clonedPart.style.animation = 'none';
+    clonedPart.classList.add('non-editable');
+
+    // Add dots for wire connection points at the bottom of the part
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'dots-container';
+    dotsContainer.style.position = 'absolute';
+    dotsContainer.style.bottom = '0';
+    dotsContainer.style.left = '50%';
+    dotsContainer.style.transform = 'translateX(-50%)';
+    dotsContainer.style.display = 'flex';
+    dotsContainer.style.gap = '10px';
+
+    // Determine the number and color of dots based on the part type or color
+    const partType = part.getAttribute('data-part'); // Use the data-part attribute to identify the part
+    const partColor = clonedPart.style.backgroundColor; // Get the background color of the part
+
+    let dotColors = [];
+
+    if (partColor === 'grey' || partColor === 'gray') {
+      // Grey parts get 4 brown dots
+      dotColors = ['brown', 'brown', 'brown', 'brown'];
+    } else if (partColor === 'purple') {
+      // Purple parts get 2 purple and 2 orange dots
+      dotColors = ['purple', 'purple', 'orange', 'orange'];
+    } else if (partColor === 'orange') {
+      // Orange parts get 2 orange dots
+      dotColors = ['orange', 'orange'];
     }
-    railGroups[railNumber].push(part);
-  });
 
-  let topOffset = 100; // Initialize the top offset for positioning rows
-
-  // Iterate through each rail group and position the parts
-  Object.keys(railGroups).sort().forEach((railNumber) => {
-    const railParts = railGroups[railNumber];
-    let leftOffset = 100; // Initialize the left offset for positioning parts within a row (100px from the left)
-
-    railParts.forEach((part) => {
-      const clonedPart = part.cloneNode(true); // Clone the part
-      clonedPart.style.position = 'absolute'; // Ensure the part is positioned absolutely
-
-      // Use the current position of the part in the main panel
-      const currentLeft = parseFloat(part.style.left); // Get the current left position
-      const currentTop = parseFloat(part.style.top); // Get the current top position
-
-      // Set the position of the cloned part based on the current position
-      clonedPart.style.left = `${leftOffset}px`;
-      clonedPart.style.top = `${topOffset}px`;
-
-      // Disable animations and make the part non-editable
-      clonedPart.style.animation = 'none';
-      clonedPart.classList.add('non-editable');
-
-      // Add dots for wire connection points at the bottom of the part
-      const dotsContainer = document.createElement('div');
-      dotsContainer.className = 'dots-container';
-      dotsContainer.style.position = 'absolute';
-      dotsContainer.style.bottom = '0';
-      dotsContainer.style.left = '50%';
-      dotsContainer.style.transform = 'translateX(-50%)';
-      dotsContainer.style.display = 'flex';
-      dotsContainer.style.gap = '10px';
-
-      // Determine the number and color of dots based on the part type or color
-      const partType = part.getAttribute('data-part'); // Use the data-part attribute to identify the part
-      const partColor = clonedPart.style.backgroundColor; // Get the background color of the part
-
-      let dotColors = [];
-
-      if (partColor === 'grey' || partColor === 'gray') {
-        // Grey parts get 4 brown dots
-        dotColors = ['brown', 'brown', 'brown', 'brown'];
-      } else if (partColor === 'purple') {
-        // Purple parts get 2 purple and 2 orange dots
-        dotColors = ['purple', 'purple', 'orange', 'orange'];
-      } else if (partColor === 'orange') {
-        // Orange parts get 2 orange dots
-        dotColors = ['orange', 'orange'];
-      }
-
-      // Create and append the dots
-      dotColors.forEach((color) => {
-        const dot = document.createElement('div');
-        dot.className = 'dot';
-        dot.style.width = '10px';
-        dot.style.height = '10px';
-        dot.style.backgroundColor = color;
-        dot.style.borderRadius = '50%';
-        dotsContainer.appendChild(dot);
-      });
-
-      clonedPart.appendChild(dotsContainer);
-
-      // Append the cloned part to the wiring panel
-      wiringPanel.appendChild(clonedPart);
-
-      // Update the left offset for the next part in the row
-      leftOffset += clonedPart.offsetWidth + 40; // Add 40px horizontal spacing
+    // Create and append the dots
+    dotColors.forEach((color) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.width = '10px';
+      dot.style.height = '10px';
+      dot.style.backgroundColor = color;
+      dot.style.borderRadius = '50%';
+      dotsContainer.appendChild(dot);
     });
 
-    // Update the top offset for the next row
-    const maxHeightInRow = Math.max(...railParts.map((part) => part.offsetHeight)); // Find the tallest part in the row
-    topOffset += maxHeightInRow + 200; // Add 200px vertical spacing between rows
+    clonedPart.appendChild(dotsContainer);
+
+    // Append the cloned part to the wiring panel
+    wiringPanel.appendChild(clonedPart);
   });
 
   // Add a class to the wiring panel to disable further editing

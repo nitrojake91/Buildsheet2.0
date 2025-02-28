@@ -195,7 +195,7 @@
       transition: all 0.3s ease;
       cursor: grab;
       border: 2px solid rgba(255, 255, 255, 0.5);
-     
+      
     }
 
     @keyframes float {
@@ -276,6 +276,7 @@
       width: 100%;
       height: 100%;
       pointer-events: all;
+      z-index: 1000;
     }
 
     /* Wiring Container */
@@ -291,6 +292,7 @@
     .wiring-svg path {
       stroke-width: 18; /* Increased wire thickness */
       fill: none;
+      z-index: 1000;
     }
 
     .wire-popup {

@@ -850,7 +850,7 @@
    'Terminal Block': { 
     width: 71, 
     height: 50, 
-    color: 'linear-gradient(to right, black 33%, white 33%, white 66%, green 66%)', 
+    color: 'grey', 
     mA: 0, 
     dots: [] 
   },
@@ -1035,12 +1035,7 @@ function createPartElement(partType, partData) {
   part.textContent = partType;
   part.style.backgroundColor = partData.color || '#4CAF50';
 
-  // Handle gradient colors
-  if (partData.color.includes('linear-gradient')) {
-    part.style.backgroundImage = partData.color; // Use backgroundImage for gradients
-  } else {
-    part.style.backgroundColor = partData.color; // Use backgroundColor for solid colors
-  }
+
   // Add double-click to edit
   part.addEventListener('dblclick', () => showPartPopup(partType, part));
 

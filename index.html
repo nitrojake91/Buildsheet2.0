@@ -574,6 +574,107 @@
     #close-help-popup:hover {
       background: #cc0000;
     }
+	/* Pick List Container */
+/* Pick List Container */
+.pick-list-container {
+  width: 400px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  position: absolute; /* Position absolutely */
+  top: 100px; /* Align with the top rail */
+  left: 800px; /* Position to the right of the panel container */
+}
+
+.pick-list-container h3 {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+#pick-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#pick-list-table th,
+#pick-list-table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+#pick-list-table th {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+#pick-list-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+/* CRESTRON Container */
+.crestron-container {
+  width: 800px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  boarder: 6px;
+  boarder-color: black;
+  box-shadow: var(--shadow);
+  position: absolute; /* Position absolutely */
+  top: 900px; /* Position below the Pick List */
+  left: 800px; /* Align with the Pick List */
+}
+
+/* CRESTRON Header */
+.crestron-header {
+  text-align: center;
+  margin-bottom: 20px;
+
+  
+}
+
+.crestron-title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.crestron-subtitle {
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+/* Electrical Ratings Table */
+.electrical-ratings-table,
+.additional-ratings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+/* Additional Ratings Table */
+.additional-ratings-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.additional-ratings-table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.additional-ratings-table td[colspan] {
+  font-size: 12px;
+  font-style: italic;
+}
+
+.additional-ratings-table input {
+  width: 50px; /* Adjust input width */
+  text-align: center;
+}
   </style>
 </head>
 <body>
@@ -642,7 +743,110 @@
       </div>
       <button class="help-button">?</button>
     </div>
+<!-- Pick List Chart -->
+<div class="pick-list-container">
+  <h3>Pick List</h3>
+  <table id="pick-list-table">
+    <thead>
+      <tr>
+        <th>Part Type</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be dynamically added here -->
+    </tbody>
+  </table>
+</div>
+<!-- CRESTRON Electronics Inc Section -->
+<div class="crestron-container">
+  <div class="crestron-header">
+    <span class="crestron-title">CRESTRON</span>
+    <span class="crestron-subtitle">ELECTRONICS INC</span>
+  </div>
 
+  <!-- Electrical Ratings Table -->
+  <table class="electrical-ratings-table">
+    <thead>
+      <tr>
+        <th colspan="4">ELECTRICAL RATINGS:</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Voltage, Phase, Frequency, FLA (Total) AMP -->
+      <tr>
+        <td>VOLTAGE VAC</td>
+        <td>PHASE</td>
+        <td>FREQ. Hz</td>
+        <td>FLA (TOTAL) AMP</td>
+      </tr>
+      <tr>
+        <td><input type="text" value="100-277" class="editable"></td>
+        <td><input type="text" value="1" class="editable"></td>
+        <td><input type="text" value="50/60" class="editable"></td>
+        <td>
+          <input type="text" value="0" class="editable">
+          <span>CKT @</span>
+          <input type="text" value="16A" class="editable">
+        </td>
+      </tr>
+      <!-- Repeat the above row 3 more times -->
+      <tr>
+        <td><input type="text" value="100-277" class="editable"></td>
+        <td><input type="text" value="1" class="editable"></td>
+        <td><input type="text" value="50/60" class="editable"></td>
+        <td>
+          <input type="text" value="0" class="editable">
+          <span>CKT @</span>
+          <input type="text" value="16A" class="editable">
+        </td>
+      </tr>
+      <tr>
+        <td><input type="text" value="100-277" class="editable"></td>
+        <td><input type="text" value="1" class="editable"></td>
+        <td><input type="text" value="50/60" class="editable"></td>
+        <td>
+          <input type="text" value="0" class="editable">
+          <span>CKT @</span>
+          <input type="text" value="16A" class="editable">
+        </td>
+      </tr>
+      <tr>
+        <td><input type="text" value="100-277" class="editable"></td>
+        <td><input type="text" value="1" class="editable"></td>
+        <td><input type="text" value="50/60" class="editable"></td>
+        <td>
+          <input type="text" value="0" class="editable">
+          <span>CKT @</span>
+          <input type="text" value="16A" class="editable">
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Additional Rows -->
+<table class="additional-ratings-table">
+  <tr>
+    <td><input type="text" value="N/A" class="editable"></td>
+    <td>HP</td>
+    <td colspan="1">LARGEST MOTOR</td>
+    <td></td> <!-- Extra column for alignment -->
+  </tr>
+  <tr>
+    <td colspan="4">SHORT CIRCUIT CURRENT</td> <!-- Merge all columns -->
+  </tr>
+  <tr>
+    <td><input type="text" value="N/A" class="editable"></td>
+    <td>Ka RMS</td>
+    <td><input type="text" value="277" class="editable"></td>
+    <td>V MAXIMUM</td>
+  </tr>
+  <tr>
+    <td colspan="4">
+      BRANCH CIRCUIT PROTECTION SHALL BE PROVIDED BY INSTALLER SEE MODULE MANUAL FOR TERMINAL TIGHTENING TORQUE VALUES.
+    </td>
+  </tr>
+</table>
     <!-- Panel Wiring Tab -->
     <div id="wiring-tab" class="tab">
       <div class="sidebar">
@@ -907,112 +1111,157 @@
       currentRailIndex = 0;
       currentXPosition = 25; // Start from the left edge
     }
+// Track part quantities
+const partQuantities = {};
 
-    // Function to add part with draggable functionality
+// Function to update the Pick List
+function updatePickList() {
+  const pickListTableBody = document.querySelector('#pick-list-table tbody');
+  pickListTableBody.innerHTML = ''; // Clear existing rows
+
+  // Add the panel size as a part with quantity 1
+  const panelSize = panelSelect.value;
+  partQuantities[panelSize] = 1;
+
+  // Add rows for each part type and its quantity
+  Object.entries(partQuantities).forEach(([partType, quantity]) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${partType}</td>
+      <td>${quantity}</td>
+    `;
+    pickListTableBody.appendChild(row);
+  });
+}
+
 function addPart(partType, position = null) {
-    const partData = parts[partType];
+  const partData = parts[partType];
 
-    // Exempt ZUM-HUB4 and CEN-SWPOE-5AC from rail numbering and width limitations
-    if (partType === 'ZUM-HUB4' || partType === 'CEN-SWPOE-5AC') {
-        const part = createPartElement(partType, partData);
-        if (position) {
-            part.style.left = `${position.left}px`;
-            part.style.top = `${position.top}px`;
-        } else {
-            part.style.left = '50px'; // Default position
-            part.style.top = '50px';  // Default position
-        }
-        panel.appendChild(part);
-        makeDraggable(part); // Enable drag-and-drop for these parts
-        return;
-    }
+  // Exclude 1MU and Terminal Block from the Pick List
+  const excludedParts = ['1MU', 'Terminal Block'];
+  const isExcluded = excludedParts.includes(partType);
 
-    // Existing logic for other parts
-    if (currentRailIndex >= rails.length) {
-        alert('No more rails available in this panel!');
-        return;
-    }
-
-    // Check if the part will exceed the rail width
-    if (rails[currentRailIndex].widthUsed + partData.width > 324) {
-        currentRailIndex++; // Move to the next rail
-        currentXPosition = 25; // Reset X position
-        if (currentRailIndex >= rails.length) {
-            alert('No more rails available in this panel!');
-            return;
-        }
-    }
-
+  // Exempt ZUM-HUB4 and CEN-SWPOE-5AC from rail numbering and width limitations
+  if (partType === 'ZUM-HUB4' || partType === 'CEN-SWPOE-5AC') {
     const part = createPartElement(partType, partData);
-    const rail = rails[currentRailIndex];
-
-    // Position the part
-    part.style.left = `${currentXPosition}px`;
-    part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
-    rail.parts.push(part);
-    rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
-    currentXPosition += partData.width; // Move currentXPosition by the part's width
-
+    if (position) {
+      part.style.left = `${position.left}px`;
+      part.style.top = `${position.top}px`;
+    } else {
+      part.style.left = '50px'; // Default position
+      part.style.top = '50px';  // Default position
+    }
     panel.appendChild(part);
     makeDraggable(part); // Enable drag-and-drop for these parts
 
-    // Determine the default space name
-    let spaceName = `Space ${spaceCounter}`;
-
-    // Logic for ZUMNET parts
-    if (partType.startsWith('ZUMNET')) {
-        // Find the last ZUMNET part added
-        const lastZUMNET = partsData
-            .filter((p) => p.partType.startsWith('ZUMNET'))
-            .pop();
-
-        if (lastZUMNET) {
-            // Extract the space number from the last ZUMNET's space name
-            const lastSpaceNumber = parseInt(lastZUMNET.spaceName.split(' ')[1]);
-            spaceName = `Space ${lastSpaceNumber + 1}`;
-        } else {
-            // If no ZUMNET parts have been added yet, default to Space 1
-            spaceName = `Space 1`;
-        }
+    // Update part quantities for the Pick List (if not excluded)
+    if (!isExcluded) {
+      if (partQuantities[partType]) {
+        partQuantities[partType]++;
+      } else {
+        partQuantities[partType] = 1;
+      }
+      updatePickList(); // Update the Pick List
     }
+    return;
+  }
 
-    // Logic for ZUMLINK parts (excluding ZUMLINK-DIN-IO)
-    if (partType.startsWith('ZUMLINK') && partType !== 'ZUMLINK-DIN-IO') {
-        const rail = rails[currentRailIndex];
-        const currentIndex = rail.parts.length - 1; // Index of the current part
+  // Existing logic for other parts
+  if (currentRailIndex >= rails.length) {
+    alert('No more rails available in this panel!');
+    return;
+  }
 
-        if (currentIndex > 0) {
-            // If there's a part to the left, mimic its space name
-            const leftPart = rail.parts[currentIndex - 1];
-            const leftPartData = partsData.find((p) => p.partElement === leftPart);
-            if (leftPartData) {
-                spaceName = leftPartData.spaceName;
-            }
-        } else if (currentRailIndex > 0) {
-            // If this is the first part on a new row, look to the last part on the row above
-            const railAbove = rails[currentRailIndex - 1];
-            if (railAbove.parts.length > 0) {
-                const lastPartAbove = railAbove.parts[railAbove.parts.length - 1];
-                const lastPartAboveData = partsData.find((p) => p.partElement === lastPartAbove);
-                if (lastPartAboveData) {
-                    spaceName = lastPartAboveData.spaceName;
-                }
-            }
-        }
+  // Check if the part will exceed the rail width
+  if (rails[currentRailIndex].widthUsed + partData.width > 324) {
+    currentRailIndex++; // Move to the next rail
+    currentXPosition = 25; // Reset X position
+    if (currentRailIndex >= rails.length) {
+      alert('No more rails available in this panel!');
+      return;
     }
+  }
 
-    // Add space name to the part
-    const spaceNameElement = document.createElement('div');
-    spaceNameElement.className = 'space-name';
-    spaceNameElement.textContent = spaceName;
-    part.appendChild(spaceNameElement);
+  const part = createPartElement(partType, partData);
+  const rail = rails[currentRailIndex];
 
-    // Add rail number to the part
-    const railNumber = currentRailIndex + 1; // Rail numbers start from 1
-    part.setAttribute('data-rail-number', railNumber);
+  // Position the part
+  part.style.left = `${currentXPosition}px`;
+  part.style.top = `${parseInt(rail.element.style.top) - partData.height / 2}px`;
+  rail.parts.push(part);
+  rail.widthUsed += partData.width; // Add the part's width to rail.widthUsed
+  currentXPosition += partData.width; // Move currentXPosition by the part's width
 
-    // Add part data to partsData array
-    partsData.push({
+  panel.appendChild(part);
+  makeDraggable(part); // Enable drag-and-drop for these parts
+
+  // Update part quantities for the Pick List (if not excluded)
+  if (!isExcluded) {
+    if (partQuantities[partType]) {
+      partQuantities[partType]++;
+    } else {
+      partQuantities[partType] = 1;
+    }
+    updatePickList(); // Update the Pick List
+  }
+
+  // Determine the default space name
+  let spaceName = `Space ${spaceCounter}`;
+
+  // Logic for ZUMNET parts
+  if (partType.startsWith('ZUMNET')) {
+    // Find the last ZUMNET part added
+    const lastZUMNET = partsData
+      .filter((p) => p.partType.startsWith('ZUMNET'))
+      .pop();
+
+    if (lastZUMNET) {
+      // Extract the space number from the last ZUMNET's space name
+      const lastSpaceNumber = parseInt(lastZUMNET.spaceName.split(' ')[1]);
+      spaceName = `Space ${lastSpaceNumber + 1}`;
+    } else {
+      // If no ZUMNET parts have been added yet, default to Space 1
+      spaceName = `Space 1`;
+    }
+  }
+
+  // Logic for ZUMLINK parts (excluding ZUMLINK-DIN-IO)
+  if (partType.startsWith('ZUMLINK') && partType !== 'ZUMLINK-DIN-IO') {
+    const rail = rails[currentRailIndex];
+    const currentIndex = rail.parts.length - 1; // Index of the current part
+
+    if (currentIndex > 0) {
+      // If there's a part to the left, mimic its space name
+      const leftPart = rail.parts[currentIndex - 1];
+      const leftPartData = partsData.find((p) => p.partElement === leftPart);
+      if (leftPartData) {
+        spaceName = leftPartData.spaceName;
+      }
+    } else if (currentRailIndex > 0) {
+      // If this is the first part on a new row, look to the last part on the row above
+      const railAbove = rails[currentRailIndex - 1];
+      if (railAbove.parts.length > 0) {
+        const lastPartAbove = railAbove.parts[railAbove.parts.length - 1];
+        const lastPartAboveData = partsData.find((p) => p.partElement === lastPartAbove);
+        if (lastPartAboveData) {
+          spaceName = lastPartAboveData.spaceName;
+        }
+      }
+    }
+  }
+
+  // Add space name to the part
+  const spaceNameElement = document.createElement('div');
+  spaceNameElement.className = 'space-name';
+  spaceNameElement.textContent = spaceName;
+  part.appendChild(spaceNameElement);
+
+  // Add rail number to the part
+  const railNumber = currentRailIndex + 1; // Rail numbers start from 1
+  part.setAttribute('data-rail-number', railNumber);
+
+  // Add part data to partsData array
+  partsData.push({
     partElement: part,
     partType: partType,
     spaceName: spaceName,

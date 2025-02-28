@@ -179,6 +179,8 @@
       position: absolute;
       padding: -10px;
       background-color: var(--accent-color);
+      background-size: 100% 100%; /* Ensure the gradient covers the entire part */
+  background-repeat: no-repeat;
       border: none;
       border-radius: 3px;
       display: flex;
@@ -616,6 +618,8 @@
           <option value="DIN-EN-6X18">DIN-EN-6X18</option>
           <option value="DIN-EN-10X18">DIN-EN-10X18</option>
         </select>
+        <button data-part="1MU">Add 1MU Spaceing</button>
+  <button data-part="Terminal Block">Add Terminal Block</button>
         <button data-part="ZUMNET-DIN-DLI">Add ZUMNET-DIN-DLI</button>
         <button data-part="ZUMNET-DIN-16A-LV">Add ZUMNET-DIN-16A-LV</button>
         <button data-part="ZUMLINK-DIN-PSU">Add ZUMLINK-DIN-PSU</button>
@@ -842,6 +846,14 @@
     const panelSelect = document.getElementById('panel-select');
     const panel = document.getElementById('panel');
     const parts = {
+      '1MU': { width: 18, height: 18, color: 'white', mA: 0, dots: [] },
+   'Terminal Block': { 
+    width: 71, 
+    height: 50, 
+    color: 'linear-gradient(to right, black 33%, white 33%, white 66%, green 66%)', 
+    mA: 0, 
+    dots: [] 
+  },
       'ZUMNET-DIN-DLI': { width: 71, height: 94, color: 'purple', mA: 150, dots: ['purple', 'purple', 'orange', 'orange'] },
       'ZUMNET-DIN-16A-LV': { width: 71, height: 94, color: 'purple', mA: 120, dots: ['purple', 'purple', 'orange', 'orange'] },
       'ZUMLINK-DIN-PSU': { width: 71, height: 94, color: 'grey', mA: 0, dots: ['orange', 'orange', 'orange', 'orange'] }, // Excluded
@@ -1023,6 +1035,12 @@ function createPartElement(partType, partData) {
   part.textContent = partType;
   part.style.backgroundColor = partData.color || '#4CAF50';
 
+  // Handle gradient colors
+  if (partData.color.includes('linear-gradient')) {
+    part.style.backgroundImage = partData.color; // Use backgroundImage for gradients
+  } else {
+    part.style.backgroundColor = partData.color; // Use backgroundColor for solid colors
+  }
   // Add double-click to edit
   part.addEventListener('dblclick', () => showPartPopup(partType, part));
 

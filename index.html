@@ -246,7 +246,6 @@
         <button onclick="addPart('TERMINAL RAIL')">TERMINAL RAIL</button>
         <button onclick="printPDF()">Print PDF</button> <!-- Add Print PDF button -->
         <button onclick="importJSON()">IMPORT</button>
-        <button onclick="refreshParts()">Refresh Parts</button>
       </div>
       <div class="grid" id="grid">
         <svg id="svg-grid" width="600" height="2000"></svg>
@@ -307,118 +306,118 @@
   </div>
 
   <script>
-    const parts = {
-      'ZUMNET-DIN-DLI': { width: 71, height: 94, class: 'part-zumnet' },
-      'ZUMNET-DIN-16A-LV': { width: 71, height: 94, class: 'part-zumnet' },
-      'ZUMLINK-DIN-PSU': { width: 71, height: 94, class: 'part-psu' },
-      'ZUMLINK-DIN-16A-LV': { width: 53, height: 94, class: 'part-zumlink' },
-      'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, class: 'part-zumlink' },
-      'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 94, class: 'part-zumlink' },
-      'ZUMLINK-DIN-DIMU': { width: 53, height: 94, class: 'part-zumlink' },
-      'ZUMLINK-DIN-IO': { width: 71, height: 94, class: 'part-zumlink' },
-      'DIN-DMX': { width: 144, height: 90, class: 'part-other' },
-      'ZUM-HUB4': { width: 165, height: 439, class: 'part-other' },
-      'CEN-SWPOE-5AC': { width: 187, height: 120, class: 'part-other' },
-      'DIN-AP4': { width: 161, height: 91, class: 'part-other' },
-      'DIN-PWS60': { width: 108, height: 94, class: 'part-other' },
-      'DIN-DALI-2': { width: 159, height: 95, class: 'part-other' },
-      'TERMINAL RAIL': { width: 80, height: 50, class: 'part-multi' }
-    };
+const parts = {
+  'ZUMNET-DIN-DLI': { width: 71, height: 94, class: 'part-zumnet', fill: '#6f42c1' }, // Purple
+  'ZUMNET-DIN-16A-LV': { width: 71, height: 94, class: 'part-zumnet', fill: '#6f42c1' }, // Purple
+  'ZUMLINK-DIN-PSU': { width: 71, height: 94, class: 'part-psu', fill: '#6c757d' }, // Gray
+  'ZUMLINK-DIN-16A-LV': { width: 53, height: 94, class: 'part-zumlink', fill: '#fd7e14' }, // Orange
+  'ZUMLINK-DIN-20A-SW': { width: 53, height: 94, class: 'part-zumlink', fill: '#fd7e14' }, // Orange
+  'ZUMLINK-DIN-20A-PLUG': { width: 53, height: 94, class: 'part-zumlink', fill: '#fd7e14' }, // Orange
+  'ZUMLINK-DIN-DIMU': { width: 53, height: 94, class: 'part-zumlink', fill: '#fd7e14' }, // Orange
+  'ZUMLINK-DIN-IO': { width: 71, height: 94, class: 'part-zumlink', fill: '#fd7e14' }, // Orange
+  'DIN-DMX': { width: 144, height: 90, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'ZUM-HUB4': { width: 165, height: 439, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'CEN-SWPOE-5AC': { width: 187, height: 120, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'DIN-AP4': { width: 161, height: 91, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'DIN-PWS60': { width: 108, height: 94, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'DIN-DALI-2': { width: 159, height: 95, class: 'part-other', fill: '#343a40' }, // Dark gray
+  'TERMINAL RAIL': { width: 80, height: 50, class: 'part-multi', fill: '#ffffff' }, // White
+};
 
-    const partAbbreviations = {
-      'ZUMNET-DIN-DLI': 'DLI',
-      'ZUMNET-DIN-16A-LV': 'N-LV',
-      'ZUMLINK-DIN-16A-LV': 'L-LV',
-      'ZUMLINK-DIN-DIMU': 'L-DIMU',
-      'ZUMLINK-DIN-20A-SW': 'L-SW',
-      'ZUMLINK-DIN-20A-PLUG': 'L-PLUG',
-      'ZUMLINK-DIN-PSU': 'PSU',
-      'ZUMLINK-DIN-IO': 'L-IO'
-    };
+const partAbbreviations = {
+  'ZUMNET-DIN-DLI': 'DLI',
+  'ZUMNET-DIN-16A-LV': 'N-LV',
+  'ZUMLINK-DIN-16A-LV': 'L-LV',
+  'ZUMLINK-DIN-DIMU': 'L-DIMU',
+  'ZUMLINK-DIN-20A-SW': 'L-SW',
+  'ZUMLINK-DIN-20A-PLUG': 'L-PLUG',
+  'ZUMLINK-DIN-PSU': 'PSU',
+  'ZUMLINK-DIN-IO': 'L-IO'
+};
 
-    const panelSizes = {
-      'DIN-EN-2X18': { rails: 2, width: 424, height: 323 },
-      'DIN-EN-3X18': { rails: 3, width: 424, height: 597 },
-      'DIN-EN-6X18': { rails: 6, width: 424, height: 989 },
-      'DIN-EN-10X18': { rails: 10, width: 424, height: 1594 }
-    };
+const panelSizes = {
+  'DIN-EN-2X18': { rails: 2, width: 424, height: 323 },
+  'DIN-EN-3X18': { rails: 3, width: 424, height: 597 },
+  'DIN-EN-6X18': { rails: 6, width: 424, height: 989 },
+  'DIN-EN-10X18': { rails: 10, width: 424, height: 1594 }
+};
 
-    let currentPanel = null;
-    let currentRails = [];
-    let zumnetCounter = 1;
-    let lastZumnetNumber = 0;
-    let partDataMap = new Map(); // Store part data
+let currentPanel = null;
+let currentRails = [];
+let zumnetCounter = 1;
+let lastZumnetNumber = 0;
+let partDataMap = new Map(); // Store part data
 
-    const svgGrid = document.getElementById('svg-grid');
-    const panelSizeSelect = document.getElementById('panel-size');
+const svgGrid = document.getElementById('svg-grid');
+const panelSizeSelect = document.getElementById('panel-size');
 
-    panelSizeSelect.addEventListener('change', () => {
-      const selectedSize = panelSizeSelect.value;
-      if (selectedSize === 'none') {
-        clearPanel();
-      } else {
-        createPanel(selectedSize);
-      }
-    });
+panelSizeSelect.addEventListener('change', () => {
+  const selectedSize = panelSizeSelect.value;
+  if (selectedSize === 'none') {
+    clearPanel();
+  } else {
+    createPanel(selectedSize);
+  }
+});
 
-    function switchTab(tabName) {
-      document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      document.getElementById(tabName).classList.add('active');
-      document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-    }
+function switchTab(tabName) {
+  document.querySelectorAll('.content').forEach(content => content.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+}
 
-    function createPanel(size) {
-      clearPanel();
-      const panelData = panelSizes[size];
-      const panelWidth = panelData.width;
-      const panelHeight = panelData.height;
-      const railCount = panelData.rails;
+function createPanel(size) {
+  clearPanel();
+  const panelData = panelSizes[size];
+  const panelWidth = panelData.width;
+  const panelHeight = panelData.height;
+  const railCount = panelData.rails;
 
-      const panelX = (500 - panelWidth) / 2;
-      const panelY = (2000 - panelHeight) / 2;
+  const panelX = (500 - panelWidth) / 2;
+  const panelY = (2000 - panelHeight) / 2;
 
-      currentPanel = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      currentPanel.setAttribute('x', panelX);
-      currentPanel.setAttribute('y', panelY);
-      currentPanel.setAttribute('width', panelWidth);
-      currentPanel.setAttribute('height', panelHeight);
-      currentPanel.setAttribute('fill', 'grey');
-      svgGrid.appendChild(currentPanel);
+  currentPanel = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  currentPanel.setAttribute('x', panelX);
+  currentPanel.setAttribute('y', panelY);
+  currentPanel.setAttribute('width', panelWidth);
+  currentPanel.setAttribute('height', panelHeight);
+  currentPanel.setAttribute('fill', 'grey');
+  svgGrid.appendChild(currentPanel);
 
-      const railSpacing = (panelHeight - (railCount * 18)) / (railCount + 1);
-      for (let i = 0; i < railCount; i++) {
-        const railY = panelY + railSpacing * (i + 1) + 18 * i;
-        const rail = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rail.setAttribute('x', panelX + (panelWidth - 324) / 2);
-        rail.setAttribute('y', railY);
-        rail.setAttribute('width', 324);
-        rail.setAttribute('height', 18);
-        rail.setAttribute('fill', '#ccc');
-        svgGrid.appendChild(rail);
-        currentRails.push({ rail, parts: [], totalWidth: 0 });
-      }
+  const railSpacing = (panelHeight - (railCount * 18)) / (railCount + 1);
+  for (let i = 0; i < railCount; i++) {
+    const railY = panelY + railSpacing * (i + 1) + 18 * i;
+    const rail = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rail.setAttribute('x', panelX + (panelWidth - 324) / 2);
+    rail.setAttribute('y', railY);
+    rail.setAttribute('width', 324);
+    rail.setAttribute('height', 18);
+    rail.setAttribute('fill', '#ccc');
+    svgGrid.appendChild(rail);
+    currentRails.push({ rail, parts: [], totalWidth: 0 });
+  }
 
-      // Add dashed vertical line where the rails begin
-      const dashedLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      dashedLine.setAttribute('x1', panelX + (panelWidth - 324) / 2);
-      dashedLine.setAttribute('y1', panelY);
-      dashedLine.setAttribute('x2', panelX + (panelWidth - 324) / 2);
-      dashedLine.setAttribute('y2', panelY + panelHeight);
-      dashedLine.setAttribute('class', 'dashed-line');
-      svgGrid.appendChild(dashedLine);
-    }
+  // Add dashed vertical line where the rails begin
+  const dashedLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  dashedLine.setAttribute('x1', panelX + (panelWidth - 324) / 2);
+  dashedLine.setAttribute('y1', panelY);
+  dashedLine.setAttribute('x2', panelX + (panelWidth - 324) / 2);
+  dashedLine.setAttribute('y2', panelY + panelHeight);
+  dashedLine.setAttribute('class', 'dashed-line');
+  svgGrid.appendChild(dashedLine);
+}
 
-    function clearPanel() {
-      svgGrid.innerHTML = '';
-      currentPanel = null;
-      currentRails = [];
-      zumnetCounter = 1;
-      lastZumnetNumber = 0;
-      partDataMap.clear();
-    }
+function clearPanel() {
+  svgGrid.innerHTML = '';
+  currentPanel = null;
+  currentRails = [];
+  zumnetCounter = 1;
+  lastZumnetNumber = 0;
+  partDataMap.clear();
+}
 
-   function addPart(partName) {
+function addPart(partName) {
   if (!currentPanel) return;
 
   const partData = parts[partName];
@@ -521,6 +520,7 @@
     connectPSUParts();
   }
 }
+
 function connectZumnetParts() {
   // Remove all existing ZUMNET wires
   svgGrid.querySelectorAll('.wire-net').forEach(wire => wire.remove());
@@ -555,7 +555,7 @@ function connectZumnetParts() {
       const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       wire.setAttribute('d', `
         M ${part1X + 20} ${part1Y}
-        V ${part1Y + 20}
+        V ${part1Y + 10}
         H ${part2X + 10}
         V ${part2Y}
       `);
@@ -572,9 +572,9 @@ function connectZumnetParts() {
       const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       wire.setAttribute('d', `
         M ${part1X + 20} ${part1Y}
-        V ${part1Y + 30}
-        H ${railX - 40}
-        V ${part2Y + 20}
+        V ${part1Y + 20}
+        H ${railX - 55}
+        V ${part2Y + 10}
         H ${part2X + 10}
         V ${part2Y}
       `);
@@ -586,6 +586,7 @@ function connectZumnetParts() {
     }
   }
 }
+
 function connectZumlinkParts() {
   const zumnetParts = Array.from(svgGrid.querySelectorAll('.part-zumnet'));
   const zumlinkParts = Array.from(svgGrid.querySelectorAll('.part-zumlink:not(.part-psu)')); // Exclude PSU
@@ -630,19 +631,42 @@ function connectZumlinkParts() {
     const firstZumlinkY = parseFloat(firstZumlink.getAttribute('y')) + parseFloat(firstZumlink.getAttribute('height'));
     const firstZumlinkWidth = parseFloat(firstZumlink.getAttribute('width'));
 
-    // Wire from ZUMNET to the first ZUMLINK
-    const wire1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    wire1.setAttribute('d', `
-      M ${zumnetX + zumnetWidth - 10} ${zumnetY}
-      V ${zumnetY + 30}
-      H ${firstZumlinkX + 10}
-      V ${firstZumlinkY}
-    `);
-    wire1.setAttribute('stroke', '#fd7e14'); // Orange
-    wire1.setAttribute('stroke-width', '2');
-    wire1.setAttribute('fill', 'none');
-    wire1.setAttribute('class', 'wire-link');
-    svgGrid.appendChild(wire1);
+    // Check if ZUMNET and ZUMLINK are on the same rail
+    const isSameRail = Math.abs(zumnetY - firstZumlinkY) < 5; // Allow for small floating-point differences
+
+    if (isSameRail) {
+      // Wire from ZUMNET to the first ZUMLINK on the same rail
+      const wire1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      wire1.setAttribute('d', `
+        M ${zumnetX + zumnetWidth - 10} ${zumnetY}
+        V ${zumnetY + 30}
+        H ${firstZumlinkX + 10}
+        V ${firstZumlinkY}
+      `);
+      wire1.setAttribute('stroke', '#fd7e14'); // Orange
+      wire1.setAttribute('stroke-width', '2');
+      wire1.setAttribute('fill', 'none');
+      wire1.setAttribute('class', 'wire-link');
+      svgGrid.appendChild(wire1);
+    } else {
+      // Wire from ZUMNET to the first ZUMLINK on another rail
+      const railX = parseFloat(currentRails[0].rail.getAttribute('x')); // X-coordinate of the rail
+
+      const wire1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      wire1.setAttribute('d', `
+        M ${zumnetX + zumnetWidth - 10} ${zumnetY}
+        V ${zumnetY + 43}
+        H ${railX - 45}
+        V ${firstZumlinkY + 35}
+        H ${firstZumlinkX + 10}
+        V ${firstZumlinkY}
+      `);
+      wire1.setAttribute('stroke', '#fd7e14'); // Orange
+      wire1.setAttribute('stroke-width', '2');
+      wire1.setAttribute('fill', 'none');
+      wire1.setAttribute('class', 'wire-link');
+      svgGrid.appendChild(wire1);
+    }
 
     // Connect subsequent ZUMLINK parts
     for (let i = 0; i < zumlinks.length - 1; i++) {
@@ -682,9 +706,9 @@ function connectZumlinkParts() {
         const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         wire.setAttribute('d', `
           M ${part1X + part1Width - 10} ${part1Y}
-          V ${part1Y + 40}
-          H ${railX - 30}
-          V ${part2Y + 30}
+          V ${part1Y + 43}
+          H ${railX - 45}
+          V ${part2Y + 35}
           H ${part2X + 10}
           V ${part2Y}
         `);
@@ -698,12 +722,12 @@ function connectZumlinkParts() {
   }
 }
 
-
-
-
 function connectPSUParts() {
-  // Remove all existing PSU wires
-  svgGrid.querySelectorAll('.wire-red').forEach(wire => wire.remove());
+  // Remove all existing PSU wires and wire numbers
+  clearPSUWires();
+
+  // Define wire colors for each PSU
+  const wireColors = ['#dc3545', '#000000', '#007bff', '#28a745']; // Red, Black, Blue, Green
 
   // Get all PSU parts and sort them by Y position (rail)
   const psuParts = Array.from(svgGrid.querySelectorAll('.part-psu'));
@@ -738,14 +762,17 @@ function connectPSUParts() {
     // Define the vertical offsets for the wires (55px, 50px, 45px, 40px)
     const wireOffsets = [55, 50, 45, 40];
 
+    // Get the wire color for this PSU
+    const wireColor = wireColors[psuIndex % wireColors.length]; // Cycle through colors if there are more PSUs than colors
+
     // Connect each of the 4 wires from the PSU to the ZUMNET parts
     zumnetsForPSU.forEach((zumnet, wireIndex) => {
       const zumnetX = parseFloat(zumnet.getAttribute('x'));
       const zumnetY = parseFloat(zumnet.getAttribute('y')) + parseFloat(zumnet.getAttribute('height'));
       const zumnetWidth = parseFloat(zumnet.getAttribute('width'));
 
-      // Calculate the horizontal spacing between wires (5px apart)
-      const wireSpacing = 5;
+      // Calculate the horizontal spacing between wires (20px apart for better spacing)
+      const wireSpacing = 20;
       const wireHorizontalOffset = wireIndex * wireSpacing;
 
       // Calculate the vertical offset for this wire
@@ -757,41 +784,111 @@ function connectPSUParts() {
       // Check if the ZUMNET is on a row below the PSU
       const isZumnetBelow = zumnetY > psuY;
 
+      // Calculate the distance from the PSU to the right side of the rail
+      const railX = parseFloat(currentRails[0].rail.getAttribute('x'));
+      const railWidth = 324; // Width of the rail
+      const distanceToRightSide = railX + railWidth - (psuX + psuWidth);
+
+      // Additional spacing for wires going to a different row (5px per wire)
+      const additionalSpacing = wireIndex * 5;
+
       // Wire from PSU to ZUMNET
       const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       if (isZumnetBelow) {
-        // Path for ZUMNET on a row below: over to the right, down the side, over to the left, up
+        // Path for ZUMNET on a row below: over to the right, down, over to the left, up
         wire.setAttribute('d', `
-          M ${psuX + psuWidth / 2 - 7.5 + wireHorizontalOffset} ${psuY}
+          M ${psuX + psuWidth / 2 - 30 + wireHorizontalOffset} ${psuY}
           V ${psuY + wireVerticalOffset}
-          H ${psuX + psuWidth + 20}
-          V ${zumnetY + 20}
+          H ${psuX + psuWidth + distanceToRightSide + 40 + additionalSpacing}
+          V ${zumnetY + wireVerticalOffset}
           H ${zumnetConnectionX}
           V ${zumnetY}
         `);
       } else {
         // Path for ZUMNET on the same row or above: straight to the ZUMNET
         wire.setAttribute('d', `
-          M ${psuX + psuWidth / 2 - 7.5 + wireHorizontalOffset} ${psuY}
+          M ${psuX + psuWidth / 2 - 30 + wireHorizontalOffset} ${psuY}
           V ${psuY + wireVerticalOffset}
           H ${zumnetConnectionX}
           V ${zumnetY}
         `);
       }
-      wire.setAttribute('stroke', '#dc3545'); // Red
+      wire.setAttribute('stroke', wireColor); // Use the assigned wire color
       wire.setAttribute('stroke-width', '2');
       wire.setAttribute('fill', 'none');
-      wire.setAttribute('class', 'wire-red');
+      wire.setAttribute('class', `wire-psu wire-${wireColor.replace('#', '')}`); // Add a common class for PSU wires
+      wire.setAttribute('data-zumnet-id', zumnet.getAttribute('data-part-id')); // Store the ZUMNET ID for tracking
       svgGrid.appendChild(wire);
+
+      // Add wire number above the wire on the PSU
+      const psuWireNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      psuWireNumber.setAttribute('x', psuX + psuWidth / 2 - 30 + wireHorizontalOffset);
+      psuWireNumber.setAttribute('y', psuY - 10); // Position above the wire on the PSU
+      psuWireNumber.setAttribute('fill', wireColor); // Use the same color as the wire
+      psuWireNumber.setAttribute('font-size', '12');
+      psuWireNumber.setAttribute('text-anchor', 'middle');
+      psuWireNumber.setAttribute('class', 'wire-number');
+      psuWireNumber.textContent = wireIndex + 1; // Assign wire number (1, 2, 3, 4)
+      svgGrid.appendChild(psuWireNumber);
+
+      // Add wire number above the wire on the ZUMNET
+      const zumnetWireNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      zumnetWireNumber.setAttribute('x', zumnetConnectionX);
+      zumnetWireNumber.setAttribute('y', zumnetY - 10); // Position above the wire on the ZUMNET
+      zumnetWireNumber.setAttribute('fill', wireColor); // Use the same color as the wire
+      zumnetWireNumber.setAttribute('font-size', '12');
+      zumnetWireNumber.setAttribute('text-anchor', 'middle');
+      zumnetWireNumber.setAttribute('class', 'wire-number');
+      zumnetWireNumber.textContent = wireIndex + 1; // Assign wire number (1, 2, 3, 4)
+      svgGrid.appendChild(zumnetWireNumber);
     });
   });
 }
 
+function clearPSUWires() {
+  console.log("Clearing all PSU wires...");
 
+  // Remove all PSU wires and wire numbers
+  const psuWires = svgGrid.querySelectorAll('.wire-psu, .wire-number');
+  console.log(`Found ${psuWires.length} PSU wires to remove.`); // Debug log
 
+  psuWires.forEach(wire => {
+    console.log(`Removing wire: ${wire.getAttribute('class')}`); // Debug log
+    wire.remove();
+  });
 
+  console.log("All PSU wires cleared."); // Debug log
+}
 
+function clearAllWires() {
+  console.log("Clearing all wires...");
 
+  // Remove all wires and wire numbers
+  const wires = svgGrid.querySelectorAll('.wire-net, .wire-link, .wire-psu, .wire-number');
+  console.log(`Found ${wires.length} wires to remove.`); // Debug log
+
+  wires.forEach(wire => {
+    console.log(`Removing wire: ${wire.getAttribute('class')}`); // Debug log
+    wire.remove();
+  });
+
+  console.log("All wires cleared."); // Debug log
+}
+
+function redrawAllWires() {
+  console.log("Redrawing all wires...");
+
+  // Reconnect ZUMNET parts
+  connectZumnetParts();
+
+  // Reconnect ZUMLINK parts
+  connectZumlinkParts();
+
+  // Reconnect PSU parts
+  connectPSUParts();
+
+  console.log("All wires redrawn."); // Debug log
+}
 
 function addDragAndDropListeners(partRect) {
   let isDragging = false;
@@ -819,7 +916,7 @@ function addDragAndDropListeners(partRect) {
 
   // Start dragging (for both mouse and touch events)
   function startDrag(event) {
-    event.preventDefault(); // Prevent default behavior (e.g., scrolling on touch devices)
+    event.preventDefault();
     isDragging = true;
     draggedPart = partRect;
 
@@ -833,8 +930,8 @@ function addDragAndDropListeners(partRect) {
     // Add dragging class for visual feedback
     partRect.classList.add('dragging');
 
-    // Hide all wires except the one connected to the dragged part
-    hideAllWires();
+    // Clear all wires when any part is dragged
+    clearAllWires();
   }
 
   // Move the part (for both mouse and touch events)
@@ -871,9 +968,10 @@ function addDragAndDropListeners(partRect) {
     // Remove dragging class
     partRect.classList.remove('dragging');
 
-    // Reconnect all wires after dropping the part
-    reconnectAllWires();
-    connectPSUParts();
+    // Redraw all wires after a 5-second delay
+    setTimeout(() => {
+      redrawAllWires(); // Redraw all wires
+    }, 5000); // 5-second delay
   }
 
   // Add event listeners for mouse events
@@ -887,14 +985,6 @@ function addDragAndDropListeners(partRect) {
   document.addEventListener('touchend', stopDrag);
 }
 
-// Helper function to hide all wires
-function hideAllWires() {
-  svgGrid.querySelectorAll('.wire-net, .wire-link').forEach(wire => {
-    wire.style.display = 'none';
-  });
-}
-
-// Helper function to show only the wire connected to the dragged part
 function showWireForDraggedPart(draggedPart, snappedPosition) {
   // Remove any existing temporary wire
   svgGrid.querySelectorAll('.temp-wire').forEach(wire => wire.remove());
@@ -934,7 +1024,7 @@ function showWireForDraggedPart(draggedPart, snappedPosition) {
         svgGrid.appendChild(wire);
       } else {
         // Wire between rails
-        const railX = parseFloat(currentRails[0].rail.getAttribute('x')); // X-coordinate of the rail
+        const railX = parseFloat(currentRails[0].rail.getAttribute('x'));
         const widthFromPartToRail = part1X + part1Width - railX; // Width from part to beginning of rail
 
         const wire = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -991,7 +1081,6 @@ function showWireForDraggedPart(draggedPart, snappedPosition) {
   }
 }
 
-// Helper function to reconnect all wires after dropping the part
 function reconnectAllWires() {
   // Remove all temporary wires
   svgGrid.querySelectorAll('.temp-wire').forEach(wire => wire.remove());
@@ -1001,9 +1090,11 @@ function reconnectAllWires() {
 
   // Reconnect ZUMLINK parts
   connectZumlinkParts();
+
+  // Reconnect PSU parts
+  connectPSUParts();
 }
 
-// Helper function to update the positions of the part's text labels
 function updatePartText(partRect, snappedPosition) {
   const partNumber = partRect.nextElementSibling;
   if (partNumber && partNumber.tagName === 'text') {
@@ -1017,11 +1108,12 @@ function updatePartText(partRect, snappedPosition) {
     partNameText.setAttribute('y', snappedPosition.y + 30);
   }
 }
+
 function snapToRailsAndParts(newX, newY, partRect) {
   const partWidth = parseFloat(partRect.getAttribute('width'));
   const partHeight = parseFloat(partRect.getAttribute('height'));
-  const railX = parseFloat(currentRails[0].rail.getAttribute('x')); // X-coordinate of the rail
-  const railY = parseFloat(currentRails[0].rail.getAttribute('y')); // Y-coordinate of the rail
+  const railX = parseFloat(currentRails[0].rail.getAttribute('x'));
+  const railY = parseFloat(currentRails[0].rail.getAttribute('y'));
   const railWidth = 324; // Width of the rail
   const railHeight = 18; // Height of the rail
 
@@ -1117,248 +1209,359 @@ function snapToRailsAndParts(newX, newY, partRect) {
   return { x: snappedX, y: snappedY };
 }
 
-   // Modal functionality
-    const modal = document.getElementById('part-modal');
-    const closeModal = document.querySelector('.close');
-    const partForm = document.getElementById('part-form');
+// Modal functionality
+const modal = document.getElementById('part-modal');
+const closeModal = document.querySelector('.close');
+const partForm = document.getElementById('part-form');
 
-    function openModal(partRect, partNumberText) {
-      const partId = partRect.getAttribute('data-part-id');
-      const partData = partDataMap.get(partId) || {};
+function openModal(partRect, partNumberText) {
+  const partId = partRect.getAttribute('data-part-id');
+  const partData = partDataMap.get(partId) || {};
 
-      // Set the Space Number to the current part number
-      document.getElementById('space-number').value = partNumberText.textContent || '';
-      document.getElementById('space-name').value = partData.spaceName || '';
-      document.getElementById('zone').value = partData.zone || '';
-      document.getElementById('voltage').value = partData.voltage || '120';
-      document.getElementById('lighting-load').value = partData.lightingLoad || '';
-      document.getElementById('device-mA').value = partData.deviceMA || '';
+  // Set the Space Number to the current part number
+  document.getElementById('space-number').value = partNumberText.textContent || '';
+  document.getElementById('space-name').value = partData.spaceName || '';
+  document.getElementById('zone').value = partData.zone || '';
+  document.getElementById('voltage').value = partData.voltage || '120';
+  document.getElementById('lighting-load').value = partData.lightingLoad || '';
+  document.getElementById('device-mA').value = partData.deviceMA || '';
 
-      modal.style.display = 'block';
+  modal.style.display = 'block';
 
-      // Save the partId and partNumberText in the form for reference
-      partForm.setAttribute('data-part-id', partId);
-      partForm.setAttribute('data-part-number', partNumberText.textContent);
+  // Save the partId and partNumberText in the form for reference
+  partForm.setAttribute('data-part-id', partId);
+  partForm.setAttribute('data-part-number', partNumberText.textContent);
+}
+
+partForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const partId = partForm.getAttribute('data-part-id');
+  const oldPartNumber = partForm.getAttribute('data-part-number');
+  const newPartNumber = document.getElementById('space-number').value;
+
+  const partData = {
+    spaceNumber: newPartNumber,
+    spaceName: document.getElementById('space-name').value,
+    zone: document.getElementById('zone').value,
+    voltage: document.getElementById('voltage').value,
+    lightingLoad: document.getElementById('lighting-load').value,
+    deviceMA: document.getElementById('device-mA').value,
+  };
+
+  // Update the part number text
+  const partNumberText = document.querySelector(`[data-part-id="${partId}"] + text`);
+  partNumberText.textContent = newPartNumber;
+
+  // Update the ZUMNET counter if the part is a ZUMNET part
+  if (partNumberText.textContent && partNumberText.textContent !== oldPartNumber) {
+    const partRect = document.querySelector(`[data-part-id="${partId}"]`);
+    const partName = partRect.getAttribute('data-part-name'); // Assuming you add this attribute when creating the part
+
+    if (partName && partName.startsWith('ZUMNET')) {
+      zumnetCounter = Math.max(zumnetCounter, parseInt(newPartNumber) + 1);
+      lastZumnetNumber = parseInt(newPartNumber);
     }
+  }
 
-    partForm.addEventListener('submit', (event) => {
-      event.preventDefault();
+  // Save the data
+  partDataMap.set(partId, partData);
+  closeModalFunc();
+});
 
-      const partId = partForm.getAttribute('data-part-id');
-      const oldPartNumber = partForm.getAttribute('data-part-number');
-      const newPartNumber = document.getElementById('space-number').value;
+function closeModalFunc() {
+  modal.style.display = 'none';
+}
 
-      const partData = {
-        spaceNumber: newPartNumber,
-        spaceName: document.getElementById('space-name').value,
-        zone: document.getElementById('zone').value,
-        voltage: document.getElementById('voltage').value,
-        lightingLoad: document.getElementById('lighting-load').value,
-        deviceMA: document.getElementById('device-mA').value,
-      };
+closeModal.addEventListener('click', closeModalFunc);
 
-      // Update the part number text
-      const partNumberText = document.querySelector(`[data-part-id="${partId}"] + text`);
-      partNumberText.textContent = newPartNumber;
+window.addEventListener('click', (event) => {
+  if (event.target === modal) {
+    closeModalFunc();
+  }
+});
 
-      // Update the ZUMNET counter if the part is a ZUMNET part
-      if (partNumberText.textContent && partNumberText.textContent !== oldPartNumber) {
-        const partRect = document.querySelector(`[data-part-id="${partId}"]`);
-        const partName = partRect.getAttribute('data-part-name'); // Assuming you add this attribute when creating the part
+partForm.addEventListener('submit', (event) => {
+  event.preventDefault();
 
-        if (partName && partName.startsWith('ZUMNET')) {
-          zumnetCounter = Math.max(zumnetCounter, parseInt(newPartNumber) + 1);
-          lastZumnetNumber = parseInt(newPartNumber);
+  const partId = partForm.getAttribute('data-part-id');
+  const partNumberText = partForm.getAttribute('data-part-number');
+  const partData = {
+    spaceNumber: document.getElementById('space-number').value,
+    spaceName: document.getElementById('space-name').value,
+    zone: document.getElementById('zone').value,
+    voltage: document.getElementById('voltage').value,
+    lightingLoad: document.getElementById('lighting-load').value,
+    deviceMA: document.getElementById('device-mA').value,
+  };
+
+  // Update the part number text
+  partNumberText.textContent = partData.spaceNumber;
+
+  // Save the data
+  partDataMap.set(partId, partData);
+  closeModalFunc();
+});
+
+function printPDF() {
+  const grid = document.getElementById('grid');
+  const svgGrid = document.getElementById('svg-grid');
+
+  // Function to hide/show parts and add/remove white squares
+  function toggleParts(partClass, show) {
+    const parts = svgGrid.querySelectorAll(`.${partClass}`);
+    parts.forEach(part => {
+      if (show) {
+        // Show the part
+        part.style.display = 'inline';
+
+        // Remove the white square if it exists
+        const whiteSquare = part.nextElementSibling;
+        if (whiteSquare && whiteSquare.classList.contains('white-square')) {
+          whiteSquare.remove();
         }
+      } else {
+        // Hide the part
+        part.style.display = 'none';
+
+        // Add a white square to cover the part and its text
+        const partX = parseFloat(part.getAttribute('x'));
+        const partY = parseFloat(part.getAttribute('y'));
+        const partWidth = parseFloat(part.getAttribute('width'));
+        const partHeight = parseFloat(part.getAttribute('height'));
+
+        const whiteSquare = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        whiteSquare.setAttribute('x', partX);
+        whiteSquare.setAttribute('y', partY);
+        whiteSquare.setAttribute('width', partWidth);
+        whiteSquare.setAttribute('height', partHeight);
+        whiteSquare.setAttribute('fill', 'white');
+        whiteSquare.setAttribute('stroke', 'black'); // Optional: Add a border for visibility
+        whiteSquare.setAttribute('stroke-width', '1');
+        whiteSquare.classList.add('white-square');
+
+        // Insert the white square after the part
+        part.parentNode.insertBefore(whiteSquare, part.nextSibling);
       }
-
-      // Save the data
-      partDataMap.set(partId, partData);
-      closeModalFunc();
     });
+  }
 
-    function closeModalFunc() {
-      modal.style.display = 'none';
-    }
-
-    closeModal.addEventListener('click', closeModalFunc);
-
-    window.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        closeModalFunc();
+  // Function to hide/show wires based on their class and increase stroke width for printing
+  function toggleWires(wireClass, show) {
+    const wires = svgGrid.querySelectorAll(`.${wireClass}`);
+    wires.forEach(wire => {
+      wire.style.display = show ? 'inline' : 'none';
+      // Increase stroke width for printing
+      if (show) {
+        wire.setAttribute('stroke-width', '4'); // Increase stroke width for printing
+      } else {
+        wire.setAttribute('stroke-width', '2'); // Reset to default stroke width
       }
     });
+  }
 
-    partForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      const partId = partForm.getAttribute('data-part-id');
-      const partNumberText = partForm.getAttribute('data-part-number');
-      const partData = {
-        spaceNumber: document.getElementById('space-number').value,
-        spaceName: document.getElementById('space-name').value,
-        zone: document.getElementById('zone').value,
-        voltage: document.getElementById('voltage').value,
-        lightingLoad: document.getElementById('lighting-load').value,
-        deviceMA: document.getElementById('device-mA').value,
-      };
-
-      // Update the part number text
-      partNumberText.textContent = partData.spaceNumber;
-
-      // Save the data
-      partDataMap.set(partId, partData);
-      closeModalFunc();
-    });
-
-    function printPDF() {
-      const grid = document.getElementById('grid');
-      const svgGrid = document.getElementById('svg-grid');
-
-      // Function to hide/show wires based on their color
-      function toggleWires(color, show) {
-        const wires = svgGrid.querySelectorAll('.wire');
-        wires.forEach(wire => {
-          if (wire.getAttribute('stroke') === color) {
-            wire.style.display = show ? 'inline' : 'none';
-          }
-        });
+  // Function to hide/show PSU wires based on the PSU index
+  function togglePSUWires(psuIndex, show) {
+    const psuWires = svgGrid.querySelectorAll('.wire-psu');
+    psuWires.forEach((wire, index) => {
+      // Show only the wires for the current PSU
+      if (index >= psuIndex * 4 && index < (psuIndex + 1) * 4) {
+        wire.style.display = show ? 'inline' : 'none';
+        // Increase stroke width for printing
+        if (show) {
+          wire.setAttribute('stroke-width', '4'); // Increase stroke width for printing
+        } else {
+          wire.setAttribute('stroke-width', '2'); // Reset to default stroke width
+        }
+      } else {
+        // Hide wires for all other PSUs
+        wire.style.display = 'none';
       }
+    });
+  }
 
-      // Capture the first page (all wires except RED)
-      toggleWires('red', false); // Hide RED wires
-      html2canvas(grid, {
-        scale: 2, // Increase scale for better quality
-        logging: true, // Enable logging for debugging
-        useCORS: true, // Enable CORS for external resources (if any)
-      }).then(canvas1 => {
-        const imgData1 = canvas1.toDataURL('image/png'); // Convert canvas to image data URL
+  // Create a new PDF instance
+  const pdf = new jspdf.jsPDF({
+    orientation: 'portrait', // Use portrait orientation for 11x17
+    unit: 'mm',
+    format: [432, 279], // 11x17 inches in mm (width x height)
+  });
 
-        // Capture the second page (only RED wires)
-        toggleWires('red', true); // Show RED wires
-        toggleWires('purple', false); // Hide other wires
-        toggleWires('orange', false); // Hide other wires
+  // Calculate the dimensions of the panel
+  const panelWidth = grid.offsetWidth; // Width of the grid in pixels
+  const panelHeight = grid.offsetHeight; // Height of the grid in pixels
+
+  // 11x17 page dimensions in mm (portrait)
+  const pageWidth = 279; // 11 inches in mm
+  const pageHeight = 432; // 17 inches in mm
+
+  // Calculate the scaling factor to fit the panel on one page
+  const scaleX = pageWidth / panelWidth; // Scaling factor for width
+  const scaleY = pageHeight / panelHeight; // Scaling factor for height
+  const scale = Math.min(scaleX, scaleY); // Use the smaller scaling factor to fit the entire panel
+
+  // Calculate the scaled dimensions of the panel
+  const scaledWidth = panelWidth * scale;
+  const scaledHeight = panelHeight * scale;
+
+  // Center the panel on the page
+  const offsetX = (pageWidth - scaledWidth) / 2;
+  const offsetY = (pageHeight - scaledHeight) / 2;
+
+  // Capture the first page (only ZUMNET parts and purple wires)
+  toggleParts('part-zumnet', true); // Show ZUMNET parts
+  toggleParts('part-zumlink', false); // Hide ZUMLINK parts (replace with white squares)
+  toggleParts('part-psu', false); // Hide PSU parts (replace with white squares)
+  toggleWires('wire-net', true); // Show purple wires
+  toggleWires('wire-link', false); // Hide orange wires
+  toggleWires('wire-psu', false); // Hide PSU wires
+  html2canvas(grid, {
+    scale: 2, // Increase scale for better quality
+    logging: true, // Enable logging for debugging
+    useCORS: true, // Enable CORS for external resources (if any)
+  }).then(canvas1 => {
+    const imgData1 = canvas1.toDataURL('image/png'); // Convert canvas to image data URL
+
+    // Add the first page (only ZUMNET parts and purple wires)
+    pdf.addImage(imgData1, 'PNG', offsetX, offsetY, scaledWidth, scaledHeight);
+
+    // Capture the second page (ZUMNET and ZUMLINK parts, orange wires)
+    toggleParts('part-zumnet', true); // Show ZUMNET parts
+    toggleParts('part-zumlink', true); // Show ZUMLINK parts
+    toggleParts('part-psu', false); // Hide PSU parts (replace with white squares)
+    toggleWires('wire-net', false); // Hide purple wires
+    toggleWires('wire-link', true); // Show orange wires
+    toggleWires('wire-psu', false); // Hide PSU wires
+    html2canvas(grid, {
+      scale: 2, // Increase scale for better quality
+      logging: true, // Enable logging for debugging
+      useCORS: true, // Enable CORS for external resources (if any)
+    }).then(canvas2 => {
+      const imgData2 = canvas2.toDataURL('image/png'); // Convert canvas to image data URL
+
+      // Add the second page (ZUMNET and ZUMLINK parts, orange wires)
+      pdf.addPage();
+      pdf.addImage(imgData2, 'PNG', offsetX, offsetY, scaledWidth, scaledHeight);
+
+      // Capture additional pages for each PSU and its wiring
+      const psuParts = Array.from(svgGrid.querySelectorAll('.part-psu'));
+      psuParts.forEach((psu, psuIndex) => {
+        // Hide all parts first
+        toggleParts('part-zumnet', false); // Hide ZUMNET parts (replace with white squares)
+        toggleParts('part-zumlink', false); // Hide ZUMLINK parts (replace with white squares)
+        toggleParts('part-psu', false); // Hide all PSU parts (replace with white squares)
+
+        // Show only the current PSU and its connected ZUMNET parts
+        toggleParts('part-psu', true); // Show the current PSU
+        toggleParts('part-zumnet', true); // Show ZUMNET parts
+        toggleWires('wire-net', false); // Hide purple wires
+        toggleWires('wire-link', false); // Hide orange wires
+        togglePSUWires(psuIndex, true); // Show wires for the current PSU
+
+        // Capture the canvas for the current PSU
         html2canvas(grid, {
           scale: 2, // Increase scale for better quality
           logging: true, // Enable logging for debugging
           useCORS: true, // Enable CORS for external resources (if any)
-        }).then(canvas2 => {
-          const imgData2 = canvas2.toDataURL('image/png'); // Convert canvas to image data URL
+        }).then(canvas => {
+          const imgData = canvas.toDataURL('image/png'); // Convert canvas to image data URL
 
-          // Create a new PDF instance
-          const pdf = new jspdf.jsPDF({
-            orientation: 'portrait', // Use portrait orientation for 11x17
-            unit: 'mm',
-            format: [432, 279], // 11x17 inches in mm (width x height)
-          });
+          // Add a new page for the current PSU
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', offsetX, offsetY, scaledWidth, scaledHeight);
 
-          // Calculate the dimensions of the panel
-          const panelWidth = grid.offsetWidth; // Width of the grid in pixels
-          const panelHeight = grid.offsetHeight; // Height of the grid in pixels
+          // If this is the last PSU, save the PDF
+          if (psuIndex === psuParts.length - 1) {
+            pdf.save('panel-and-wiring-11x17.pdf');
 
-          // 11x17 page dimensions in mm (portrait)
-          const pageWidth = 279; // 11 inches in mm
-          const pageHeight = 432; // 17 inches in mm
+            // Reset part visibility and remove white squares
+            toggleParts('part-zumnet', true); // Show ZUMNET parts
+            toggleParts('part-zumlink', true); // Show ZUMLINK parts
+            toggleParts('part-psu', true); // Show PSU parts
+            toggleWires('wire-net', true); // Show purple wires
+            toggleWires('wire-link', true); // Show orange wires
+            toggleWires('wire-psu', true); // Show PSU wires
 
-          // Calculate the scaling factor to fit the panel on one page
-          const scaleX = pageWidth / panelWidth; // Scaling factor for width
-          const scaleY = pageHeight / panelHeight; // Scaling factor for height
-          const scale = Math.min(scaleX, scaleY); // Use the smaller scaling factor to fit the entire panel
-
-          // Calculate the scaled dimensions of the panel
-          const scaledWidth = panelWidth * scale;
-          const scaledHeight = panelHeight * scale;
-
-          // Center the panel on the page
-          const offsetX = (pageWidth - scaledWidth) / 2;
-          const offsetY = (pageHeight - scaledHeight) / 2;
-
-          // Add the first page (all wires except RED)
-          pdf.addImage(imgData1, 'PNG', offsetX, offsetY, scaledWidth, scaledHeight);
-
-          // Add the second page (only RED wires)
-          pdf.addPage(); // Add a new page
-          pdf.addImage(imgData2, 'PNG', offsetX, offsetY, scaledWidth, scaledHeight);
-
-          // Save the PDF
-          pdf.save('panel-and-wiring-11x17.pdf');
-
-          // Reset wire visibility
-          toggleWires('purple', true); // Show PURPLE wires
-          toggleWires('orange', true); // Show ORANGE wires
-          toggleWires('red', true); // Show RED wires
+            // Reset wire stroke width to default
+            const allWires = svgGrid.querySelectorAll('.wire');
+            allWires.forEach(wire => {
+              wire.setAttribute('stroke-width', '2'); // Reset to default stroke width
+            });
+          }
         });
       });
+    });
+  });
+}
+
+function importJSON() {
+  // Create a file input element
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.json';
+  fileInput.style.display = 'none';
+
+  // Add event listener for file selection
+  fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const jsonData = JSON.parse(e.target.result);
+        buildPanelFromJSON(jsonData);
+      };
+      reader.readAsText(file);
     }
+  });
 
-    function importJSON() {
-      // Create a file input element
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = '.json';
-      fileInput.style.display = 'none';
+  // Trigger the file input dialog
+  fileInput.click();
+}
 
-      // Add event listener for file selection
-      fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const jsonData = JSON.parse(e.target.result);
-            buildPanelFromJSON(jsonData);
-          };
-          reader.readAsText(file);
+function buildPanelFromJSON(jsonData) {
+  // Clear the existing panel
+  clearPanel();
+
+  // Iterate through each space in the JSON
+  jsonData.spaces.forEach((space) => {
+    const spaceName = space.name;
+
+    // Add ZUMNET parts first if they exist
+    space.zones.forEach((zone) => {
+      if (zone.type.startsWith('ZUMNET') && zone.value > 0) {
+        for (let i = 0; i < zone.value; i++) {
+          addPart(zone.type);
         }
-      });
+      }
+    });
 
-      // Trigger the file input dialog
-      fileInput.click();
-    }
-
-    function buildPanelFromJSON(jsonData) {
-      // Clear the existing panel
-      clearPanel();
-
-      // Iterate through each space in the JSON
-      jsonData.spaces.forEach((space) => {
-        const spaceName = space.name;
-
-        // Add ZUMNET parts first if they exist
-        space.zones.forEach((zone) => {
-          if (zone.type.startsWith('ZUMNET') && zone.value > 0) {
-            for (let i = 0; i < zone.value; i++) {
-              addPart(zone.type);
-            }
-          }
-        });
-
-        // Add ZUMLINK parts next
-        space.zones.forEach((zone) => {
-          if (zone.type.startsWith('ZUMLINK') && zone.value > 0) {
-            for (let i = 0; i < zone.value; i++) {
-              addPart(zone.type);
-            }
-          }
-        });
-
-        // Add LV parts based on the "lv" configuration
-        if (space.lv) {
-          const lvZumlinkQty = space.lv.zumlink;
-          const lvZumnetQty = space.lv.zumnet;
-
-          for (let i = 0; i < lvZumlinkQty; i++) {
-            addPart('ZUMLINK-DIN-16A-LV');
-          }
-
-          for (let i = 0; i < lvZumnetQty; i++) {
-            addPart('ZUMNET-DIN-16A-LV');
-          }
+    // Add ZUMLINK parts next
+    space.zones.forEach((zone) => {
+      if (zone.type.startsWith('ZUMLINK') && zone.value > 0) {
+        for (let i = 0; i < zone.value; i++) {
+          addPart(zone.type);
         }
-      });
+      }
+    });
 
-      // Auto-wire the panel after adding all parts
-      connectZumnetParts();
+    // Add LV parts based on the "lv" configuration
+    if (space.lv) {
+      const lvZumlinkQty = space.lv.zumlink;
+      const lvZumnetQty = space.lv.zumnet;
+
+      for (let i = 0; i < lvZumlinkQty; i++) {
+        addPart('ZUMLINK-DIN-16A-LV');
+      }
+
+      for (let i = 0; i < lvZumnetQty; i++) {
+        addPart('ZUMNET-DIN-16A-LV');
+      }
     }
+  });
+
+  // Auto-wire the panel after adding all parts
+  connectZumnetParts();
+}
   </script>
 </body>
 </html>
